@@ -23,6 +23,7 @@ NetworkManager="*res://src/autoloads/NetworkManager.gd"
 ItemRegistry="*res://src/autoloads/ItemRegistry.gd"
 AudioManager="*res://src/autoloads/AudioManager.gd"
 NetAPI="*res://src/autoloads/NetAPI.gd"
+GameServer="*res://src/autoloads/GameServer.gd"
 
 [editor_plugins]
 

@@ -1,11 +1,10 @@
 extends Node
 
 var _db = null
-var _sessions: Dictionary = {}  # token (String) -> peer_id (int)
 
 func _ready() -> void:
 	if not ClassDB.class_exists("SQLite"):
-		push_error("AuthServer: godot-sqlite not installed. Download from https://github.com/2shady4u/godot-sqlite/releases and extract into addons/godot-sqlite/")
+		push_error("AuthServer: godot-sqlite not installed. See addons/godot-sqlite/INSTALL.md")
 		return
 	_db = ClassDB.instantiate("SQLite")
 	_db.path = "user://players"
@@ -36,7 +35,7 @@ func _init_schema() -> void:
 		)
 	""")
 
-# ── Public API (called by NetAPI) ─────────────────────────────────────────────
+# ── Public API ────────────────────────────────────────────────────────────────
 
 func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 	if _db == null:
@@ -50,8 +49,7 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 		return
 
 	var row: Dictionary = rows[0]
-	var expected := _hash_salted(pw_hash, row.salt)
-	if expected != row.password_hash:
+	if _hash_salted(pw_hash, row.salt) != row.password_hash:
 		NetAPI.rpc_id(peer_id, "notify_login", false, "Incorrect password.", 0)
 		return
 
@@ -60,7 +58,7 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 		[int(Time.get_unix_time_from_system()), row.id]
 	)
 
-	var session: PlayerSession = get_parent().get_session(peer_id)
+	var session := GameServer.get_session(peer_id)
 	if session:
 		session.authenticated = true
 		session.username = username
@@ -78,12 +76,10 @@ func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 		return
 
 	var salt := _generate_salt()
-	var stored_hash := _hash_salted(pw_hash, salt)
 	var now := int(Time.get_unix_time_from_system())
-
 	var ok: bool = _db.query_with_bindings(
 		"INSERT INTO players (username, password_hash, salt, coins, created_at, last_login) VALUES (?, ?, ?, 50, ?, ?)",
-		[username, stored_hash, salt, now, now]
+		[username, _hash_salted(pw_hash, salt), salt, now, now]
 	)
 
 	if ok:
@@ -91,7 +87,7 @@ func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 	else:
 		NetAPI.rpc_id(peer_id, "notify_register", false, "Username already taken.")
 
-# ── Private helpers ───────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 func _generate_salt() -> String:
 	var bytes := PackedByteArray()
