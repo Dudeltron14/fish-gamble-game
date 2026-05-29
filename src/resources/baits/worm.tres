@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BaitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/BaitData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "worm"
+display_name = "Worm"
+description = "A classic. Fish love 'em, you hate touching 'em."
+buy_price = 5
+sell_price = 1
+rarity_weights = {"common": 0.70, "uncommon": 0.22, "rare": 0.075, "legendary": 0.005}
+uses_per_stack = 10

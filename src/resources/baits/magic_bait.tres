@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BaitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/BaitData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "magic_bait"
+display_name = "Magic Bait"
+description = "Smells like secrets. Legendary fish can't resist."
+buy_price = 60
+sell_price = 20
+rarity_weights = {"common": 0.20, "uncommon": 0.35, "rare": 0.30, "legendary": 0.15}
+uses_per_stack = 5

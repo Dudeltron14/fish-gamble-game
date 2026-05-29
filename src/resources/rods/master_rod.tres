@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RodData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/RodData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "master_rod"
+display_name = "Master Rod"
+description = "Forged from legends. Probably."
+buy_price = 250
+sell_price = 125
+cast_speed = 1.8
+line_strength = 2.2
+rarity_bonus = 0.12

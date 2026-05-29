@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RodData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/RodData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "starter_rod"
+display_name = "Starter Rod"
+description = "Reliable enough to get started. Don't judge it."
+buy_price = 0
+sell_price = 0
+cast_speed = 1.0
+line_strength = 1.0
+rarity_bonus = 0.0

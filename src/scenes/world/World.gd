@@ -2,12 +2,13 @@ extends Node2D
 
 const PLAYER_SCENE := preload("res://src/scenes/player/Player.tscn")
 const FISHING_SCENE := preload("res://src/scenes/fishing/FishingMinigame.tscn")
+const SHOP_SCENE := preload("res://src/scenes/ui/Shop.tscn")
 
 @onready var players: Node2D = $Players
 @onready var spawn_point: Marker2D = $SpawnPoint
 
 var _local_zone := ""
-var _fishing: Node = null
+var _overlay: Node = null  # currently open UI overlay
 
 func _ready() -> void:
 	add_to_group("world")
@@ -19,8 +20,11 @@ func _ready() -> void:
 		NetAPI.rpc("c2s_world_ready")
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_accept") and _local_zone == "DockZone" and _fishing == null:
-		_open_fishing()
+	if not event.is_action_pressed("ui_accept") or _overlay != null:
+		return
+	match _local_zone:
+		"DockZone":   _open_overlay(FISHING_SCENE)
+		"ShopZone":   _open_overlay(SHOP_SCENE)
 
 func spawn_player(peer_id: int, p_name: String) -> void:
 	if not multiplayer.is_server():
@@ -39,13 +43,13 @@ func _despawn_player(peer_id: int) -> void:
 	if player:
 		player.queue_free()
 
-func _open_fishing() -> void:
-	_fishing = FISHING_SCENE.instantiate()
-	_fishing.completed.connect(_on_fishing_closed)
-	add_child(_fishing)
+func _open_overlay(scene: PackedScene) -> void:
+	_overlay = scene.instantiate()
+	_overlay.completed.connect(_on_overlay_closed)
+	add_child(_overlay)
 
-func _on_fishing_closed() -> void:
-	_fishing = null
+func _on_overlay_closed() -> void:
+	_overlay = null
 
 func _on_zone_entered(body: Node2D, zone_name: String) -> void:
 	if not body is CharacterBody2D:

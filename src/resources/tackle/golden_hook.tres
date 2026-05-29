@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TackleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/TackleData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "golden_hook"
+display_name = "Golden Hook"
+description = "Fish hate it. Your wallet loves it."
+buy_price = 120
+sell_price = 50
+escape_reduction = 0.25
+coin_multiplier = 1.3

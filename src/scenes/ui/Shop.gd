@@ -1,0 +1,86 @@
+extends CanvasLayer
+
+signal completed
+
+@onready var coins_label: Label = %CoinsLabel
+@onready var item_list: VBoxContainer = %ItemList
+@onready var status_label: Label = %StatusLabel
+
+func _ready() -> void:
+	NetAPI.shop_result.connect(_on_shop_result)
+	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_close)
+	coins_label.text = "Coins: %d" % GameManager.current_coins
+	_populate()
+
+func _populate() -> void:
+	for child in item_list.get_children():
+		child.queue_free()
+
+	var shop_items: Array = []
+	shop_items.append_array(ItemRegistry.rods.values())
+	shop_items.append_array(ItemRegistry.baits.values())
+	shop_items.append_array(ItemRegistry.tackle.values())
+	shop_items = shop_items.filter(func(i: ItemData) -> bool: return i.buy_price > 0)
+	shop_items.sort_custom(func(a: ItemData, b: ItemData) -> bool: return a.buy_price < b.buy_price)
+
+	for item in shop_items:
+		item_list.add_child(_make_row(item))
+
+func _make_row(item: ItemData) -> Control:
+	var row := HBoxContainer.new()
+	row.theme_override_constants = {"separation": 12}
+
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var name_lbl := Label.new()
+	name_lbl.text = item.display_name
+	info.add_child(name_lbl)
+
+	var desc_lbl := Label.new()
+	desc_lbl.text = item.description
+	desc_lbl.add_theme_font_size_override("font_size", 11)
+	desc_lbl.modulate = Color(0.75, 0.75, 0.75)
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info.add_child(desc_lbl)
+
+	row.add_child(info)
+
+	var price_lbl := Label.new()
+	price_lbl.text = "%d c" % item.buy_price
+	price_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	price_lbl.custom_minimum_size = Vector2(52, 0)
+	price_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(price_lbl)
+
+	var btn := Button.new()
+	btn.text = "Buy"
+	btn.custom_minimum_size = Vector2(64, 0)
+	btn.pressed.connect(_on_buy_pressed.bind(item.id, btn))
+	row.add_child(btn)
+
+	var sep := HSeparator.new()
+	var wrapper := VBoxContainer.new()
+	wrapper.add_child(row)
+	wrapper.add_child(sep)
+	return wrapper
+
+func _on_buy_pressed(item_id: String, btn: Button) -> void:
+	btn.disabled = true
+	status_label.text = "Buying…"
+	NetAPI.rpc("c2s_shop_buy", item_id)
+
+func _on_shop_result(ok: bool, reason: String, new_balance: int) -> void:
+	GameManager.current_coins = new_balance
+	coins_label.text = "Coins: %d" % new_balance
+	status_label.text = reason
+	status_label.modulate = Color(0.3, 1.0, 0.4) if ok else Color(1.0, 0.4, 0.4)
+	_populate()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		_close()
+
+func _close() -> void:
+	completed.emit()
+	queue_free()

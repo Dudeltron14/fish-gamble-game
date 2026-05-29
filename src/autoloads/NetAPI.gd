@@ -4,6 +4,7 @@ signal login_result(ok: bool, reason: String, coins: int)
 signal register_result(ok: bool, reason: String)
 signal fishing_start(ok: bool, fish_id: String, difficulty: float)
 signal fishing_result(caught: bool, fish_id: String, coins: int)
+signal shop_result(ok: bool, reason: String, new_balance: int)
 
 # ── Client → Server ──────────────────────────────────────────────────────────
 
@@ -58,6 +59,14 @@ func c2s_fishing_result(succeeded: bool) -> void:
 	if fishing:
 		fishing.handle_result(multiplayer.get_remote_sender_id(), succeeded)
 
+@rpc("any_peer", "call_remote", "reliable")
+func c2s_shop_buy(item_id: String) -> void:
+	if not multiplayer.is_server():
+		return
+	var shop := _get_shop()
+	if shop:
+		shop.handle_buy(multiplayer.get_remote_sender_id(), item_id)
+
 # ── Server → Client ──────────────────────────────────────────────────────────
 
 @rpc("authority", "call_remote", "reliable")
@@ -76,6 +85,10 @@ func notify_fishing_start(ok: bool, fish_id: String, difficulty: float) -> void:
 func notify_fishing_result(caught: bool, fish_id: String, coins: int) -> void:
 	fishing_result.emit(caught, fish_id, coins)
 
+@rpc("authority", "call_remote", "reliable")
+func notify_shop_result(ok: bool, reason: String, new_balance: int) -> void:
+	shop_result.emit(ok, reason, new_balance)
+
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 func _get_auth() -> Node:
@@ -83,3 +96,6 @@ func _get_auth() -> Node:
 
 func _get_fishing() -> Node:
 	return GameServer.get_node_or_null("FishingServer")
+
+func _get_shop() -> Node:
+	return GameServer.get_node_or_null("ShopServer")

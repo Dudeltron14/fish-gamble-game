@@ -7,12 +7,14 @@ func init_server() -> void:
 	if _active:
 		return
 	_active = true
-	var auth := preload("res://src/server/AuthServer.gd").new()
-	auth.name = "AuthServer"
-	add_child(auth)
-	var fishing := preload("res://src/server/FishingServer.gd").new()
-	fishing.name = "FishingServer"
-	add_child(fishing)
+	for script_path in [
+		"res://src/server/AuthServer.gd",
+		"res://src/server/FishingServer.gd",
+		"res://src/server/ShopServer.gd",
+	]:
+		var node := load(script_path).new()
+		node.name = script_path.get_file().get_basename().to_pascal_case()
+		add_child(node)
 	NetworkManager.peer_connected.connect(_on_peer_connected)
 	NetworkManager.peer_disconnected.connect(_on_peer_disconnected)
 	print("GameServer: initialized")
