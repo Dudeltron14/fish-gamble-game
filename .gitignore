@@ -12,3 +12,11 @@
 # OS clutter
 .DS_Store
 Thumbs.db
+
+# Screenshots taken by MCP (dev artifacts, not source)
+screenshot_*.png
+screenshot_*.png.import
+
+# Stray temp files
+~*
+test_sqlite.gd.uid
