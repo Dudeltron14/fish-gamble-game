@@ -109,7 +109,7 @@ func _on_error(msg: String) -> void:
 # ── Card widgets ──────────────────────────────────────────────────────────────
 
 func _card_widget(card: Dictionary) -> Control:
-	var is_red := card["suit"] == 1 or card["suit"] == 2
+	var is_red: bool = card["suit"] == 1 or card["suit"] == 2
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(48, 70)
 	var lbl := Label.new()

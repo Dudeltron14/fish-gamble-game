@@ -26,15 +26,7 @@ func _update_animation(dir: Vector2) -> void:
 	if not sprite.sprite_frames:
 		return
 	if dir == Vector2.ZERO:
-		if sprite.sprite_frames.has_animation("idle"):
-			sprite.play("idle")
-	elif absf(dir.x) >= absf(dir.y):
-		sprite.flip_h = dir.x < 0
-		if sprite.sprite_frames.has_animation("walk_side"):
-			sprite.play("walk_side")
-	elif dir.y > 0:
-		if sprite.sprite_frames.has_animation("walk_down"):
-			sprite.play("walk_down")
+		sprite.play("idle")
 	else:
-		if sprite.sprite_frames.has_animation("walk_up"):
-			sprite.play("walk_up")
+		sprite.flip_h = dir.x < 0
+		sprite.play("walk_right")
