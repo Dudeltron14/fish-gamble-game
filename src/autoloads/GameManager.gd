@@ -16,7 +16,7 @@ func _on_quit_requested() -> void:
 	get_tree().quit()
 
 func go_to_scene(path: String) -> void:
-	get_tree().change_scene_to_file(path)
+	get_tree().change_scene_to_file.call_deferred(path)
 	scene_changed.emit(path)
 
 func set_player_data(player_name: String, coins: int) -> void:
