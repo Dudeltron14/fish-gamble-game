@@ -1,8 +1,50 @@
 [gd_scene format=3 uid="uid://cumq270th37ke"]
 
 [ext_resource type="Script" uid="uid://cbj8qv3oicyck" path="res://src/scenes/player/Player.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://ds51dc5ng1vm0" path="res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_fish.png" id="2_5pe5e"]
 [ext_resource type="Texture2D" uid="uid://uljnrr4181rd" path="res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_idle.png" id="2_xqlsy"]
+[ext_resource type="Texture2D" uid="uid://fh602gok0f8v" path="res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_hook.png" id="3_12jx5"]
 [ext_resource type="Texture2D" uid="uid://1nrj76tdce3r" path="res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_walk.png" id="3_xxciv"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bg11c"]
+atlas = ExtResource("2_5pe5e")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vdhvo"]
+atlas = ExtResource("2_5pe5e")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_05gny"]
+atlas = ExtResource("2_5pe5e")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ngcxl"]
+atlas = ExtResource("2_5pe5e")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nsro1"]
+atlas = ExtResource("3_12jx5")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0pson"]
+atlas = ExtResource("3_12jx5")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0t0od"]
+atlas = ExtResource("3_12jx5")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v42uu"]
+atlas = ExtResource("3_12jx5")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e7d68"]
+atlas = ExtResource("3_12jx5")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rw3o3"]
+atlas = ExtResource("3_12jx5")
+region = Rect2(240, 0, 48, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_5pe5e"]
 atlas = ExtResource("2_xqlsy")
@@ -46,6 +88,46 @@ region = Rect2(240, 0, 48, 48)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_1"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bg11c")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vdhvo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_05gny")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ngcxl")
+}],
+"loop": true,
+"name": &"fishing",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nsro1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0pson")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0t0od")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v42uu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e7d68")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rw3o3")
+}],
+"loop": true,
+"name": &"hook",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_5pe5e")
@@ -113,7 +195,8 @@ texture_repeat = 3
 position = Vector2(4, -2)
 scale = Vector2(0.6, 0.6)
 sprite_frames = SubResource("SpriteFrames_1")
-animation = &"walk_right"
+animation = &"hook"
+frame_progress = 0.7041728
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1642416971]
 position = Vector2(0, 2)

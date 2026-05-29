@@ -11,6 +11,8 @@ const SPEED := 100.0
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var name_label: Label = $NameLabel
 
+var _is_fishing := false
+
 func _ready() -> void:
 	var is_local := multiplayer.get_unique_id() == get_multiplayer_authority()
 	set_physics_process(is_local)
@@ -23,6 +25,8 @@ func _physics_process(_delta: float) -> void:
 	move_and_slide()
 
 func _update_animation(dir: Vector2) -> void:
+	if _is_fishing:
+		return
 	if not sprite.sprite_frames:
 		return
 	if dir == Vector2.ZERO:
@@ -30,3 +34,18 @@ func _update_animation(dir: Vector2) -> void:
 	else:
 		sprite.flip_h = dir.x < 0
 		sprite.play("walk_right")
+
+func start_fishing() -> void:
+	_is_fishing = true
+	set_physics_process(false)
+	velocity = Vector2.ZERO
+	sprite.play("fishing")
+
+func play_hook() -> void:
+	sprite.play("hook")
+
+func stop_fishing() -> void:
+	_is_fishing = false
+	var is_local := multiplayer.get_unique_id() == get_multiplayer_authority()
+	set_physics_process(is_local)
+	sprite.play("idle")

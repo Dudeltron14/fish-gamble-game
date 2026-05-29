@@ -11,6 +11,7 @@ const HUD_SCENE     := preload("res://src/scenes/ui/HUD.tscn")
 
 var _local_zone := ""
 var _overlay: Node = null
+var _overlay_scene: PackedScene = null
 
 func _ready() -> void:
 	add_to_group("world")
@@ -20,6 +21,7 @@ func _ready() -> void:
 			zone.body_exited.connect(_on_zone_exited.bind(zone.name))
 	if not multiplayer.is_server():
 		add_child(HUD_SCENE.instantiate())
+		NetAPI.fishing_result.connect(_on_fishing_result_received)
 		NetAPI.rpc("c2s_world_ready")
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -47,13 +49,32 @@ func _despawn_player(peer_id: int) -> void:
 	if player:
 		player.queue_free()
 
+func _get_local_player() -> Node:
+	return players.get_node_or_null(str(multiplayer.get_unique_id()))
+
 func _open_overlay(scene: PackedScene) -> void:
 	_overlay = scene.instantiate()
+	_overlay_scene = scene
 	_overlay.completed.connect(_on_overlay_closed)
 	add_child(_overlay)
+	if scene == FISHING_SCENE:
+		var player := _get_local_player()
+		if player:
+			player.start_fishing()
 
 func _on_overlay_closed() -> void:
+	if _overlay_scene == FISHING_SCENE:
+		var player := _get_local_player()
+		if player:
+			player.stop_fishing()
 	_overlay = null
+	_overlay_scene = null
+
+func _on_fishing_result_received(caught: bool, _fish_id: String, _coins: int) -> void:
+	if caught:
+		var player := _get_local_player()
+		if player:
+			player.play_hook()
 
 func _on_zone_entered(body: Node2D, zone_name: String) -> void:
 	if not body is CharacterBody2D: return
