@@ -1,0 +1,17 @@
+services:
+  game-server:
+    image: ghcr.io/dudeltron14/fish-gamble-game:latest
+    restart: unless-stopped
+    ports:
+      - "7070:7070"
+    volumes:
+      - ./data:/app/data   # SQLite DB persists outside container
+    environment:
+      - GODOT_HEADLESS=1
+
+  watchtower:
+    image: containrrr/watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 --cleanup
