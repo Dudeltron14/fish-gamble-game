@@ -85,7 +85,7 @@ func _on_dealer_card(card: Dictionary, value: int) -> void:
 	status_label.text = "Dealer: %d" % value
 
 func _on_result(outcome: String, _dh: Array, payout: int, new_balance: int) -> void:
-	GameManager.current_coins = new_balance
+	GameManager.set_coins(new_balance)
 	coins_label.text = "Coins: %d" % new_balance
 	bet_spin.max_value = new_balance
 	var messages := {

@@ -162,6 +162,9 @@ func _show_result(success: bool, msg: String) -> void:
 	result_label.text = msg
 	result_label.modulate = Color(0.3, 1.0, 0.4) if success else Color(1.0, 0.4, 0.4)
 	result_label.visible = true
+	result_label.scale = Vector2(0.6, 0.6)
+	var tween := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(result_label, "scale", Vector2.ONE, 0.35)
 	await get_tree().create_timer(2.5).timeout
 	_close()
 

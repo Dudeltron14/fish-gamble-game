@@ -36,6 +36,8 @@ func stop_music(fade_out: float = 0.5) -> void:
 	tween.tween_callback(_music_player.stop)
 
 func play_sfx(stream: AudioStream) -> void:
+	if stream == null:
+		return
 	for player in _sfx_pool:
 		if not player.playing:
 			player.stream = stream

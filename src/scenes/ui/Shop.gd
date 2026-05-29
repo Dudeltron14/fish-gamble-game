@@ -71,7 +71,7 @@ func _on_buy_pressed(item_id: String, btn: Button) -> void:
 	NetAPI.rpc("c2s_shop_buy", item_id)
 
 func _on_shop_result(ok: bool, reason: String, new_balance: int) -> void:
-	GameManager.current_coins = new_balance
+	GameManager.set_coins(new_balance)
 	coins_label.text = "Coins: %d" % new_balance
 	status_label.text = reason
 	status_label.modulate = Color(0.3, 1.0, 0.4) if ok else Color(1.0, 0.4, 0.4)
