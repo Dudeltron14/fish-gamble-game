@@ -13,7 +13,7 @@ func init_server() -> void:
 		"res://src/server/ShopServer.gd",
 		"res://src/server/BlackjackServer.gd",
 	]:
-		var node := load(script_path).new()
+		var node: Node = load(script_path).new()
 		node.name = script_path.get_file().get_basename().to_pascal_case()
 		add_child(node)
 	NetworkManager.peer_connected.connect(_on_peer_connected)

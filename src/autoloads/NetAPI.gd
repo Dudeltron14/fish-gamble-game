@@ -17,13 +17,13 @@ signal bj_error(msg: String)
 @rpc("any_peer", "call_remote", "reliable")
 func request_login(username: String, pw_hash: String) -> void:
 	if not multiplayer.is_server(): return
-	var auth := _get("AuthServer")
+	var auth := _srv("AuthServer")
 	if auth: auth.handle_login(multiplayer.get_remote_sender_id(), username, pw_hash)
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_register(username: String, pw_hash: String) -> void:
 	if not multiplayer.is_server(): return
-	var auth := _get("AuthServer")
+	var auth := _srv("AuthServer")
 	if auth: auth.handle_register(multiplayer.get_remote_sender_id(), username, pw_hash)
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -44,43 +44,43 @@ func c2s_zone_changed(zone_name: String) -> void:
 @rpc("any_peer", "call_remote", "reliable")
 func c2s_fishing_start() -> void:
 	if not multiplayer.is_server(): return
-	var f := _get("FishingServer")
+	var f := _srv("FishingServer")
 	if f: f.handle_start(multiplayer.get_remote_sender_id())
 
 @rpc("any_peer", "call_remote", "reliable")
 func c2s_fishing_result(succeeded: bool) -> void:
 	if not multiplayer.is_server(): return
-	var f := _get("FishingServer")
+	var f := _srv("FishingServer")
 	if f: f.handle_result(multiplayer.get_remote_sender_id(), succeeded)
 
 @rpc("any_peer", "call_remote", "reliable")
 func c2s_shop_buy(item_id: String) -> void:
 	if not multiplayer.is_server(): return
-	var s := _get("ShopServer")
+	var s := _srv("ShopServer")
 	if s: s.handle_buy(multiplayer.get_remote_sender_id(), item_id)
 
 @rpc("any_peer", "call_remote", "reliable")
 func c2s_bj_bet(amount: int) -> void:
 	if not multiplayer.is_server(): return
-	var bj := _get("BlackjackServer")
+	var bj := _srv("BlackjackServer")
 	if bj: bj.handle_bet(multiplayer.get_remote_sender_id(), amount)
 
 @rpc("any_peer", "call_remote", "reliable")
 func c2s_bj_hit() -> void:
 	if not multiplayer.is_server(): return
-	var bj := _get("BlackjackServer")
+	var bj := _srv("BlackjackServer")
 	if bj: bj.handle_hit(multiplayer.get_remote_sender_id())
 
 @rpc("any_peer", "call_remote", "reliable")
 func c2s_bj_stand() -> void:
 	if not multiplayer.is_server(): return
-	var bj := _get("BlackjackServer")
+	var bj := _srv("BlackjackServer")
 	if bj: bj.handle_stand(multiplayer.get_remote_sender_id())
 
 @rpc("any_peer", "call_remote", "reliable")
 func c2s_bj_double() -> void:
 	if not multiplayer.is_server(): return
-	var bj := _get("BlackjackServer")
+	var bj := _srv("BlackjackServer")
 	if bj: bj.handle_double(multiplayer.get_remote_sender_id())
 
 # ── Server → Client ──────────────────────────────────────────────────────────
@@ -131,5 +131,5 @@ func notify_bj_error(msg: String) -> void:
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
-func _get(server_name: String) -> Node:
+func _srv(server_name: String) -> Node:
 	return GameServer.get_node_or_null(server_name)
