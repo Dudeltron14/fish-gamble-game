@@ -1,0 +1,119 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/scenes/casino/Blackjack.gd" id="1"]
+
+[node name="Blackjack" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1")
+
+[node name="BG" type="ColorRect" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.28, 0.1, 1.0)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+
+[node name="Margin" type="MarginContainer" parent="Center/Panel"]
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
+custom_minimum_size = Vector2(500, 0)
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+
+[node name="Title" type="Label" parent="Center/Panel/Margin/VBox/Header"]
+size_flags_horizontal = 3
+text = "Blackjack"
+theme_override_font_sizes/font_size = 18
+
+[node name="CoinsLabel" type="Label" parent="Center/Panel/Margin/VBox/Header"]
+unique_name_in_owner = true
+vertical_alignment = 1
+text = "Coins: 0"
+
+[node name="Sep1" type="HSeparator" parent="Center/Panel/Margin/VBox"]
+
+[node name="DealerLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+text = "Dealer"
+
+[node name="DealerHand" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 74)
+theme_override_constants/separation = 6
+
+[node name="Sep2" type="HSeparator" parent="Center/Panel/Margin/VBox"]
+
+[node name="PlayerLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+text = "Your Hand"
+
+[node name="PlayerHand" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 74)
+theme_override_constants/separation = 6
+
+[node name="Sep3" type="HSeparator" parent="Center/Panel/Margin/VBox"]
+
+[node name="StatusLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+text = "Place a bet to start."
+horizontal_alignment = 1
+
+[node name="BetRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+theme_override_constants/separation = 10
+
+[node name="BetLabel" type="Label" parent="Center/Panel/Margin/VBox/BetRow"]
+text = "Bet:"
+vertical_alignment = 1
+
+[node name="BetSpin" type="SpinBox" parent="Center/Panel/Margin/VBox/BetRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 9999.0
+value = 10.0
+
+[node name="DealBtn" type="Button" parent="Center/Panel/Margin/VBox/BetRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+text = "Deal"
+
+[node name="ActionRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+theme_override_constants/separation = 8
+
+[node name="HitBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+disabled = true
+text = "Hit"
+
+[node name="StandBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+disabled = true
+text = "Stand"
+
+[node name="DoubleBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+disabled = true
+text = "Double Down"
+
+[node name="CloseBtn" type="Button" parent="Center/Panel/Margin/VBox"]
+text = "Leave Table  [Esc]"
+alignment = 1

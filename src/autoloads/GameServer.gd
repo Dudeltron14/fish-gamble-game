@@ -1,6 +1,6 @@
 extends Node
 
-var sessions: Dictionary = {}  # peer_id (int) -> PlayerSession
+var sessions: Dictionary = {}
 var _active := false
 
 func init_server() -> void:
@@ -11,6 +11,7 @@ func init_server() -> void:
 		"res://src/server/AuthServer.gd",
 		"res://src/server/FishingServer.gd",
 		"res://src/server/ShopServer.gd",
+		"res://src/server/BlackjackServer.gd",
 	]:
 		var node := load(script_path).new()
 		node.name = script_path.get_file().get_basename().to_pascal_case()
