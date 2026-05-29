@@ -30,5 +30,5 @@ func _persist(session: PlayerSession, item_id: String) -> void:
 	auth._db.query_with_bindings("""
 		INSERT INTO inventory (player_id, item_id, quantity)
 		VALUES ((SELECT id FROM players WHERE username = ?), ?, 1)
-		ON CONFLICT DO UPDATE SET quantity = quantity + 1
+		ON CONFLICT(player_id, item_id) DO UPDATE SET quantity = quantity + 1
 	""", [session.username, item_id])

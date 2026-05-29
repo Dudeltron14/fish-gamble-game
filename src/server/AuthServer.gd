@@ -31,7 +31,8 @@ func _init_schema() -> void:
 		CREATE TABLE IF NOT EXISTS inventory (
 			player_id INTEGER REFERENCES players(id),
 			item_id TEXT NOT NULL,
-			quantity INTEGER DEFAULT 1
+			quantity INTEGER DEFAULT 1,
+			UNIQUE(player_id, item_id)
 		)
 	""")
 
