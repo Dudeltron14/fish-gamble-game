@@ -1,0 +1,14 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Export artifacts
+/export/
+
+# SQLite DB (runtime data, not source)
+*.db
+*.sqlite
+
+# OS clutter
+.DS_Store
+Thumbs.db

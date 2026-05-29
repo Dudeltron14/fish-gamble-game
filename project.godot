@@ -1,0 +1,36 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="fish_game"
+config/features=PackedStringArray("4.6", "Forward Plus")
+config/icon="res://icon.svg"
+config/main_scene="res://src/scenes/main/Main.tscn"
+
+[autoload]
+
+MCPRuntimeBridge="*uid://wk2yhw3winuo"
+GameManager="*res://src/autoloads/GameManager.gd"
+NetworkManager="*res://src/autoloads/NetworkManager.gd"
+ItemRegistry="*res://src/autoloads/ItemRegistry.gd"
+AudioManager="*res://src/autoloads/AudioManager.gd"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_dotnet_mcp/plugin.cfg")
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+rendering_device/driver.windows="d3d12"
