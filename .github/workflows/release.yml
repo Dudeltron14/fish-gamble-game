@@ -36,7 +36,7 @@ jobs:
       - name: Export Linux server binary
         run: |
           mkdir -p export/server
-          godot --headless --export-release "Linux/X11" export/server/FishGambleGame.x86_64
+          godot --headless --export-release "Linux" export/server/FishGambleGame.x86_64
 
       - name: Export Web client
         run: |
