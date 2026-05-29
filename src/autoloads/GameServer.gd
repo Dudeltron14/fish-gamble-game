@@ -10,6 +10,9 @@ func init_server() -> void:
 	var auth := preload("res://src/server/AuthServer.gd").new()
 	auth.name = "AuthServer"
 	add_child(auth)
+	var fishing := preload("res://src/server/FishingServer.gd").new()
+	fishing.name = "FishingServer"
+	add_child(fishing)
 	NetworkManager.peer_connected.connect(_on_peer_connected)
 	NetworkManager.peer_disconnected.connect(_on_peer_disconnected)
 	print("GameServer: initialized")

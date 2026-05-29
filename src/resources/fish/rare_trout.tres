@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FishData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/FishData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rare_trout"
+display_name = "Golden Trout"
+description = "Shimmers like gold. The fishermen talk about this one."
+buy_price = 0
+sell_price = 55
+rarity = "rare"
+base_coin_value = 55
+catch_difficulty = 1.6
+sprite_frame = 2

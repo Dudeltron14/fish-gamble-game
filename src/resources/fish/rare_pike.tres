@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FishData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/FishData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rare_pike"
+display_name = "Northern Pike"
+description = "Long, mean, and worth every coin."
+buy_price = 0
+sell_price = 70
+rarity = "rare"
+base_coin_value = 70
+catch_difficulty = 1.8
+sprite_frame = 3
