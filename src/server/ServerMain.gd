@@ -4,7 +4,13 @@ const DEFAULT_PORT := 7070
 
 var sessions: Dictionary = {}  # peer_id (int) -> PlayerSession
 
+var auth_server: Node  # AuthServer child node
+
 func _ready() -> void:
+	auth_server = preload("res://src/server/AuthServer.gd").new()
+	auth_server.name = "AuthServer"
+	add_child(auth_server)
+
 	var port := _get_port_arg()
 	var err := NetworkManager.start_server(port)
 	if err != OK:

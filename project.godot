@@ -22,6 +22,7 @@ GameManager="*res://src/autoloads/GameManager.gd"
 NetworkManager="*res://src/autoloads/NetworkManager.gd"
 ItemRegistry="*res://src/autoloads/ItemRegistry.gd"
 AudioManager="*res://src/autoloads/AudioManager.gd"
+NetAPI="*res://src/autoloads/NetAPI.gd"
 
 [editor_plugins]
 
