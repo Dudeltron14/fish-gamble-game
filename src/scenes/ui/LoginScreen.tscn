@@ -83,6 +83,13 @@ unique_name_in_owner = true
 size_flags_horizontal = 3
 text = "Register"
 
+[node name="HostSep" type="HSeparator" parent="Center/Panel/Margin/VBox"]
+
+[node name="HostBtn" type="Button" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+text = "Host & Play  (local test)"
+modulate = Color(0.4, 1.0, 0.6, 1)
+
 [node name="StatusLabel" type="Label" parent="Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
 modulate = Color(1, 0.45, 0.45, 1)

@@ -23,6 +23,13 @@ func _ready() -> void:
 		add_child(HUD_SCENE.instantiate())
 		NetAPI.fishing_result.connect(_on_fishing_result_received)
 		NetAPI.rpc("c2s_world_ready")
+	elif GameManager.is_hosting:
+		# Host plays in the same instance — spawn host player directly
+		add_child(HUD_SCENE.instantiate())
+		NetAPI.fishing_result.connect(_on_fishing_result_received)
+		var host_session := GameServer.get_session(1)
+		if host_session:
+			spawn_player(1, host_session.username)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("ui_accept") or _overlay != null:

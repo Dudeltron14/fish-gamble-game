@@ -13,16 +13,41 @@ var _pending_hash := ""
 @onready var password_field: LineEdit = %PasswordField
 @onready var login_btn: Button = %LoginBtn
 @onready var register_btn: Button = %RegisterBtn
+@onready var host_btn: Button = %HostBtn
 @onready var status_label: Label = %StatusLabel
 
 func _ready() -> void:
 	login_btn.pressed.connect(_on_login_pressed)
 	register_btn.pressed.connect(_on_register_pressed)
+	host_btn.pressed.connect(_on_host_pressed)
 	NetAPI.login_result.connect(_on_login_result)
 	NetAPI.register_result.connect(_on_register_result)
 	NetworkManager.connected_to_server.connect(_on_network_connected)
 	NetworkManager.connection_failed.connect(_on_connection_failed)
 	NetworkManager.server_disconnected.connect(_on_server_disconnected)
+
+# ── Host & Play ───────────────────────────────────────────────────────────────
+
+func _on_host_pressed() -> void:
+	var username := username_field.text.strip_edges()
+	if username.is_empty():
+		username = "Host"
+	set_buttons_enabled(false)
+	set_status("Starting local server…")
+
+	var err := NetworkManager.start_server(DEFAULT_PORT)
+	if err != OK:
+		set_status("Could not start server on port %d: %s" % [DEFAULT_PORT, error_string(err)])
+		set_buttons_enabled(true)
+		return
+
+	GameServer.init_server()
+	GameServer.init_host_session(username)
+	GameManager.set_player_data(username, 50)
+	GameManager.is_hosting = true
+	GameManager.go_to_scene("res://src/scenes/world/World.tscn")
+
+# ── Login / Register ──────────────────────────────────────────────────────────
 
 func _on_login_pressed() -> void:
 	if not _validate(): return
@@ -108,3 +133,4 @@ func set_status(msg: String) -> void:
 func set_buttons_enabled(enabled: bool) -> void:
 	login_btn.disabled = not enabled
 	register_btn.disabled = not enabled
+	host_btn.disabled = not enabled

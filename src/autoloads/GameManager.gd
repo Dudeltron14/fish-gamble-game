@@ -11,6 +11,7 @@ var current_zone: String = ""
 var equipped_rod_id: String = ""
 var equipped_bait_id: String = ""
 var equipped_tackle_id: String = ""
+var is_hosting: bool = false
 
 const ZONE_HINTS := {
 	"DockZone":   "Press E to fish",
