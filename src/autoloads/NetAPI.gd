@@ -2,7 +2,7 @@ extends Node
 
 signal login_result(ok: bool, reason: String, coins: int)
 signal register_result(ok: bool, reason: String)
-signal fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float)
+signal fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float, hook_react_bonus: float)
 signal fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int)
 signal shop_result(ok: bool, reason: String, new_balance: int)
 signal equip_result(ok: bool, item_id: String, slot: String)
@@ -113,9 +113,9 @@ func notify_register(ok: bool, reason: String) -> void:
 	register_result.emit(ok, reason)
 
 @rpc("authority", "call_local", "reliable")
-func notify_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float = 1.0) -> void:
+func notify_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float = 1.0, hook_react_bonus: float = 0.0) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
-	fishing_start.emit(ok, fish_id, difficulty, cast_speed, line_strength, wait_modifier)
+	fishing_start.emit(ok, fish_id, difficulty, cast_speed, line_strength, wait_modifier, hook_react_bonus)
 
 @rpc("authority", "call_local", "reliable")
 func notify_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int) -> void:

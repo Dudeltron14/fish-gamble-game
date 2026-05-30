@@ -5,7 +5,7 @@ signal completed
 enum Stage { CAST, WAITING, REACT, REEL, RESULT }
 
 const BASE_CAST_SPEED := 60.0
-const REACT_WINDOW := 1.5
+const REACT_WINDOW := 1.2  # base at difficulty 1.0, no hook
 const REEL_BAR_WIDTH := 420.0
 const CATCH_ZONE_FRAC := 0.18
 const CURSOR_SPEED := 150.0
@@ -17,6 +17,7 @@ var _cast_power := 0.0
 var _cast_speed := BASE_CAST_SPEED
 var _cast_filling := true   # true = filling toward 100, false = overshooting back down
 var _cast_quality := 1.0    # 0.0–1.0; 1.0 = perfect (released exactly at 100)
+var _hook_react_bonus := 0.0  # hook escape_reduction — widens react window
 var _wait_timer := 0.0
 var _react_timer := 0.0
 var _fish_id := ""
@@ -95,7 +96,8 @@ func _process_wait(delta: float) -> void:
 	_wait_timer -= delta
 	if _wait_timer <= 0.0:
 		_stage = Stage.REACT
-		_react_timer = REACT_WINDOW
+		var diff_penalty := 1.0 + maxf(0.0, _difficulty - 1.0) * 0.35
+		_react_timer = REACT_WINDOW / diff_penalty * (1.0 + _hook_react_bonus)
 		status.text = "!! BITE !! Press E!"
 
 func _process_react(delta: float) -> void:
@@ -182,15 +184,15 @@ func _finish_reel(success: bool) -> void:
 
 # ── NetAPI callbacks ──────────────────────────────────────────────────────────
 
-func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float) -> void:
+func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float, hook_react_bonus: float) -> void:
 	if not ok:
 		_show_result(false, "No fish nearby.")
 		return
 	_fish_id = fish_id
 	_difficulty = difficulty
 	_line_strength = line_strength
+	_hook_react_bonus = hook_react_bonus
 	_cast_speed = BASE_CAST_SPEED * cast_speed
-	# Bait modifies the already-running wait timer by a percentage (stacks with cast quality)
 	_wait_timer *= wait_modifier
 
 func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int) -> void:
