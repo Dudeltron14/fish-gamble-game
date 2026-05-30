@@ -36,7 +36,8 @@ func _make_row(item: ItemData) -> Control:
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var name_lbl := Label.new()
-	name_lbl.text = item.display_name
+	var qty := (item as BaitData).uses_per_stack if item is BaitData else 1
+	name_lbl.text = "%s ×%d" % [item.display_name, qty] if qty > 1 else item.display_name
 	info.add_child(name_lbl)
 
 	var desc_lbl := Label.new()
