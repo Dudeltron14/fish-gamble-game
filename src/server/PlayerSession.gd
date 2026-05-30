@@ -6,6 +6,9 @@ var coins: int = 0
 var position: Vector2 = Vector2.ZERO
 var current_zone: String = ""
 var authenticated: bool = false
+var equipped_rod_id: String = ""
+var equipped_bait_id: String = ""
+var equipped_tackle_id: String = ""
 
 func _init(p_peer_id: int) -> void:
 	peer_id = p_peer_id
