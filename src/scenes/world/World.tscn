@@ -4093,7 +4093,7 @@ sources/0 = SubResource("TileSetAtlasSource_jvqxg")
 sources/1 = SubResource("TileSetAtlasSource_wrwle")
 
 [sub_resource type="RectangleShape2D" id="Shape_dock"]
-size = Vector2(288, 128)
+size = Vector2(67, 89)
 
 [sub_resource type="RectangleShape2D" id="Shape_shop"]
 size = Vector2(41, 51.25)
@@ -4142,7 +4142,11 @@ position = Vector2(0, 381)
 collision_layer = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Zones/DockZone" unique_id=1518249438]
-position = Vector2(0, 2)
+position = Vector2(-82, 18)
+shape = SubResource("Shape_dock")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="Zones/DockZone" unique_id=1466786873]
+position = Vector2(81, 18)
 shape = SubResource("Shape_dock")
 
 [node name="ShopZone" type="Area2D" parent="Zones" unique_id=82314120]
