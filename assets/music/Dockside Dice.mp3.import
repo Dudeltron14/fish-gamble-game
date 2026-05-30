@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://ealk2rvg0qle"
+path="res://.godot/imported/Dockside Dice.mp3-3b745342b5fa1688dd0bdc69cf427db8.mp3str"
+
+[deps]
+
+source_file="res://assets/music/Dockside Dice.mp3"
+dest_files=["res://.godot/imported/Dockside Dice.mp3-3b745342b5fa1688dd0bdc69cf427db8.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

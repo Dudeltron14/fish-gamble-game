@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://c7nh6r1tkra60"
+path="res://.godot/imported/Dockside Jackpot (1).mp3-dfadae865bd5b05b514d2dec64fb7187.mp3str"
+
+[deps]
+
+source_file="res://assets/music/Dockside Jackpot (1).mp3"
+dest_files=["res://.godot/imported/Dockside Jackpot (1).mp3-dfadae865bd5b05b514d2dec64fb7187.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

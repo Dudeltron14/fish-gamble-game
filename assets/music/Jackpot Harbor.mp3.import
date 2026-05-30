@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bag88fqy36upl"
+path="res://.godot/imported/Jackpot Harbor.mp3-7644a1ad7ee4686a952512dad6eae808.mp3str"
+
+[deps]
+
+source_file="res://assets/music/Jackpot Harbor.mp3"
+dest_files=["res://.godot/imported/Jackpot Harbor.mp3-7644a1ad7ee4686a952512dad6eae808.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

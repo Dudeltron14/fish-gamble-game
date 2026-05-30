@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://ber80fyoikttk"
+path="res://.godot/imported/Harbor Dice.mp3-a2b3211159ca756b52f2c6671f068b73.mp3str"
+
+[deps]
+
+source_file="res://assets/music/Harbor Dice.mp3"
+dest_files=["res://.godot/imported/Harbor Dice.mp3-a2b3211159ca756b52f2c6671f068b73.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

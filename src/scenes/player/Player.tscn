@@ -213,7 +213,7 @@ vertical_alignment = 1
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=888123456]
 enabled = false
-zoom = Vector2(2.5, 2.5)
+zoom = Vector2(2, 2)
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
 
