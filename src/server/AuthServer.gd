@@ -7,7 +7,13 @@ func _ready() -> void:
 		push_error("AuthServer: godot-sqlite not installed. See addons/godot-sqlite/INSTALL.md")
 		return
 	_db = ClassDB.instantiate("SQLite")
-	_db.path = "user://players"
+	# Use a path relative to the executable when running as dedicated server
+	# so the DB lands in the Docker volume mount (./data:/app/data).
+	# In editor/client mode fall back to Godot's user data dir.
+	if OS.has_feature("dedicated_server"):
+		_db.path = "data/players"
+	else:
+		_db.path = "user://players"
 	_db.verbosity_level = 0
 	if not _db.open_db():
 		push_error("AuthServer: failed to open database")

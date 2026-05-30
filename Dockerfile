@@ -14,7 +14,7 @@ WORKDIR /app
 
 COPY export/server/ .
 
-RUN chmod +x FishGambleGame.x86_64
+RUN chmod +x FishGambleGame.x86_64 && mkdir -p data
 
 EXPOSE 7070
 
