@@ -7,15 +7,15 @@ const DEFAULT_WEIGHTS := {
 	"legendary": 0.01,
 }
 
-func handle_start(peer_id: int) -> void:
+func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
 	if session == null or session.current_zone != "DockZone":
-		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0)
+		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0, 1.0)
 		return
 
-	var fish := _pick_fish(session)
+	var fish := _pick_fish(session, cast_quality)
 	if fish == null:
-		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0)
+		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0, 1.0)
 		return
 
 	session.set_meta("pending_fish_id", fish.id)
@@ -55,20 +55,34 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	_save_coins(session)
 	NetAPI.rpc_id(peer_id, "notify_fishing_result", true, fish_id, earned, session.coins)
 
-func _pick_fish(session: PlayerSession) -> FishData:
-	# Apply bait rarity_weights (10.3)
+func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
+	# Apply bait rarity_weights
 	var weights := DEFAULT_WEIGHTS.duplicate()
 	var bait := ItemRegistry.get_item(session.equipped_bait_id) as BaitData
 	if bait:
 		weights = bait.rarity_weights.duplicate()
 
-	# Apply rod rarity_bonus — shifts weight from common into rare tiers (10.5)
+	# Apply rod rarity_bonus
 	var rod := ItemRegistry.get_item(session.equipped_rod_id) as RodData
 	if rod and rod.rarity_bonus > 0.0:
 		var bonus := rod.rarity_bonus
 		weights["common"] = maxf(0.0, weights.get("common", 0.0) - bonus)
 		weights["rare"]   = weights.get("rare", 0.0)   + bonus * 0.7
 		weights["legendary"] = weights.get("legendary", 0.0) + bonus * 0.3
+
+	# Apply cast quality bonus/penalty (±0.10 max, centred at 0.5)
+	# Perfect cast (1.0): +0.10 toward rare/legendary
+	# Terrible cast (0.0): −0.10 shifted toward common
+	var cast_bonus := (cast_quality - 0.5) * 0.2
+	if cast_bonus > 0.0:
+		weights["common"] = maxf(0.0, weights.get("common", 0.0) - cast_bonus)
+		weights["rare"]       = weights.get("rare", 0.0)       + cast_bonus * 0.7
+		weights["legendary"]  = weights.get("legendary", 0.0)  + cast_bonus * 0.3
+	elif cast_bonus < 0.0:
+		var penalty := -cast_bonus
+		weights["rare"]      = maxf(0.0, weights.get("rare", 0.0)      - penalty * 0.7)
+		weights["legendary"] = maxf(0.0, weights.get("legendary", 0.0) - penalty * 0.3)
+		weights["common"]    = weights.get("common", 0.0) + penalty
 
 	var rarity := _weighted_rarity(weights)
 	var candidates: Array = ItemRegistry.fish.values().filter(

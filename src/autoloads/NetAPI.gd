@@ -51,10 +51,10 @@ func c2s_zone_changed(zone_name: String) -> void:
 	if s: s.current_zone = zone_name
 
 @rpc("any_peer", "call_local", "reliable")
-func c2s_fishing_start() -> void:
+func c2s_fishing_start(cast_quality: float = 1.0) -> void:
 	if not multiplayer.is_server(): return
 	var f := _srv("FishingServer")
-	if f: f.handle_start(_peer_id())
+	if f: f.handle_start(_peer_id(), cast_quality)
 
 @rpc("any_peer", "call_local", "reliable")
 func c2s_fishing_result(succeeded: bool) -> void:

@@ -17,7 +17,6 @@ var _cast_power := 0.0
 var _cast_speed := BASE_CAST_SPEED
 var _cast_filling := true   # true = filling toward 100, false = overshooting back down
 var _cast_quality := 1.0    # 0.0–1.0; 1.0 = perfect (released exactly at 100)
-var _cast_zone_mod := 1.0   # catch zone multiplier from cast quality (0.5–1.0)
 var _wait_timer := 0.0
 var _react_timer := 0.0
 var _fish_id := ""
@@ -86,13 +85,11 @@ func _enter_wait() -> void:
 		lerpf(4.0, 1.5, _cast_quality),
 		lerpf(8.0, 3.5, _cast_quality)
 	)
-	# Perfect cast → full zone; weak/overshoot → down to 50% zone size
-	_cast_zone_mod = lerpf(0.5, 1.0, _cast_quality)
 	var quality_text := "Perfect cast! 🎯" if _cast_quality > 0.95 else \
 		("Good cast!" if _cast_quality > 0.70 else \
 		("Weak cast…" if _cast_quality > 0.30 else "Terrible cast…"))
 	status.text = "%s Waiting for a bite…" % quality_text
-	NetAPI.rpc("c2s_fishing_start")
+	NetAPI.rpc("c2s_fishing_start", _cast_quality)
 
 func _process_wait(delta: float) -> void:
 	_wait_timer -= delta
@@ -143,7 +140,7 @@ func _process_reel(delta: float) -> void:
 
 	# Overlap detection
 	# Progress fills faster with better rods (line_strength); drains faster for harder fish (difficulty)
-	var zone_half := (CATCH_ZONE_FRAC / _difficulty) * 0.5 * _cast_zone_mod
+	var zone_half := (CATCH_ZONE_FRAC / _difficulty) * 0.5
 	var overlapping := absf(_cursor_pos - _fish_pos) < zone_half
 	if overlapping:
 		_reel_progress = minf(_reel_progress + PROGRESS_RATE * _line_strength * delta, 1.0)
@@ -159,7 +156,7 @@ func _process_reel(delta: float) -> void:
 
 func _update_reel_visuals(overlapping: bool = false) -> void:
 	var w := REEL_BAR_WIDTH
-	var zone_half := (CATCH_ZONE_FRAC / _difficulty) * 0.5 * _cast_zone_mod * w
+	var zone_half := (CATCH_ZONE_FRAC / _difficulty) * 0.5 * w
 	catch_zone.offset_left = _fish_pos * w - zone_half
 	catch_zone.offset_right = _fish_pos * w + zone_half
 	cursor_rect.offset_left = _cursor_pos * w - 4.0
