@@ -20,6 +20,7 @@ func _load_all() -> void:
 	for dir_path in ITEM_DIRS:
 		var dir := DirAccess.open(dir_path)
 		if dir == null:
+			push_error("ItemRegistry: cannot open " + dir_path)
 			continue
 		dir.list_dir_begin()
 		var file_name := dir.get_next()

@@ -114,7 +114,10 @@ func _card_texture(card: Dictionary) -> Texture2D:
 	var suit: String = SUIT_NAMES[card["suit"]]
 	var rank: int = int(card["rank"]) + 1  # server rank 0-12 → file rank 1-13
 	var path := "res://assets/Playing Cards/card-%s-%d.png" % [suit, rank]
-	return load(path) as Texture2D
+	var tex := load(path) as Texture2D
+	if tex == null:
+		push_warning("Blackjack: could not load card texture: " + path)
+	return tex
 
 func _card_widget(card: Dictionary) -> Control:
 	var tex := _card_texture(card)

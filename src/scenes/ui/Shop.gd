@@ -15,7 +15,7 @@ func _ready() -> void:
 
 func _populate() -> void:
 	for child in item_list.get_children():
-		child.queue_free()
+		child.free()
 
 	var shop_items: Array = []
 	shop_items.append_array(ItemRegistry.rods.values())
@@ -23,13 +23,12 @@ func _populate() -> void:
 	shop_items.append_array(ItemRegistry.tackle.values())
 	shop_items = shop_items.filter(func(i: ItemData) -> bool: return i.buy_price > 0)
 	shop_items.sort_custom(func(a: ItemData, b: ItemData) -> bool: return a.buy_price < b.buy_price)
-
 	for item in shop_items:
 		item_list.add_child(_make_row(item))
 
 func _make_row(item: ItemData) -> Control:
 	var row := HBoxContainer.new()
-	row.theme_override_constants = {"separation": 12}
+	row.add_theme_constant_override("separation", 12)
 
 	var info := VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
