@@ -70,6 +70,7 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 		session.authenticated = true
 		session.username = username
 		session.coins = int(row.coins)
+		_load_equipped(session, int(row.id))
 
 	NetAPI.rpc_id(peer_id, "notify_login", true, "", int(row.coins))
 
@@ -95,6 +96,20 @@ func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 		NetAPI.rpc_id(peer_id, "notify_register", false, "Username already taken.")
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+func _load_equipped(session: PlayerSession, player_id: int) -> void:
+	_db.query_with_bindings(
+		"SELECT item_id FROM inventory WHERE player_id = ?", [player_id]
+	)
+	for inv_row in _db.query_result:
+		var item_id: String = inv_row.item_id
+		var item := ItemRegistry.get_item(item_id)
+		if item is RodData    and session.equipped_rod_id.is_empty():
+			session.equipped_rod_id = item_id
+		elif item is BaitData  and session.equipped_bait_id.is_empty():
+			session.equipped_bait_id = item_id
+		elif item is TackleData and session.equipped_tackle_id.is_empty():
+			session.equipped_tackle_id = item_id
 
 func _generate_salt() -> String:
 	var bytes := PackedByteArray()
