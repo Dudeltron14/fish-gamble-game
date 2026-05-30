@@ -46,9 +46,7 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 		NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
 		return
 
-	session.add_owned(item_id, -1)
-	_persist_decrement(session, item_id)
-	NetAPI.rpc_id(peer_id, "notify_inventory_updated", item_id, session.get_owned(item_id))
+	# Equipping is free — bait/hook counts only decrease when fishing, not when swapping
 	NetAPI.rpc_id(peer_id, "notify_equip_result", true, item_id, slot)
 
 # ── Persistence (DB only, session is authoritative) ───────────────────────────
