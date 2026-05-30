@@ -7,10 +7,10 @@ enum Stage { CAST, WAITING, REACT, REEL, RESULT }
 const BASE_CAST_SPEED := 60.0
 const REACT_WINDOW := 1.5
 const REEL_BAR_WIDTH := 420.0
-const CATCH_ZONE_FRAC := 0.18   # fraction of bar width (reduced by difficulty)
-const CURSOR_SPEED := 130.0
-const PROGRESS_RATE := 1.4      # seconds of overlap needed to catch
-const DRAIN_RATE := 1.5
+const CATCH_ZONE_FRAC := 0.18
+const CURSOR_SPEED := 150.0
+const PROGRESS_RATE := 1.4
+const DRAIN_RATE := 1.1        # Reduced from 1.5 → ~33% more survival time
 
 var _stage := Stage.CAST
 var _cast_power := 0.0
@@ -19,10 +19,11 @@ var _wait_timer := 0.0
 var _react_timer := 0.0
 var _fish_id := ""
 var _difficulty := 1.0
-var _fish_pos := 0.5      # 0..1 normalized position in bar
+var _fish_pos := 0.5
 var _fish_dir := 1.0
-var _cursor_pos := 0.5    # 0..1
-var _reel_progress := 0.0 # 0..1 fill to win
+var _fish_dir_timer := 0.0    # countdown to next random direction change
+var _cursor_pos := 0.5
+var _reel_progress := 0.0
 
 @onready var status: Label = %StatusLabel
 @onready var cast_bar: ProgressBar = %CastBar
@@ -88,18 +89,27 @@ func _enter_reel() -> void:
 	_fish_pos = 0.5
 	_cursor_pos = 0.5
 	_reel_progress = 0.0
+	_fish_dir = 1.0 if randf() > 0.5 else -1.0   # random start direction
+	_fish_dir_timer = randf_range(0.7, 1.8)        # first random turn
 	reel_container.visible = true
 	reel_label.visible = true
 	status.text = "Reeling in…"
 	_update_reel_visuals()
 
 func _process_reel(delta: float) -> void:
-	# Fish oscillates, speed scales with difficulty
-	var fish_speed := 0.45 * _difficulty
+	# Random direction changes keep the fish unpredictable
+	_fish_dir_timer -= delta
+	if _fish_dir_timer <= 0.0:
+		_fish_dir *= -1.0
+		_fish_dir_timer = randf_range(0.6, 1.6)
+
+	# Fish speed slightly below max cursor speed so it's catchable but requires effort
+	var fish_speed := 0.32 * _difficulty
 	_fish_pos += fish_speed * _fish_dir * delta
 	if _fish_pos >= 1.0 or _fish_pos <= 0.0:
 		_fish_dir *= -1.0
 		_fish_pos = clampf(_fish_pos, 0.0, 1.0)
+		_fish_dir_timer = randf_range(0.5, 1.2)  # reset timer on edge bounce
 
 	# Cursor movement
 	var input_dir := Input.get_axis("move_left", "move_right")

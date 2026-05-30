@@ -51,10 +51,13 @@ func _on_deal_pressed() -> void:
 func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int) -> void:
 	_state = State.PLAYER_TURN
 	_clear_hands()
+	# Deal cards with staggered animation — dealer card, player card 1, player card 2, hole card
+	var delay := 0.0
+	_deal_card_animated(dealer_hand, _card_widget(dealer_visible), delay); delay += 0.18
 	for c in player_cards:
-		player_hand.add_child(_card_widget(c))
-	dealer_hand.add_child(_card_widget(dealer_visible))
-	dealer_hand.add_child(_hidden_widget())
+		_deal_card_animated(player_hand, _card_widget(c), delay); delay += 0.18
+	_deal_card_animated(dealer_hand, _hidden_widget(), delay)
+
 	var pv := _val(player_cards)
 	status_label.text = "Your hand: %d — Hit or Stand?" % pv
 	status_label.modulate = Color.WHITE
@@ -64,7 +67,7 @@ func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance
 	double_btn.disabled = player_cards.size() != 2
 
 func _on_hit(card: Dictionary, new_val: int) -> void:
-	player_hand.add_child(_card_widget(card))
+	_deal_card_animated(player_hand, _card_widget(card), 0.0)
 	if new_val > 21:
 		status_label.text = "Bust! (%d)" % new_val
 		status_label.modulate = Color(1.0, 0.4, 0.4)
@@ -75,13 +78,15 @@ func _on_hit(card: Dictionary, new_val: int) -> void:
 
 func _on_dealer_reveal(full_hand: Array, value: int) -> void:
 	_clear_node(dealer_hand)
+	# Flip the hole card with stagger
+	var delay := 0.0
 	for c in full_hand:
-		dealer_hand.add_child(_card_widget(c))
+		_deal_card_animated(dealer_hand, _card_widget(c), delay); delay += 0.2
 	status_label.text = "Dealer: %d — playing…" % value
 	_set_actions(false)
 
 func _on_dealer_card(card: Dictionary, value: int) -> void:
-	dealer_hand.add_child(_card_widget(card))
+	_deal_card_animated(dealer_hand, _card_widget(card), 0.0)
 	status_label.text = "Dealer: %d" % value
 
 func _on_result(outcome: String, _dh: Array, payout: int, new_balance: int) -> void:
@@ -95,6 +100,10 @@ func _on_result(outcome: String, _dh: Array, payout: int, new_balance: int) -> v
 		"push": "Push — bet returned.",
 	}
 	status_label.text = messages.get(outcome, outcome)
+	# Pulse the result label
+	status_label.scale = Vector2(0.8, 0.8)
+	var tween := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
+	tween.tween_property(status_label, "scale", Vector2.ONE, 0.5)
 	status_label.modulate = Color(0.3, 1.0, 0.4) if outcome == "win" \
 		else Color(1.0, 0.4, 0.4) if outcome in ["bust", "lose"] \
 		else Color.WHITE
@@ -157,6 +166,18 @@ func _hidden_widget() -> Control:
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	panel.add_child(lbl)
 	return panel
+
+# ── Animation helpers ─────────────────────────────────────────────────────────
+
+func _deal_card_animated(hand: HBoxContainer, card_widget: Control, delay: float) -> void:
+	card_widget.scale = Vector2(0.0, 1.0)  # start squished horizontally (like a flip)
+	card_widget.modulate.a = 0.0
+	hand.add_child(card_widget)
+	var tween := create_tween().set_parallel(true)
+	if delay > 0.0:
+		tween.tween_interval(delay)
+	tween.tween_property(card_widget, "scale", Vector2.ONE, 0.22).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK).set_delay(delay)
+	tween.tween_property(card_widget, "modulate:a", 1.0, 0.15).set_delay(delay)
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 

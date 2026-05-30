@@ -23,6 +23,9 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
 	if session == null:
 		return
+	if not _player_owns(session, item_id):
+		NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
+		return
 	var item: ItemData = ItemRegistry.get_item(item_id)
 	if item == null:
 		NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
@@ -41,6 +44,17 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 		NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
 		return
 	NetAPI.rpc_id(peer_id, "notify_equip_result", true, item_id, slot)
+
+func _player_owns(session: PlayerSession, item_id: String) -> bool:
+	var auth := GameServer.get_node_or_null("AuthServer")
+	if auth == null or auth._db == null:
+		return false
+	auth._db.query_with_bindings("""
+		SELECT quantity FROM inventory
+		WHERE player_id = (SELECT id FROM players WHERE username = ?)
+		AND item_id = ? AND quantity > 0
+	""", [session.username, item_id])
+	return auth._db.query_result.size() > 0
 
 func _persist(session: PlayerSession, item_id: String) -> void:
 	var auth := GameServer.get_node_or_null("AuthServer")

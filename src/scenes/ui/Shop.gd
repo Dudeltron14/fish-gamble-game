@@ -101,7 +101,7 @@ func _on_shop_result(ok: bool, reason: String, new_balance: int) -> void:
 	coins_label.text = "Coins: %d" % new_balance
 	status_label.text = reason
 	status_label.modulate = Color(0.3, 1.0, 0.4) if ok else Color(1.0, 0.4, 0.4)
-	_populate()
+	_populate.call_deferred()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
