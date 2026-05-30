@@ -4126,8 +4126,8 @@ tile_map_data = PackedByteArray("AAABAAgAAQA7AAEAAAADAA0AAQA6AAEAAAADAAsAAQA6AAA
 tile_set = SubResource("TileSet_iroh4")
 
 [node name="Shop" type="Sprite2D" parent="Base-TileMap/Layer2-TileMap" unique_id=704679494]
-position = Vector2(-184.28, 168.22)
-scale = Vector2(0.23382813, 0.22894531)
+position = Vector2(-184.50002, 169)
+scale = Vector2(0.2080078, 0.18359376)
 texture = ExtResource("5_hq2y8")
 
 [node name="Casino" type="Sprite2D" parent="Base-TileMap/Layer2-TileMap" unique_id=2028011356]
@@ -4150,7 +4150,7 @@ position = Vector2(-190, 143)
 collision_layer = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Zones/ShopZone" unique_id=964036192]
-position = Vector2(6, 52)
+position = Vector2(6, 45)
 shape = SubResource("Shape_shop")
 
 [node name="CasinoZone" type="Area2D" parent="Zones" unique_id=2062965260]
