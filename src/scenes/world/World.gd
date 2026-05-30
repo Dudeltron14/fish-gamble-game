@@ -29,10 +29,14 @@ func _ready() -> void:
 		NetAPI.fishing_result.connect(_on_fishing_result_received)
 		var host_session := GameServer.get_session(1)
 		if host_session:
+			GameManager.equipped_rod_id    = host_session.equipped_rod_id
+			GameManager.equipped_bait_id   = host_session.equipped_bait_id
+			GameManager.equipped_tackle_id = host_session.equipped_tackle_id
+			GameManager.equipped_changed.emit()
 			spawn_player(1, host_session.username)
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed("ui_accept") or _overlay != null:
+	if not event.is_action_pressed("interact") or _overlay != null:
 		return
 	match _local_zone:
 		"DockZone":   _open_overlay(FISHING_SCENE)

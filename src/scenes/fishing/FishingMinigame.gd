@@ -52,7 +52,7 @@ func _input(event: InputEvent) -> void:
 # ── Stages ────────────────────────────────────────────────────────────────────
 
 func _process_cast(delta: float) -> void:
-	if Input.is_action_pressed("ui_accept"):
+	if Input.is_action_pressed("interact"):
 		_cast_power = minf(_cast_power + _cast_speed * delta, 100.0)
 		cast_bar.value = _cast_power
 		cast_bar.visible = true
@@ -75,7 +75,7 @@ func _process_wait(delta: float) -> void:
 		status.text = "!! BITE !! Press SPACE!"
 
 func _process_react(delta: float) -> void:
-	if Input.is_action_just_pressed("ui_accept"):
+	if Input.is_action_just_pressed("interact"):
 		# Server already pre-picked fish via notify_fishing_start; begin reel
 		_enter_reel()
 		return
@@ -102,7 +102,7 @@ func _process_reel(delta: float) -> void:
 		_fish_pos = clampf(_fish_pos, 0.0, 1.0)
 
 	# Cursor movement
-	var input_dir := Input.get_axis("ui_left", "ui_right")
+	var input_dir := Input.get_axis("move_left", "move_right")
 	_cursor_pos = clampf(_cursor_pos + input_dir * CURSOR_SPEED * delta / REEL_BAR_WIDTH, 0.0, 1.0)
 
 	# Overlap detection
