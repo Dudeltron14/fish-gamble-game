@@ -9,7 +9,7 @@ const REACT_WINDOW := 1.5
 const REEL_BAR_WIDTH := 420.0
 const CATCH_ZONE_FRAC := 0.18
 const CURSOR_SPEED := 150.0
-const PROGRESS_RATE := 1.4     # base fill rate; multiplied by rod line_strength
+const PROGRESS_RATE := 0.35    # base fill rate; multiplied by rod line_strength (1.4 * 0.25)
 const DRAIN_RATE := 1.1        # base drain rate; multiplied by fish difficulty
 
 var _stage := Stage.CAST
