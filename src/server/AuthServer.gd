@@ -91,11 +91,19 @@ func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 	)
 
 	if ok:
+		_give_starter_items(username)
 		NetAPI.rpc_id(peer_id, "notify_register", true, "")
 	else:
 		NetAPI.rpc_id(peer_id, "notify_register", false, "Username already taken.")
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+func _give_starter_items(username: String) -> void:
+	for item_id in ["starter_rod", "worm"]:
+		_db.query_with_bindings("""
+			INSERT OR IGNORE INTO inventory (player_id, item_id, quantity)
+			VALUES ((SELECT id FROM players WHERE username = ?), ?, 1)
+		""", [username, item_id])
 
 func _load_equipped(session: PlayerSession, player_id: int) -> void:
 	_db.query_with_bindings(
