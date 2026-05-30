@@ -48,13 +48,14 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	if fish == null:
 		return
 
-	# Apply tackle coin_multiplier (10.4)
+	# Payout = rarity base × difficulty × hook multiplier
+	# base_coin_value represents the rarity tier base; difficulty scales for work required
 	var multiplier := 1.0
 	var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
 	if tackle:
 		multiplier = tackle.coin_multiplier
 
-	var earned := int(fish.base_coin_value * multiplier)
+	var earned := int(fish.base_coin_value * fish.catch_difficulty * multiplier)
 	session.coins += earned
 	_save_coins(session)
 	NetAPI.rpc_id(peer_id, "notify_fishing_result", true, fish_id, earned, session.coins)
