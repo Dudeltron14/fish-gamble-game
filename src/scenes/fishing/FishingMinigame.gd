@@ -116,6 +116,7 @@ func _process_react(delta: float) -> void:
 		return
 	_react_timer -= delta
 	if _react_timer <= 0.0:
+		NetAPI.rpc("c2s_fishing_result", false)  # consume gear + clean up server pending_fish_id
 		_show_result(false, "Too slow! The fish got away.")
 
 func _enter_reel() -> void:
@@ -224,6 +225,8 @@ func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed:
 	_wait_timer *= wait_modifier
 
 func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int) -> void:
+	if _stage == Stage.RESULT:
+		return  # already showing result (e.g. missed react already called _show_result)
 	var fish: FishData = ItemRegistry.get_item(fish_id) as FishData
 	var fish_name := fish.display_name if fish else fish_id
 	if caught:
