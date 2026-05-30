@@ -182,7 +182,7 @@ func _finish_reel(success: bool) -> void:
 
 # ── NetAPI callbacks ──────────────────────────────────────────────────────────
 
-func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float) -> void:
+func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float) -> void:
 	if not ok:
 		_show_result(false, "No fish nearby.")
 		return
@@ -190,6 +190,8 @@ func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed:
 	_difficulty = difficulty
 	_line_strength = line_strength
 	_cast_speed = BASE_CAST_SPEED * cast_speed
+	# Bait modifies the already-running wait timer by a percentage (stacks with cast quality)
+	_wait_timer *= wait_modifier
 
 func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int) -> void:
 	var fish: FishData = ItemRegistry.get_item(fish_id) as FishData

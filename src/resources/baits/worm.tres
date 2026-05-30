@@ -11,3 +11,4 @@ buy_price = 5
 sell_price = 1
 rarity_weights = {"common": 0.70, "uncommon": 0.22, "rare": 0.075, "legendary": 0.005}
 uses_per_stack = 10
+wait_modifier = 0.90

@@ -26,7 +26,9 @@ func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 	var rod := ItemRegistry.get_item(session.equipped_rod_id) as RodData
 	var cast_speed    := rod.cast_speed    if rod else 1.0
 	var line_strength := rod.line_strength if rod else 1.0
-	NetAPI.rpc_id(peer_id, "notify_fishing_start", true, fish.id, fish.catch_difficulty, cast_speed, line_strength)
+	var bait := ItemRegistry.get_item(session.equipped_bait_id) as BaitData
+	var wait_modifier := bait.wait_modifier if bait else 1.0
+	NetAPI.rpc_id(peer_id, "notify_fishing_start", true, fish.id, fish.catch_difficulty, cast_speed, line_strength, wait_modifier)
 
 func handle_result(peer_id: int, succeeded: bool) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
