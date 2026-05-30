@@ -108,7 +108,24 @@ func _on_error(msg: String) -> void:
 
 # ── Card widgets ──────────────────────────────────────────────────────────────
 
+const SUIT_NAMES := ["spades", "hearts", "diamonds", "clubs"]
+
+func _card_texture(card: Dictionary) -> Texture2D:
+	var suit := SUIT_NAMES[card["suit"]]
+	var rank := int(card["rank"]) + 1  # server rank 0-12 → file rank 1-13
+	var path := "res://assets/Playing Cards/card-%s-%d.png" % [suit, rank]
+	return load(path) as Texture2D
+
 func _card_widget(card: Dictionary) -> Control:
+	var tex := _card_texture(card)
+	if tex:
+		var rect := TextureRect.new()
+		rect.texture = tex
+		rect.custom_minimum_size = Vector2(48, 70)
+		rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		return rect
+	# Fallback to text if texture missing
 	var is_red: bool = card["suit"] == 1 or card["suit"] == 2
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(48, 70)
@@ -121,6 +138,14 @@ func _card_widget(card: Dictionary) -> Control:
 	return panel
 
 func _hidden_widget() -> Control:
+	var back_tex := load("res://assets/Playing Cards/card-back1.png") as Texture2D
+	if back_tex:
+		var rect := TextureRect.new()
+		rect.texture = back_tex
+		rect.custom_minimum_size = Vector2(48, 70)
+		rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		return rect
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(48, 70)
 	var lbl := Label.new()
