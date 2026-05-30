@@ -81,10 +81,11 @@ func _enter_wait() -> void:
 	_cast_filling = true   # reset for next cast
 	cast_bar.visible = false
 	cast_bar.modulate = Color.WHITE
-	# Perfect cast (1.0) → 1.5–3.5s wait; weak cast (0.0) → 4.0–8.0s wait
+	# Perfect cast (1.0) → 1.5–3.5s wait; terrible cast (0.0) → 5.25–10.25s wait
+	# (50% larger penalty delta vs original range)
 	_wait_timer = randf_range(
-		lerpf(4.0, 1.5, _cast_quality),
-		lerpf(8.0, 3.5, _cast_quality)
+		lerpf(5.25, 1.5, _cast_quality),
+		lerpf(10.25, 3.5, _cast_quality)
 	)
 	var quality_text := "Perfect cast! 🎯" if _cast_quality > 0.95 else \
 		("Good cast!" if _cast_quality > 0.70 else \
@@ -97,7 +98,8 @@ func _process_wait(delta: float) -> void:
 	if _wait_timer <= 0.0:
 		_stage = Stage.REACT
 		var diff_penalty := 1.0 + maxf(0.0, _difficulty - 1.0) * 0.35
-		_react_timer = REACT_WINDOW / diff_penalty * (1.0 + _hook_react_bonus)
+		var cast_penalty := lerpf(0.5, 1.0, _cast_quality)  # terrible cast = 50% shorter window
+		_react_timer = REACT_WINDOW / diff_penalty * (1.0 + _hook_react_bonus) * cast_penalty
 		status.text = "!! BITE !! Press E!"
 
 func _process_react(delta: float) -> void:
