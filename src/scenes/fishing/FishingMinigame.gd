@@ -121,9 +121,16 @@ func _process_react(delta: float) -> void:
 
 func _enter_reel() -> void:
 	_stage = Stage.REEL
-	# Fish spawns on a random side, not center — cursor always starts center.
-	# Guarantees the player must immediately move to catch even easy fish.
-	_fish_pos = randf_range(0.12, 0.38) if randf() > 0.5 else randf_range(0.62, 0.88)
+	# Spawn distance scales with difficulty:
+	# Easy fish start far from center (slow, need the chase distance).
+	# Hard fish start close to center (erratic enough without a long chase).
+	var d_norm      := clampf((_difficulty - 0.5) / 2.5, 0.0, 1.0)
+	var min_dist    := lerpf(0.25, 0.07, d_norm)
+	var max_dist    := lerpf(0.45, 0.23, d_norm)
+	var zone_half_n := (CATCH_ZONE_FRAC / _difficulty) * 0.5
+	var dist        := randf_range(min_dist, max_dist)
+	var target      := (0.5 - dist) if randf() > 0.5 else (0.5 + dist)
+	_fish_pos = clampf(target, zone_half_n, 1.0 - zone_half_n)
 	_cursor_pos = 0.5
 	_reel_progress = 0.0
 	_escape_timer = ESCAPE_TIME_MAX
