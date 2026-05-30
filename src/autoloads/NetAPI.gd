@@ -2,7 +2,7 @@ extends Node
 
 signal login_result(ok: bool, reason: String, coins: int)
 signal register_result(ok: bool, reason: String)
-signal fishing_start(ok: bool, fish_id: String, difficulty: float)
+signal fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float)
 signal fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int)
 signal shop_result(ok: bool, reason: String, new_balance: int)
 signal bj_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int)
@@ -94,8 +94,8 @@ func notify_register(ok: bool, reason: String) -> void:
 	register_result.emit(ok, reason)
 
 @rpc("authority", "call_remote", "reliable")
-func notify_fishing_start(ok: bool, fish_id: String, difficulty: float) -> void:
-	fishing_start.emit(ok, fish_id, difficulty)
+func notify_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float) -> void:
+	fishing_start.emit(ok, fish_id, difficulty, cast_speed)
 
 @rpc("authority", "call_remote", "reliable")
 func notify_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int) -> void:

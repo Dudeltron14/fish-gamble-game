@@ -4,7 +4,7 @@ signal completed
 
 enum Stage { CAST, WAITING, REACT, REEL, RESULT }
 
-const CAST_SPEED := 60.0
+const BASE_CAST_SPEED := 60.0
 const REACT_WINDOW := 1.5
 const REEL_BAR_WIDTH := 420.0
 const CATCH_ZONE_FRAC := 0.25   # fraction of bar width (reduced by difficulty)
@@ -14,6 +14,7 @@ const DRAIN_RATE := 0.6
 
 var _stage := Stage.CAST
 var _cast_power := 0.0
+var _cast_speed := BASE_CAST_SPEED
 var _wait_timer := 0.0
 var _react_timer := 0.0
 var _fish_id := ""
@@ -52,7 +53,7 @@ func _input(event: InputEvent) -> void:
 
 func _process_cast(delta: float) -> void:
 	if Input.is_action_pressed("ui_accept"):
-		_cast_power = minf(_cast_power + CAST_SPEED * delta, 100.0)
+		_cast_power = minf(_cast_power + _cast_speed * delta, 100.0)
 		cast_bar.value = _cast_power
 		cast_bar.visible = true
 		status.text = "Hold SPACE… release to cast!"
@@ -135,12 +136,13 @@ func _finish_reel(success: bool) -> void:
 
 # ── NetAPI callbacks ──────────────────────────────────────────────────────────
 
-func _on_fishing_start(ok: bool, fish_id: String, difficulty: float) -> void:
+func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float) -> void:
 	if not ok:
 		_show_result(false, "No fish nearby.")
 		return
 	_fish_id = fish_id
 	_difficulty = difficulty
+	_cast_speed = BASE_CAST_SPEED * cast_speed
 
 func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int) -> void:
 	var fish: FishData = ItemRegistry.get_item(fish_id) as FishData
