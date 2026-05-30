@@ -125,14 +125,14 @@ func _process_reel(delta: float) -> void:
 	else:
 		_reel_progress = maxf(_reel_progress - DRAIN_RATE * _difficulty * delta, 0.0)
 
-	_update_reel_visuals()
+	_update_reel_visuals(overlapping)
 
 	if _reel_progress >= 1.0:
 		_finish_reel(true)
 	elif _fish_pos <= 0.0 or _fish_pos >= 1.0:
 		_finish_reel(false)
 
-func _update_reel_visuals() -> void:
+func _update_reel_visuals(overlapping: bool = false) -> void:
 	var w := REEL_BAR_WIDTH
 	var zone_half := (CATCH_ZONE_FRAC / _difficulty) * 0.5 * w
 	catch_zone.offset_left = _fish_pos * w - zone_half
@@ -141,6 +141,18 @@ func _update_reel_visuals() -> void:
 	cursor_rect.offset_right = _cursor_pos * w + 4.0
 	cast_bar.value = _reel_progress * 100.0
 	cast_bar.visible = true
+
+	var pct := int(_reel_progress * 100.0)
+	if overlapping:
+		cast_bar.modulate = Color(0.3, 1.0, 0.45)
+		status.text = "Reeling in… %d%%" % pct
+	elif _reel_progress > 0.0:
+		var secs_left := _reel_progress / (DRAIN_RATE * _difficulty)
+		cast_bar.modulate = Color(1.0, 0.35 + _reel_progress * 0.35, 0.2)
+		status.text = "Losing the fish! %d%% — %.1fs" % [pct, secs_left]
+	else:
+		cast_bar.modulate = Color(1.0, 0.4, 0.3)
+		status.text = "Reeling in… 0%%"
 
 func _finish_reel(success: bool) -> void:
 	_stage = Stage.RESULT
