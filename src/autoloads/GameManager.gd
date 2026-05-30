@@ -5,6 +5,7 @@ signal coins_changed(new_amount: int)
 signal zone_hint_changed(hint: String)
 signal equipped_changed()
 signal owned_changed()
+@warning_ignore("unused_signal")
 signal hook_durability_changed(current: int, max_val: int)
 
 var current_player_name: String = ""
