@@ -24,9 +24,18 @@ func _give_coins() -> void:
 		session.coins = 9999
 
 func _give_gear() -> void:
-	for item_id in ["worm", "lure", "magic_bait", "basic_hook", "golden_hook"]:
-		var session := GameServer.get_session(multiplayer.get_unique_id())
-		if session:
-			session.owned_items[item_id] = session.owned_items.get(item_id, 0) + 10
-		GameManager.set_owned(item_id, GameManager.get_owned(item_id) + 10)
+	var session := GameServer.get_session(multiplayer.get_unique_id())
+	# 5 of each bait
+	for item_id in ["worm", "lure", "magic_bait"]:
+		if session: session.owned_items[item_id] = session.owned_items.get(item_id, 0) + 5
+		GameManager.set_owned(item_id, GameManager.get_owned(item_id) + 5)
+	# 1 of each hook
+	for item_id in ["basic_hook", "golden_hook"]:
+		if session: session.owned_items[item_id] = session.owned_items.get(item_id, 0) + 1
+		GameManager.set_owned(item_id, GameManager.get_owned(item_id) + 1)
+	# 1 of each rod only if not already owned
+	for item_id in ["starter_rod", "angler_rod", "master_rod"]:
+		if GameManager.get_owned(item_id) == 0:
+			if session: session.owned_items[item_id] = 1
+			GameManager.set_owned(item_id, 1)
 	GameManager.owned_changed.emit()

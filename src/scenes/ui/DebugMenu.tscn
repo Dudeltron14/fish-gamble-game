@@ -52,7 +52,7 @@ text = "Give 9999 Coins"
 
 [node name="GiveGearBtn" type="Button" parent="Panel/Margin/VBox"]
 unique_name_in_owner = true
-text = "Give All Bait & Hooks (×10)"
+text = "Give Gear (Bait ×5, Hooks ×1, Rods ×1)"
 
 [node name="Sep3" type="HSeparator" parent="Panel/Margin/VBox"]
 
