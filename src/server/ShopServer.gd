@@ -16,8 +16,9 @@ func handle_buy(peer_id: int, item_id: String) -> void:
 		return
 
 	session.coins -= item.buy_price
-	session.add_owned(item_id, 1)
-	_persist_buy(session, item_id)
+	var qty: int = (item as BaitData).uses_per_stack if item is BaitData else 1
+	session.add_owned(item_id, qty)
+	_persist_buy(session, item_id, qty)
 	NetAPI.rpc_id(peer_id, "notify_inventory_updated", item_id, session.get_owned(item_id))
 	NetAPI.rpc_id(peer_id, "notify_shop_result", true, "Purchased %s!" % item.display_name, session.coins)
 
@@ -51,7 +52,7 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 
 # ── Persistence (DB only, session is authoritative) ───────────────────────────
 
-func _persist_buy(session: PlayerSession, item_id: String) -> void:
+func _persist_buy(session: PlayerSession, item_id: String, qty: int = 1) -> void:
 	var auth := GameServer.get_node_or_null("AuthServer")
 	if auth == null or auth._db == null:
 		return
@@ -61,9 +62,9 @@ func _persist_buy(session: PlayerSession, item_id: String) -> void:
 	)
 	auth._db.query_with_bindings("""
 		INSERT INTO inventory (player_id, item_id, quantity)
-		VALUES ((SELECT id FROM players WHERE username = ?), ?, 1)
-		ON CONFLICT(player_id, item_id) DO UPDATE SET quantity = quantity + 1
-	""", [session.username, item_id])
+		VALUES ((SELECT id FROM players WHERE username = ?), ?, ?)
+		ON CONFLICT(player_id, item_id) DO UPDATE SET quantity = quantity + ?
+	""", [session.username, item_id, qty, qty])
 
 func _persist_decrement(session: PlayerSession, item_id: String) -> void:
 	var auth := GameServer.get_node_or_null("AuthServer")
