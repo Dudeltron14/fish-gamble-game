@@ -136,10 +136,11 @@ func _enter_reel() -> void:
 	_update_reel_visuals()
 
 func _process_reel(delta: float) -> void:
-	# Random direction changes keep the fish unpredictable
+	# Direction may change or continue — 65% chance to flip, 35% to keep going
 	_fish_dir_timer -= delta
 	if _fish_dir_timer <= 0.0:
-		_fish_dir *= -1.0
+		if randf() < 0.65:
+			_fish_dir *= -1.0
 		_fish_dir_timer = randf_range(0.6, 1.6)
 
 	# Speed slides randomly — pick new target every 0.5–1.5s, lerp smoothly toward it
