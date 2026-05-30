@@ -35,8 +35,9 @@ func init_host_session(username: String) -> void:
 	session.authenticated = true
 	session.username = username
 	session.coins = 50
-	session.equipped_rod_id = "starter_rod"
-	session.equipped_bait_id = "worm"
+	session.equipped_rod_id    = "starter_rod"
+	session.equipped_bait_id   = "worm"
+	session.equipped_tackle_id = "basic_hook"
 	sessions[1] = session
 
 func get_session(peer_id: int) -> PlayerSession:

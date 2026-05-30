@@ -107,7 +107,7 @@ func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 func _give_starter_items(username: String) -> void:
-	for item_id in ["starter_rod", "worm"]:
+	for item_id in ["starter_rod", "worm", "basic_hook"]:
 		_db.query_with_bindings("""
 			INSERT OR IGNORE INTO inventory (player_id, item_id, quantity)
 			VALUES ((SELECT id FROM players WHERE username = ?), ?, 1)
