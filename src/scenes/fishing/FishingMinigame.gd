@@ -13,6 +13,7 @@ const FISH_SPEED_MAX_NORM := CURSOR_SPEED / REEL_BAR_WIDTH  # 0.357 — cursor s
 const FISH_SPEED_LERP := 2.5   # how fast speed transitions (higher = snappier changes)
 const PROGRESS_RATE := 0.35    # base fill rate; multiplied by rod line_strength
 const DRAIN_RATE := 0.35       # base drain rate; multiplied by fish difficulty
+const ESCAPE_TIME_MAX := 5.0   # starting escape timer (seconds before fish gets away)
 
 var _stage := Stage.CAST
 var _cast_power := 0.0
@@ -33,6 +34,7 @@ var _fish_speed_target := 0.0   # target to lerp toward
 var _fish_speed_timer := 0.0    # countdown to next random speed change
 var _cursor_pos := 0.5
 var _reel_progress := 0.0
+var _escape_timer := ESCAPE_TIME_MAX  # drains when off fish, fills when on — hits 0 = loss
 
 @onready var status: Label = %StatusLabel
 @onready var cast_bar: ProgressBar = %CastBar
@@ -123,6 +125,7 @@ func _enter_reel() -> void:
 	_fish_pos = randf_range(0.12, 0.38) if randf() > 0.5 else randf_range(0.62, 0.88)
 	_cursor_pos = 0.5
 	_reel_progress = 0.0
+	_escape_timer = ESCAPE_TIME_MAX
 	_fish_dir = 1.0 if randf() > 0.5 else -1.0
 	_fish_dir_timer = randf_range(0.7, 1.8)
 	# Speed slides between ~15% and 100% of difficulty-scaled max, never exceeding cursor speed
@@ -162,19 +165,20 @@ func _process_reel(delta: float) -> void:
 	_cursor_pos = clampf(_cursor_pos + input_dir * CURSOR_SPEED * delta / REEL_BAR_WIDTH, 0.0, 1.0)
 
 	# Overlap detection
-	# Progress fills faster with better rods (line_strength); drains faster for harder fish (difficulty)
 	var zone_half := (CATCH_ZONE_FRAC / _difficulty) * 0.5
 	var overlapping := absf(_cursor_pos - _fish_pos) < zone_half
 	if overlapping:
 		_reel_progress = minf(_reel_progress + PROGRESS_RATE * _line_strength * delta, 1.0)
+		_escape_timer  = minf(_escape_timer  + PROGRESS_RATE * _line_strength * delta, ESCAPE_TIME_MAX)
 	else:
 		_reel_progress = maxf(_reel_progress - DRAIN_RATE * _difficulty * delta, 0.0)
+		_escape_timer  = maxf(_escape_timer  - DRAIN_RATE * _difficulty * delta, 0.0)
 
 	_update_reel_visuals(overlapping)
 
 	if _reel_progress >= 1.0:
 		_finish_reel(true)
-	elif _fish_pos <= 0.0 or _fish_pos >= 1.0:
+	elif _escape_timer <= 0.0:
 		_finish_reel(false)
 
 func _update_reel_visuals(overlapping: bool = false) -> void:
@@ -188,16 +192,16 @@ func _update_reel_visuals(overlapping: bool = false) -> void:
 	cast_bar.visible = true
 
 	var pct := int(_reel_progress * 100.0)
+	var escape_pct := _escape_timer / ESCAPE_TIME_MAX
 	if overlapping:
 		cast_bar.modulate = Color(0.3, 1.0, 0.45)
 		status.text = "Reeling in… %d%%" % pct
-	elif _reel_progress > 0.0:
-		var secs_left := _reel_progress / (DRAIN_RATE * _difficulty)
-		cast_bar.modulate = Color(1.0, 0.35 + _reel_progress * 0.35, 0.2)
-		status.text = "Losing the fish! %d%% — %.1fs" % [pct, secs_left]
+	elif _escape_timer > 0.0:
+		cast_bar.modulate = Color(1.0, 0.2 + escape_pct * 0.5, 0.1)
+		status.text = "Losing the fish! %d%% — %.1fs" % [pct, _escape_timer]
 	else:
-		cast_bar.modulate = Color(1.0, 0.4, 0.3)
-		status.text = "Reeling in… 0%%"
+		cast_bar.modulate = Color(1.0, 0.2, 0.1)
+		status.text = "Fish escaping!"
 
 func _finish_reel(success: bool) -> void:
 	_stage = Stage.RESULT
