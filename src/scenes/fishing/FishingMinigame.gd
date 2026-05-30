@@ -15,6 +15,9 @@ const DRAIN_RATE := 0.35       # base drain rate; multiplied by fish difficulty
 var _stage := Stage.CAST
 var _cast_power := 0.0
 var _cast_speed := BASE_CAST_SPEED
+var _cast_filling := true   # true = filling toward 100, false = overshooting back down
+var _cast_quality := 1.0    # 0.0–1.0; 1.0 = perfect (released exactly at 100)
+var _cast_zone_mod := 1.0   # catch zone multiplier from cast quality (0.5–1.0)
 var _wait_timer := 0.0
 var _react_timer := 0.0
 var _fish_id := ""
@@ -55,18 +58,40 @@ func _input(event: InputEvent) -> void:
 
 func _process_cast(delta: float) -> void:
 	if Input.is_action_pressed("interact"):
-		_cast_power = minf(_cast_power + _cast_speed * delta, 100.0)
-		cast_bar.value = _cast_power
 		cast_bar.visible = true
-		status.text = "Hold E… release to cast!"
-	elif _cast_power > 0.0:
+		if _cast_filling:
+			_cast_power += _cast_speed * delta
+			if _cast_power >= 100.0:
+				_cast_power = 100.0
+				_cast_filling = false   # start overshooting back down
+		else:
+			_cast_power -= _cast_speed * delta
+		_cast_power = clampf(_cast_power, 0.0, 100.0)
+		cast_bar.value = _cast_power
+		# Bar colour: green at 100, yellow mid, red at 0 or overshooting low
+		var t := _cast_power / 100.0
+		cast_bar.modulate = Color(1.0 - t * 0.7, 0.3 + t * 0.7, 0.2)
+		status.text = "Hold E… release to cast!" if _cast_filling else "Release! Overshooting…"
+	elif _cast_power > 0.0 or not _cast_filling:
+		_cast_quality = _cast_power / 100.0
 		_enter_wait()
 
 func _enter_wait() -> void:
 	_stage = Stage.WAITING
+	_cast_filling = true   # reset for next cast
 	cast_bar.visible = false
-	_wait_timer = randf_range(1.5, 3.5)
-	status.text = "Waiting for a bite…"
+	cast_bar.modulate = Color.WHITE
+	# Perfect cast (1.0) → 1.5–3.5s wait; weak cast (0.0) → 4.0–8.0s wait
+	_wait_timer = randf_range(
+		lerpf(4.0, 1.5, _cast_quality),
+		lerpf(8.0, 3.5, _cast_quality)
+	)
+	# Perfect cast → full zone; weak/overshoot → down to 50% zone size
+	_cast_zone_mod = lerpf(0.5, 1.0, _cast_quality)
+	var quality_text := "Perfect cast! 🎯" if _cast_quality > 0.95 else \
+		("Good cast!" if _cast_quality > 0.70 else \
+		("Weak cast…" if _cast_quality > 0.30 else "Terrible cast…"))
+	status.text = "%s Waiting for a bite…" % quality_text
 	NetAPI.rpc("c2s_fishing_start")
 
 func _process_wait(delta: float) -> void:
@@ -118,7 +143,7 @@ func _process_reel(delta: float) -> void:
 
 	# Overlap detection
 	# Progress fills faster with better rods (line_strength); drains faster for harder fish (difficulty)
-	var zone_half := (CATCH_ZONE_FRAC / _difficulty) * 0.5
+	var zone_half := (CATCH_ZONE_FRAC / _difficulty) * 0.5 * _cast_zone_mod
 	var overlapping := absf(_cursor_pos - _fish_pos) < zone_half
 	if overlapping:
 		_reel_progress = minf(_reel_progress + PROGRESS_RATE * _line_strength * delta, 1.0)
@@ -134,7 +159,7 @@ func _process_reel(delta: float) -> void:
 
 func _update_reel_visuals(overlapping: bool = false) -> void:
 	var w := REEL_BAR_WIDTH
-	var zone_half := (CATCH_ZONE_FRAC / _difficulty) * 0.5 * w
+	var zone_half := (CATCH_ZONE_FRAC / _difficulty) * 0.5 * _cast_zone_mod * w
 	catch_zone.offset_left = _fish_pos * w - zone_half
 	catch_zone.offset_right = _fish_pos * w + zone_half
 	cursor_rect.offset_left = _cursor_pos * w - 4.0
