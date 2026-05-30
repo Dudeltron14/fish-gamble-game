@@ -89,6 +89,14 @@ func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 		weights["legendary"] = maxf(0.0, weights.get("legendary", 0.0) - penalty * 0.3)
 		weights["common"]    = weights.get("common", 0.0) + penalty
 
+	# Normalize weights so they always sum to 1.0.
+	# Needed when common=0 (Magic Bait) absorbs rod/cast bonuses without a pool to draw from.
+	var total := 0.0
+	for v: float in weights.values(): total += v
+	if total > 0.0:
+		for key: String in weights:
+			weights[key] = weights[key] / total
+
 	var rarity := _weighted_rarity(weights)
 	var candidates: Array = ItemRegistry.fish.values().filter(
 		func(f: FishData) -> bool: return f.rarity == rarity
