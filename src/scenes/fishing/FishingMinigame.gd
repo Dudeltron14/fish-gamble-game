@@ -7,10 +7,10 @@ enum Stage { CAST, WAITING, REACT, REEL, RESULT }
 const BASE_CAST_SPEED := 60.0
 const REACT_WINDOW := 1.5
 const REEL_BAR_WIDTH := 420.0
-const CATCH_ZONE_FRAC := 0.25   # fraction of bar width (reduced by difficulty)
-const CURSOR_SPEED := 220.0
-const PROGRESS_RATE := 1.0      # seconds of overlap needed to catch
-const DRAIN_RATE := 0.6
+const CATCH_ZONE_FRAC := 0.18   # fraction of bar width (reduced by difficulty)
+const CURSOR_SPEED := 130.0
+const PROGRESS_RATE := 1.4      # seconds of overlap needed to catch
+const DRAIN_RATE := 1.5
 
 var _stage := Stage.CAST
 var _cast_power := 0.0
@@ -95,8 +95,8 @@ func _enter_reel() -> void:
 
 func _process_reel(delta: float) -> void:
 	# Fish oscillates, speed scales with difficulty
-	var fish_speed := 0.18 * _difficulty
-	_fish_pos += fish_speed * _fish_dir * delta * 60.0 * delta
+	var fish_speed := 0.45 * _difficulty
+	_fish_pos += fish_speed * _fish_dir * delta
 	if _fish_pos >= 1.0 or _fish_pos <= 0.0:
 		_fish_dir *= -1.0
 		_fish_pos = clampf(_fish_pos, 0.0, 1.0)
