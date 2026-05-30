@@ -140,18 +140,16 @@ func _enter_reel() -> void:
 	_update_reel_visuals()
 
 func _process_reel(delta: float) -> void:
-	# Direction may change or continue — 65% chance to flip, 35% to keep going
+	# Direction / behaviour timer — triggers a difficulty-scaled action
 	_fish_dir_timer -= delta
 	if _fish_dir_timer <= 0.0:
-		if randf() < 0.65:
-			_fish_dir *= -1.0
-		_fish_dir_timer = randf_range(0.6, 1.6)
+		_execute_fish_action()
 
-	# Speed slides randomly — pick new target every 0.5–1.5s, lerp smoothly toward it
+	# Speed slides randomly — pick new target every 0.5–1.5s (overridden by some actions)
 	_fish_speed_timer -= delta
 	if _fish_speed_timer <= 0.0:
 		var speed_max := minf(FISH_SPEED_MAX_NORM, _difficulty * 0.22)
-		var speed_min := speed_max * 0.50  # fish never drops below half its max speed
+		var speed_min := speed_max * 0.50
 		_fish_speed_target = randf_range(speed_min, speed_max)
 		_fish_speed_timer = randf_range(0.5, 1.5)
 	_fish_speed = lerpf(_fish_speed, _fish_speed_target, FISH_SPEED_LERP * delta)
@@ -184,6 +182,60 @@ func _process_reel(delta: float) -> void:
 		_finish_reel(true)
 	elif _escape_timer <= 0.0:
 		_finish_reel(false)
+
+func _pick_fish_action() -> String:
+	# d_norm: 0.0 at difficulty 0.5 (easy) → 1.0 at difficulty 3.0 (extreme)
+	var d_norm := clampf((_difficulty - 0.5) / 2.5, 0.0, 1.0)
+	var w := {
+		"flip":       lerpf(0.20, 0.35, d_norm),
+		"continue":   lerpf(0.15, 0.25, d_norm),
+		"slowdown":   lerpf(0.30, 0.00, d_norm),
+		"hover":      lerpf(0.20, 0.00, d_norm),
+		"burst":      lerpf(0.05, 0.25, d_norm),
+		"shimmy":     lerpf(0.00, 0.15, d_norm),
+		"freezedash": lerpf(0.10, 0.00, d_norm),
+	}
+	var total := 0.0
+	for v: float in w.values(): total += v
+	var roll := randf() * total
+	var cumulative := 0.0
+	for action: String in w:
+		cumulative += w[action]
+		if roll < cumulative:
+			return action
+	return "flip"
+
+func _execute_fish_action() -> void:
+	var speed_max := minf(FISH_SPEED_MAX_NORM, _difficulty * 0.22)
+	match _pick_fish_action():
+		"flip":
+			_fish_dir *= -1.0
+			_fish_dir_timer = randf_range(0.6, 1.6)
+		"continue":
+			_fish_dir_timer = randf_range(0.6, 1.6)
+		"slowdown":
+			_fish_speed_target = speed_max * 0.15
+			_fish_speed_timer  = randf_range(0.8, 1.8)
+			_fish_dir_timer    = randf_range(1.0, 2.5)
+		"hover":
+			_fish_speed_target = speed_max * 0.03
+			_fish_speed_timer  = randf_range(1.5, 3.5)
+			_fish_dir_timer    = randf_range(2.0, 4.0)
+		"burst":
+			if randf() > 0.5: _fish_dir *= -1.0
+			_fish_speed_target = speed_max
+			_fish_speed_timer  = randf_range(0.2, 0.6)
+			_fish_dir_timer    = randf_range(0.3, 0.7)
+		"shimmy":
+			_fish_dir *= -1.0
+			_fish_speed_target = speed_max * 0.8
+			_fish_speed_timer  = randf_range(0.1, 0.3)
+			_fish_dir_timer    = randf_range(0.1, 0.25)
+		"freezedash":
+			_fish_speed_target = 0.0
+			_fish_speed_timer  = randf_range(0.5, 1.2)
+			_fish_dir          = 1.0 if randf() > 0.5 else -1.0
+			_fish_dir_timer    = randf_range(0.4, 0.8)
 
 func _update_reel_visuals(overlapping: bool = false) -> void:
 	var w := REEL_BAR_WIDTH
