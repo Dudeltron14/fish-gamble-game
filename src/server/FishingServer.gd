@@ -40,10 +40,10 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	if fish == null:
 		return
 
-	var coins := fish.base_coin_value
-	session.coins += coins
+	var earned := fish.base_coin_value
+	session.coins += earned
 	_save_coins(session)
-	NetAPI.rpc_id(peer_id, "notify_fishing_result", true, fish_id, coins)
+	NetAPI.rpc_id(peer_id, "notify_fishing_result", true, fish_id, earned, session.coins)
 
 func _pick_fish(session: PlayerSession) -> FishData:
 	var weights := DEFAULT_WEIGHTS.duplicate()

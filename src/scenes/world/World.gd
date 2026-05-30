@@ -70,7 +70,7 @@ func _on_overlay_closed() -> void:
 	_overlay = null
 	_overlay_scene = null
 
-func _on_fishing_result_received(caught: bool, _fish_id: String, _coins: int) -> void:
+func _on_fishing_result_received(caught: bool, _fish_id: String, _earned: int, _new_balance: int) -> void:
 	if caught:
 		var player := _get_local_player()
 		if player:

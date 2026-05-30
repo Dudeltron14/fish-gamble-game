@@ -142,14 +142,14 @@ func _on_fishing_start(ok: bool, fish_id: String, difficulty: float) -> void:
 	_fish_id = fish_id
 	_difficulty = difficulty
 
-func _on_fishing_result(caught: bool, fish_id: String, coins: int) -> void:
+func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int) -> void:
 	var fish: FishData = ItemRegistry.get_item(fish_id) as FishData
-	var name := fish.display_name if fish else fish_id
+	var fish_name := fish.display_name if fish else fish_id
 	if caught:
-		GameManager.add_coins(coins)
-		_show_result(true, "Caught %s! +%d coins" % [name, coins])
+		GameManager.set_coins(new_balance)
+		_show_result(true, "Caught %s! +%d coins" % [fish_name, earned])
 	else:
-		_show_result(false, "The %s escaped…" % name)
+		_show_result(false, "The %s escaped…" % fish_name)
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
