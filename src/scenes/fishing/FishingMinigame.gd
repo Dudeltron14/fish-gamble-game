@@ -13,7 +13,7 @@ const FISH_SPEED_MAX_NORM := CURSOR_SPEED / REEL_BAR_WIDTH  # 0.357 — cursor s
 const FISH_SPEED_LERP := 2.5   # how fast speed transitions (higher = snappier changes)
 const PROGRESS_RATE := 0.35    # base fill rate; multiplied by rod line_strength
 const DRAIN_RATE := 0.35       # base drain rate; multiplied by fish difficulty
-const ESCAPE_TIME_MAX := 5.0   # starting escape timer (seconds before fish gets away)
+const ESCAPE_TIME_MAX := 3.0   # starting escape timer (seconds before fish gets away)
 
 var _stage := Stage.CAST
 var _cast_power := 0.0
@@ -155,10 +155,13 @@ func _process_reel(delta: float) -> void:
 		_fish_speed_timer = randf_range(0.5, 1.5)
 	_fish_speed = lerpf(_fish_speed, _fish_speed_target, FISH_SPEED_LERP * delta)
 	_fish_pos += _fish_speed * _fish_dir * delta
-	if _fish_pos >= 1.0 or _fish_pos <= 0.0:
+	# Bounce when the EDGE of the catch zone would leave the bar, not the fish centre
+	var zone_half_norm := (CATCH_ZONE_FRAC / _difficulty) * 0.5
+	if (_fish_dir < 0.0 and _fish_pos - zone_half_norm <= 0.0) or \
+	   (_fish_dir > 0.0 and _fish_pos + zone_half_norm >= 1.0):
 		_fish_dir *= -1.0
-		_fish_pos = clampf(_fish_pos, 0.0, 1.0)
-		_fish_dir_timer = randf_range(0.5, 1.2)  # reset timer on edge bounce
+		_fish_pos = clampf(_fish_pos, zone_half_norm, 1.0 - zone_half_norm)
+		_fish_dir_timer = randf_range(0.5, 1.2)
 
 	# Cursor movement
 	var input_dir := Input.get_axis("move_left", "move_right")
@@ -184,8 +187,8 @@ func _process_reel(delta: float) -> void:
 func _update_reel_visuals(overlapping: bool = false) -> void:
 	var w := REEL_BAR_WIDTH
 	var zone_half := (CATCH_ZONE_FRAC / _difficulty) * 0.5 * w
-	catch_zone.offset_left = _fish_pos * w - zone_half
-	catch_zone.offset_right = _fish_pos * w + zone_half
+	catch_zone.offset_left  = clampf(_fish_pos * w - zone_half, 0.0, w)
+	catch_zone.offset_right = clampf(_fish_pos * w + zone_half, 0.0, w)
 	cursor_rect.offset_left = _cursor_pos * w - 4.0
 	cursor_rect.offset_right = _cursor_pos * w + 4.0
 	cast_bar.value = _reel_progress * 100.0
@@ -198,7 +201,7 @@ func _update_reel_visuals(overlapping: bool = false) -> void:
 		status.text = "Reeling in… %d%%" % pct
 	elif _escape_timer > 0.0:
 		cast_bar.modulate = Color(1.0, 0.2 + escape_pct * 0.5, 0.1)
-		status.text = "Losing the fish! %d%% — %.1fs" % [pct, _escape_timer]
+		status.text = "Losing the fish! %d%% — %.2fs" % [pct, _escape_timer]
 	else:
 		cast_bar.modulate = Color(1.0, 0.2, 0.1)
 		status.text = "Fish escaping!"
