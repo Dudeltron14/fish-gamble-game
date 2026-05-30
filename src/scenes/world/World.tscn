@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://dmh1yv7rejodw" path="res://assets/ForgottenMemories/TileSet.png" id="2_0jnxf"]
 [ext_resource type="Texture2D" uid="uid://bgaijexwxub6o" path="res://assets/ForgottenMemories/WaterTiles-6frames.png" id="3_xidhj"]
 [ext_resource type="Texture2D" uid="uid://brtij3k6eeu6b" path="res://assets/ForgottenMemories/Props.png" id="4_xidhj"]
+[ext_resource type="Texture2D" uid="uid://1cl5la3ify80" path="res://assets/User_Gen_ChatGPT/shop.png" id="5_8b1u2"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_8b1u2"]
 texture = ExtResource("2_0jnxf")
@@ -4113,6 +4114,10 @@ tile_set = SubResource("TileSet_26m1k")
 tile_map_data = PackedByteArray("AAABAAgAAQA7AAEAAAADAA0AAQA6AAEAAAADAAsAAQA6AAAAAAD8/w0AAQA5AAEAAAD8/wsAAQA5AAAAAAD+/wgAAQA7AAEAAAABAAsAAQA5AAEAAAD+/wsAAQA6AAEAAAD9/w0AAQA6AAUAAAD+/w0AAQA6AAUAAAD//w0AAQA6AAUAAAAAAA0AAQA6AAUAAAABAA0AAQA6AAUAAAACAA0AAQA6AAUAAAD9/wsAAQA6AAUAAAACAAsAAQA6AAUAAAABAAkAAQA7AAUAAAABAAoAAQA7AAUAAAD+/wkAAQA7AAUAAAD+/woAAQA7AAUAAAD8/wwAAQA7AAUAAAADAAwAAQA7AAUAAAD0//7/AAAGAAgAAAD0////AAAGAAkAAAD1//7/AAAHAAgAAAD1////AAAHAAkAAADz/wIAAAAEAAcAAADz/wMAAAAEAAgAAADz/wQAAAAEAAkAAAD0/wIAAAAFAAcAAAD0/wMAAAAFAAgAAAD0/wQAAAAFAAkAAAD0/wYAAAACAAgAAAD2/wcAAAACAAcAAAAHAP//AAAAAAcAAAAIAP//AAABAAcAAAADAP3/AAAHAAAAAAADAP7/AAAHAAEAAAADAP//AAAHAAIAAAADAAAAAAAHAAMAAAAEAP3/AAAIAAAAAAAEAP7/AAAIAAEAAAAEAP//AAAIAAIAAAAEAAAAAAAIAAMAAAAIAAYAAAAGAAgAAAAIAAcAAAAGAAkAAAAJAAYAAAAHAAgAAAAJAAcAAAAHAAkAAAAEAAcAAAACAAoAAAAFAAEAAAAAAAoAAAD2////AAAEAAoAAAD2/wAAAAAEAAsAAAD2/wEAAAAEAAwAAAD3////AAAFAAoAAAD3/wAAAAAFAAsAAAD3/wEAAAAFAAwAAAAFAP7/AAAGAAsAAAAFAP//AAAGAAwAAAAGAP7/AAAHAAsAAAAGAP//AAAHAAwAAAAIAAQAAAAFAAUAAAD5/wAAAAAAAAgAAAD1/wAAAAACAAcAAAACAP//AQA+AAEAAAACAAEAAQA+AAIAAAACAAAAAQA+AAUAAAD3/wcAAQA5AAUAAAAHAAcAAQA8AAUAAAD6/wEAAQAvAAEAAAA=")
 tile_set = SubResource("TileSet_iroh4")
 
+[node name="Shop" type="Sprite2D" parent="Base-TileMap/Layer2-TileMap" unique_id=704679494]
+position = Vector2(-190, 144)
+texture = ExtResource("5_8b1u2")
+
 [node name="Zones" type="Node2D" parent="." unique_id=1674685179]
 
 [node name="DockZone" type="Area2D" parent="Zones" unique_id=182143245]
@@ -4123,17 +4128,18 @@ collision_layer = 2
 shape = SubResource("Shape_dock")
 
 [node name="ShopZone" type="Area2D" parent="Zones" unique_id=82314120]
-position = Vector2(-192, 160)
+position = Vector2(-190, 143)
 collision_layer = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Zones/ShopZone" unique_id=964036192]
 shape = SubResource("Shape_shop")
 
 [node name="CasinoZone" type="Area2D" parent="Zones" unique_id=2062965260]
-position = Vector2(192, 160)
+position = Vector2(163, 146)
 collision_layer = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Zones/CasinoZone" unique_id=967810186]
+position = Vector2(0, -1)
 shape = SubResource("Shape_casino")
 
 [node name="SpawnPoint" type="Marker2D" parent="." unique_id=399711041]

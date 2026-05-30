@@ -10,12 +10,14 @@ const SPEED := 100.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var name_label: Label = $NameLabel
+@onready var camera: Camera2D = $Camera2D
 
 var _is_fishing := false
 
 func _ready() -> void:
 	var is_local := multiplayer.get_unique_id() == get_multiplayer_authority()
 	set_physics_process(is_local)
+	camera.enabled = is_local
 	name_label.text = player_name
 
 func _physics_process(_delta: float) -> void:
