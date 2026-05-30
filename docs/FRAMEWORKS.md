@@ -6,89 +6,87 @@ All game content is data-driven via Godot `.tres` Resource files.
 `ItemRegistry` scans the resource folders at startup and registers everything automatically.
 The shop, fishing system, and HUD all respond to whatever is registered.
 
+> **Files starting with `_` are skipped by ItemRegistry** — this is how templates stay
+> in the same folder without being loaded as real items.
+
 ---
 
 ## Quick Reference
 
-| Item type | Folder | Base class | Consumed on cast? |
+| Item type | Folder | Template | Consumed? |
 |---|---|---|---|
-| Fish | `src/resources/fish/` | `FishData` | Never (caught, not consumed) |
-| Rod | `src/resources/rods/` | `RodData` | Never |
-| Bait | `src/resources/baits/` | `BaitData` | Yes — 1 use per bite |
-| Hook/Tackle | `src/resources/tackle/` | `TackleData` | 1 durability per bite |
+| Fish | `src/resources/fish/` | `_template.tres` | Never (caught) |
+| Rod | `src/resources/rods/` | `_template.tres` | Never |
+| Bait | `src/resources/baits/` | `_template.tres` | 1 use per bite |
+| Hook/Tackle | `src/resources/tackle/` | `_template.tres` | 1 durability per bite |
 
 ---
 
 ## How to Add Any Item
 
 1. Open the matching folder in Godot's FileSystem dock
-2. Right-click an existing `.tres` file → **Duplicate**
-3. Rename it (e.g. `deep_sea_lure.tres`)
+2. Right-click **`_template.tres`** → **Duplicate**
+3. Rename it (no leading underscore — e.g. `deep_sea_lure.tres`)
 4. Select it → edit fields in the **Inspector**
 5. Save (`Ctrl+S`)
 
-That's it. The item appears in the shop on next launch (if `buy_price > 0`).
+The item appears in the shop on next launch (if `buy_price > 0`).
 
 ---
 
 ## Adding a Fish
 
-**Folder:** `src/resources/fish/`  
-**Template:** duplicate `common_perch.tres`
+**Template:** `src/resources/fish/_template.tres`
+
+### Payout Formula
+
+```
+earned = floor(base_coin_value × catch_difficulty × hook.coin_multiplier)
+```
+
+`base_coin_value` is the **rarity tier base** — not a per-fish value.
+`catch_difficulty` is the work multiplier that scales both the challenge AND the reward.
+
+| Rarity | base_coin_value | Example payout at difficulty 1.0 |
+|---|---|---|
+| common | 15 | 15c |
+| uncommon | 20 | 20c |
+| rare | 35 | 35c × difficulty |
+| legendary | 100 | 100c × difficulty |
 
 ### Fields
 
 | Field | Type | Description |
 |---|---|---|
-| `id` | String | Unique key. Must match filename convention. Used everywhere in code. |
-| `display_name` | String | Shown in catch result and UI. |
-| `description` | String | Flavour text (not currently displayed, future use). |
-| `icon` | Texture2D | Optional. Item icon for shop/inventory. |
-| `buy_price` | int | Set to `0` — fish are caught, not bought. |
-| `sell_price` | int | Not currently used. |
-| `rarity` | String (enum) | `"common"`, `"uncommon"`, `"rare"`, or `"legendary"`. Determines which rarity pool this fish enters. |
-| `base_coin_value` | int | Coins awarded on catch. Multiplied by hook's `coin_multiplier`. |
-| `catch_difficulty` | float | Scales the reel minigame. `1.0` = default. Higher = faster fish, smaller catch zone, faster drain rate. |
+| `id` | String | Unique snake_case key. Must be unique across all items. Matches filename by convention. |
+| `display_name` | String | Shown in catch result message. |
+| `description` | String | Flavour text (future shop display). |
+| `buy_price` | int | Always `0` — fish are caught, not purchased. |
+| `rarity` | String | `"common"` `"uncommon"` `"rare"` `"legendary"` — determines draw pool. |
+| `base_coin_value` | int | Rarity tier base (see table above). **NOT the final payout** — multiplied by difficulty. |
+| `catch_difficulty` | float | Controls zone size, fish speed, drain rate, react window, AND payout. See guide below. |
 | `sprite_frame` | int | Frame index in `assets/free fish/free fish.png`. |
 
-### Rarity guide
-| Rarity | When fish is selected |
-|---|---|
-| `common` | Standard pool; high probability with cheap bait |
-| `uncommon` | Moderate probability; boosted by better bait/rod |
-| `rare` | Low probability; requires good bait + rod + cast |
-| `legendary` | Very rare; meaningfully boosted by Magic Bait, Master Rod, and perfect cast |
+### Difficulty Reference
 
-### Difficulty guide
-| `catch_difficulty` | Fish speed | Catch zone | Drain rate | Feel |
-|---|---|---|---|---|
-| 0.5 | Very slow | 36% bar | 0.18/s | Trivial |
-| 1.0 | Moderate | 18% bar | 0.35/s | Standard challenge |
-| 2.0 | Fast | 9% bar | 0.70/s | Hard |
-| 3.0 | Very fast (cursor limit) | 6% bar | 1.05/s | Extreme |
+| `catch_difficulty` | Zone width | Speed range | Drain /s | React window | Payout (rare base 35c) |
+|---|---|---|---|---|---|
+| 0.6 | 126px (30%) | 28–56 px/s | 0.21/s | 1.20s | 21c |
+| 1.0 | 76px (18%) | 46–92 px/s | 0.35/s | 1.20s | 35c |
+| 1.6 | 47px (11%) | 74–134 px/s | 0.56/s | 0.99s | 56c |
+| 2.1 | 36px (9%) | 83–150 px/s | 0.74/s | 0.87s | 73c |
+| 2.8 | 27px (6.4%) | 83–150 px/s | 0.98/s | 0.74s | 98c |
 
-### Example — Ultra-Rare Megafish
-```ini
-[resource]
-id = "megafish"
-display_name = "Megafish"
-description = "Ancient. Massive. Angry."
-buy_price = 0
-sell_price = 0
-rarity = "legendary"
-base_coin_value = 500
-catch_difficulty = 3.0
-sprite_frame = 5
-```
+> Speed caps at 150px/s (cursor speed) regardless of difficulty.
+> React window is further modified by the equipped hook's `escape_reduction`.
 
 ---
 
 ## Adding a Rod
 
-**Folder:** `src/resources/rods/`  
-**Template:** duplicate `starter_rod.tres`
+**Template:** `src/resources/rods/_template.tres`
 
-Rods are permanent equipment. They are **never consumed**.
+Rods are permanent — **never consumed**.
 
 ### Fields
 
@@ -96,46 +94,34 @@ Rods are permanent equipment. They are **never consumed**.
 |---|---|---|
 | `id` | String | Unique key. |
 | `display_name` | String | Shown in HUD and shop. |
-| `description` | String | Shop flavour text. |
-| `icon` | Texture2D | Optional item icon. |
-| `buy_price` | int | Cost in shop. Set to `0` for starter items. |
-| `sell_price` | int | Not currently used. |
-| `cast_speed` | float | Multiplies cast bar fill rate. `1.0` = 1.67s to fill. `2.0` = 0.83s. |
-| `line_strength` | float | Multiplies catch meter fill rate in-zone. `1.0` = 2.86s to catch. `2.0` = 1.43s. |
-| `rarity_bonus` | float | Shifts rarity weight from `common` into `rare`/`legendary`. `0.0` = no shift. `0.10` ≈ Angler rod. `0.20` = very strong shift. |
+| `buy_price` | int | `0` = starter item (hidden in shop). |
+| `cast_speed` | float | Cast bar fill multiplier. `1.0` = 1.67s fill. `2.0` = 0.83s fill. |
+| `line_strength` | float | Catch meter fill rate multiplier AND escape timer refill rate. `1.0` = 2.86s to catch. `2.2` = 1.30s. |
+| `rarity_bonus` | float | Shifts fish probability toward rare/legendary. See formula. |
 
-### How rarity_bonus works
+### Rarity Bonus Formula
 ```
 weights["common"]    -= rarity_bonus
 weights["rare"]      += rarity_bonus × 0.7
 weights["legendary"] += rarity_bonus × 0.3
 ```
-Applied after bait weights and before cast quality modifier. Stacks with everything.
+Applied after bait weights, before cast quality modifier. Stacks with both.
 
-> **Unwired:** `line_strength` is also intended to interact with `escape_reduction` on hooks — not yet implemented.
-
-### Example — Legendary Fishing Pole
-```ini
-[resource]
-id = "legend_pole"
-display_name = "Legend's Pole"
-description = "Forged from a Kraken's spine."
-buy_price = 800
-sell_price = 300
-cast_speed = 2.2
-line_strength = 3.0
-rarity_bonus = 0.18
-```
+| `rarity_bonus` | Effect |
+|---|---|
+| 0.00 | No change (Starter Rod) |
+| 0.05 | Subtle shift — common −5%, rare +3.5%, legendary +1.5% (Angler's Rod) |
+| 0.12 | Strong shift — common −12%, rare +8.4%, legendary +3.6% (Master Rod) |
+| 0.20 | Very strong shift |
 
 ---
 
 ## Adding Bait
 
-**Folder:** `src/resources/baits/`  
-**Template:** duplicate `worm.tres`
+**Template:** `src/resources/baits/_template.tres`
 
-Bait is **consumed one use per bite** (when a fish is assigned), win or lose.
-Buying a bait adds `uses_per_stack` to the player's owned count.
+Bait is **consumed 1 use per bite** (when a fish is assigned), win or lose.
+Buying adds `uses_per_stack` to owned count.
 
 ### Fields
 
@@ -143,61 +129,43 @@ Buying a bait adds `uses_per_stack` to the player's owned count.
 |---|---|---|
 | `id` | String | Unique key. |
 | `display_name` | String | Shown in HUD as `Bait: Shiny Lure ×5`. |
-| `description` | String | Shop flavour text. |
-| `icon` | Texture2D | Optional item icon. |
 | `buy_price` | int | Cost per purchase. Each purchase adds `uses_per_stack` uses. |
-| `sell_price` | int | Not currently used. |
-| `rarity_weights` | Dictionary | Rarity pool probabilities. Keys: `"common"`, `"uncommon"`, `"rare"`, `"legendary"`. Values must sum to ≈ 1.0. **Replaces default weights entirely.** |
-| `uses_per_stack` | int | How many uses are added per purchase. Enforced server-side. |
-| `wait_modifier` | float | Multiplier on bite wait timer. `< 1.0` = fish bite sooner. `1.0` = no change. Applied on top of cast quality penalty (multiplicative). |
+| `rarity_weights` | Dictionary | Rarity pool probabilities. Keys: `"common"` `"uncommon"` `"rare"` `"legendary"`. Must sum to ≈1.0. Replaces default weights entirely. |
+| `uses_per_stack` | int | Uses added per purchase (enforced server-side). |
+| `wait_modifier` | float | Multiplier on bite wait timer. Stacks with cast quality penalty. |
 
-### Rarity weights guide
-```ini
-# Default (no bait) — baseline
-{"common": 0.65, "uncommon": 0.25, "rare": 0.09, "legendary": 0.01}
+### Wait Modifier Reference
 
-# Worm — slight improvement
-{"common": 0.70, "uncommon": 0.22, "rare": 0.075, "legendary": 0.005}
+The full wait time = `randf_range(cast_min, cast_max) × wait_modifier`
 
-# Shiny Lure — meaningful rare boost
-{"common": 0.45, "uncommon": 0.35, "rare": 0.17, "legendary": 0.03}
+| `wait_modifier` | Effect | Bite wait at perfect cast |
+|---|---|---|
+| 1.00 | No change | 1.5–3.5s |
+| 0.90 | 10% shorter (Worm) | 1.4–3.2s |
+| 0.75 | 25% shorter (Lure) | 1.1–2.6s |
+| 0.55 | 45% shorter (Magic Bait) | 0.8–1.9s |
+| 0.35 | 65% shorter (ultra premium) | 0.5–1.2s |
 
-# Magic Bait — strong rare/legendary boost
-{"common": 0.20, "uncommon": 0.35, "rare": 0.30, "legendary": 0.15}
+> Cast quality also affects wait time. Terrible cast range: 5.25–10.25s × wait_modifier.
+
+### Rarity Weights Reference
+
 ```
-
-### Wait modifier guide
-| `wait_modifier` | Effect |
-|---|---|
-| 1.0 | No change (default) |
-| 0.90 | 10% shorter wait (Worm) |
-| 0.75 | 25% shorter wait (Lure) |
-| 0.55 | 45% shorter wait (Magic Bait) |
-| 0.30 | 70% shorter wait (ultra premium) |
-
-### Example — Deep Sea Lure
-```ini
-[resource]
-id = "deep_sea_lure"
-display_name = "Deep Sea Lure"
-description = "Glows in the dark. Legendary fish investigate."
-buy_price = 120
-sell_price = 40
-rarity_weights = {"common": 0.05, "uncommon": 0.25, "rare": 0.45, "legendary": 0.25}
-uses_per_stack = 3
-wait_modifier = 0.65
+Default (no bait): {common:0.65, uncommon:0.25, rare:0.09, legendary:0.01}
+Worm:              {common:0.70, uncommon:0.22, rare:0.075, legendary:0.005}
+Shiny Lure:        {common:0.45, uncommon:0.35, rare:0.17,  legendary:0.03}
+Magic Bait:        {common:0.20, uncommon:0.35, rare:0.30,  legendary:0.15}
 ```
 
 ---
 
 ## Adding a Hook (Tackle)
 
-**Folder:** `src/resources/tackle/`  
-**Template:** duplicate `basic_hook.tres`
+**Template:** `src/resources/tackle/_template.tres`
 
-Hooks lose **1 durability per bite** (regardless of minigame outcome).
-When durability hits 0, one hook is consumed from inventory.
-If more hooks are owned, the next auto-equips at full durability.
+Hooks lose **1 durability per bite**. When durability hits 0, 1 hook is consumed from inventory.
+If more are owned, the next auto-equips at full durability.
+**Equipping a hook does NOT consume it** — only bites do.
 
 ### Fields
 
@@ -205,61 +173,65 @@ If more hooks are owned, the next auto-equips at full durability.
 |---|---|---|
 | `id` | String | Unique key. |
 | `display_name` | String | Shown in HUD as `Hook: Golden Hook 18/20`. |
-| `description` | String | Shop flavour text. |
-| `icon` | Texture2D | Optional item icon. |
-| `buy_price` | int | Cost per hook in shop. |
-| `sell_price` | int | Not currently used. |
-| `coin_multiplier` | float | Multiplies `base_coin_value` on every successful catch. `1.0` = no bonus. `1.3` = +30% coins. |
-| `durability` | int | Total uses before the hook breaks. Shown as `N/max` in HUD. |
-| `escape_reduction` | float | Extends the react window (time to press E on bite). `0.10` = +10% longer window. `0.25` = +25%. Scales with fish difficulty. |
+| `buy_price` | int | Cost per hook. |
+| `coin_multiplier` | float | Multiplies fish payout per catch. `1.0` = no bonus. `1.3` = +30%. |
+| `durability` | int | Bites before hook breaks. Shown as current/max in HUD. |
+| `escape_reduction` | float | Widens the react window (time to press E on bite). |
 
-### Example — Enchanted Hook
-```ini
-[resource]
-id = "enchanted_hook"
-display_name = "Enchanted Hook"
-description = "Blessed by a sea witch. Very durable."
-buy_price = 300
-sell_price = 100
-escape_reduction = 0.40
-coin_multiplier = 1.6
-durability = 50
+### Coin Multiplier Reference
 ```
+earned = floor(fish.base_coin_value × fish.difficulty × coin_multiplier)
+```
+| `coin_multiplier` | Kraken payout | Perch payout |
+|---|---|---|
+| 1.0 | 280c (Basic Hook) | 9c |
+| 1.3 | 364c (Golden Hook) | 11c |
+| 1.5 | 420c | 13c |
+| 2.0 | 560c | 18c |
+
+### Escape Reduction Reference
+React window = `1.2 / (1 + max(0, difficulty−1) × 0.35) × (1 + escape_reduction)`
+
+| `escape_reduction` | Kraken window (no cast penalty) |
+|---|---|
+| 0.00 | 0.74s |
+| 0.10 | 0.81s (Basic Hook) |
+| 0.25 | 0.92s (Golden Hook) |
+| 0.50 | 1.11s |
 
 ---
 
 ## Shop Visibility
 
 Any item with `buy_price > 0` **automatically appears in the shop**, sorted by price.
-Items with `buy_price = 0` (starter items) are invisible in the shop but can be equipped if owned.
+Items with `buy_price = 0` are hidden from the shop but can be equipped if owned.
 
 ---
 
 ## Starter Items
 
-New players receive these automatically on registration:
+New players receive on registration:
 
-| Item | Quantity |
+| Item | Qty |
 |---|---|
-| `starter_rod` | 1 (equipped automatically) |
-| `worm` | 1 use (equipped automatically) |
-| `basic_hook` | 1 hook (equipped automatically) |
+| `starter_rod` | 1 (auto-equipped) |
+| `worm` | 1 use (auto-equipped) |
+| `basic_hook` | 1 hook at full durability (auto-equipped) |
 
-To change starter items, edit `AuthServer._give_starter_items()` in `src/server/AuthServer.gd`.
+To change starter items: edit `AuthServer._give_starter_items()` in `src/server/AuthServer.gd`.
 
 ---
 
-## Summary: What Requires Code vs. What Doesn't
+## Summary: Code vs. No-Code
 
 | Action | Requires code? |
 |---|---|
-| Add new fish | ❌ No — just a .tres file |
-| Add new rod | ❌ No — just a .tres file |
-| Add new bait | ❌ No — just a .tres file |
-| Add new hook | ❌ No — just a .tres file |
-| Add a new **item category** (e.g. potions) | ✅ Yes — new Resource class + server handler |
-| Change a new item's **shop price** | ❌ No — edit `buy_price` in Inspector |
-| Change bait wait modifier | ❌ No — edit `wait_modifier` in Inspector |
-| Change hook durability | ❌ No — edit `durability` in Inspector |
-| Wire `escape_reduction` | ✅ Yes — one-line change in FishingServer |
-| Wire `uses_per_stack` for rods/hooks | ✅ Yes — currently only enforced for bait |
+| Add new fish | ❌ Duplicate `_template.tres` |
+| Add new rod | ❌ Duplicate `_template.tres` |
+| Add new bait | ❌ Duplicate `_template.tres` |
+| Add new hook | ❌ Duplicate `_template.tres` |
+| Change any stat | ❌ Edit `.tres` in Inspector |
+| Change rarity base payout | ❌ Edit `base_coin_value` |
+| Change difficulty | ❌ Edit `catch_difficulty` (affects zone, speed, drain, payout) |
+| Add a new **item category** | ✅ New Resource class + server handler |
+| Wire `line_strength` to escape chance | ✅ One-line FishingServer change |

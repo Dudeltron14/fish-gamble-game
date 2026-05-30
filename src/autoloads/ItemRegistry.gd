@@ -25,7 +25,8 @@ func _load_all() -> void:
 		dir.list_dir_begin()
 		var file_name := dir.get_next()
 		while file_name != "":
-			if file_name.ends_with(".tres"):
+			# Skip templates (underscore prefix) and non-resource files
+			if file_name.ends_with(".tres") and not file_name.begins_with("_"):
 				var res: Resource = load(dir_path + file_name)
 				if res is ItemData:
 					_register(res)

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RodData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/RodData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "my_rod"
+display_name = "My Rod"
+description = "Flavour text. See docs/FRAMEWORKS.md for all field descriptions."
+buy_price = 50
+sell_price = 20
+cast_speed = 1.0
+line_strength = 1.0
+rarity_bonus = 0.0

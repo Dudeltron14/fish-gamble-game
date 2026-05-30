@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BaitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/BaitData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "my_bait"
+display_name = "My Bait"
+description = "Flavour text. See docs/FRAMEWORKS.md for all field descriptions."
+buy_price = 10
+sell_price = 3
+rarity_weights = {"common": 0.60, "uncommon": 0.28, "rare": 0.10, "legendary": 0.02}
+uses_per_stack = 10
+wait_modifier = 0.85
