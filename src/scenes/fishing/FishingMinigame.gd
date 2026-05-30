@@ -8,9 +8,9 @@ const BASE_CAST_SPEED := 60.0
 const REACT_WINDOW := 1.5
 const REEL_BAR_WIDTH := 420.0
 const CATCH_ZONE_FRAC := 0.18
-const CURSOR_SPEED := 150.0
-const PROGRESS_RATE := 1.4
-const DRAIN_RATE := 1.1        # Reduced from 1.5 → ~33% more survival time
+const CURSOR_SPEED := 37.5     # 75% slower than before — strategic positioning required
+const PROGRESS_RATE := 1.4     # base fill rate; multiplied by rod line_strength
+const DRAIN_RATE := 1.1        # base drain rate; multiplied by fish difficulty
 
 var _stage := Stage.CAST
 var _cast_power := 0.0
@@ -19,9 +19,10 @@ var _wait_timer := 0.0
 var _react_timer := 0.0
 var _fish_id := ""
 var _difficulty := 1.0
+var _line_strength := 1.0      # rod stat — scales how fast progress fills in zone
 var _fish_pos := 0.5
 var _fish_dir := 1.0
-var _fish_dir_timer := 0.0    # countdown to next random direction change
+var _fish_dir_timer := 0.0
 var _cursor_pos := 0.5
 var _reel_progress := 0.0
 
@@ -116,12 +117,13 @@ func _process_reel(delta: float) -> void:
 	_cursor_pos = clampf(_cursor_pos + input_dir * CURSOR_SPEED * delta / REEL_BAR_WIDTH, 0.0, 1.0)
 
 	# Overlap detection
+	# Progress fills faster with better rods (line_strength); drains faster for harder fish (difficulty)
 	var zone_half := (CATCH_ZONE_FRAC / _difficulty) * 0.5
 	var overlapping := absf(_cursor_pos - _fish_pos) < zone_half
 	if overlapping:
-		_reel_progress = minf(_reel_progress + PROGRESS_RATE * delta, 1.0)
+		_reel_progress = minf(_reel_progress + PROGRESS_RATE * _line_strength * delta, 1.0)
 	else:
-		_reel_progress = maxf(_reel_progress - DRAIN_RATE * delta, 0.0)
+		_reel_progress = maxf(_reel_progress - DRAIN_RATE * _difficulty * delta, 0.0)
 
 	_update_reel_visuals()
 
@@ -146,12 +148,13 @@ func _finish_reel(success: bool) -> void:
 
 # ── NetAPI callbacks ──────────────────────────────────────────────────────────
 
-func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float) -> void:
+func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float) -> void:
 	if not ok:
 		_show_result(false, "No fish nearby.")
 		return
 	_fish_id = fish_id
 	_difficulty = difficulty
+	_line_strength = line_strength
 	_cast_speed = BASE_CAST_SPEED * cast_speed
 
 func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int) -> void:
