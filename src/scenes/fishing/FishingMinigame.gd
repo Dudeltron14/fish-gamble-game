@@ -118,7 +118,9 @@ func _process_react(delta: float) -> void:
 
 func _enter_reel() -> void:
 	_stage = Stage.REEL
-	_fish_pos = 0.5
+	# Fish spawns on a random side, not center — cursor always starts center.
+	# Guarantees the player must immediately move to catch even easy fish.
+	_fish_pos = randf_range(0.12, 0.38) if randf() > 0.5 else randf_range(0.62, 0.88)
 	_cursor_pos = 0.5
 	_reel_progress = 0.0
 	_fish_dir = 1.0 if randf() > 0.5 else -1.0
@@ -144,7 +146,7 @@ func _process_reel(delta: float) -> void:
 	_fish_speed_timer -= delta
 	if _fish_speed_timer <= 0.0:
 		var speed_max := minf(FISH_SPEED_MAX_NORM, _difficulty * 0.22)
-		var speed_min := speed_max * 0.35  # fish always moves enough to require cursor tracking
+		var speed_min := speed_max * 0.50  # fish never drops below half its max speed
 		_fish_speed_target = randf_range(speed_min, speed_max)
 		_fish_speed_timer = randf_range(0.5, 1.5)
 	_fish_speed = lerpf(_fish_speed, _fish_speed_target, FISH_SPEED_LERP * delta)
