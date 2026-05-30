@@ -6,6 +6,8 @@ signal fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: f
 signal fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int)
 signal shop_result(ok: bool, reason: String, new_balance: int)
 signal equip_result(ok: bool, item_id: String, slot: String)
+signal inventory_loaded(items: Dictionary)
+signal inventory_updated(item_id: String, new_qty: int)
 signal bj_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int)
 signal bj_hit(card: Dictionary, new_val: int)
 signal bj_dealer_reveal(full_hand: Array, value: int)
@@ -126,6 +128,18 @@ func notify_shop_result(ok: bool, reason: String, new_balance: int) -> void:
 func notify_equip_result(ok: bool, item_id: String, slot: String) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	equip_result.emit(ok, item_id, slot)
+
+@rpc("authority", "call_local", "reliable")
+func notify_inventory_loaded(items: Dictionary) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	GameManager.set_owned_items(items)
+	inventory_loaded.emit(items)
+
+@rpc("authority", "call_local", "reliable")
+func notify_inventory_updated(item_id: String, new_qty: int) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	GameManager.set_owned(item_id, new_qty)
+	inventory_updated.emit(item_id, new_qty)
 
 @rpc("authority", "call_local", "reliable")
 func notify_bj_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int) -> void:

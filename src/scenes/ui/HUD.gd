@@ -1,8 +1,8 @@
 extends CanvasLayer
 
-@onready var coins_label: Label   = %CoinsLabel
+@onready var coins_label: Label    = %CoinsLabel
 @onready var equipped_label: Label = %EquippedLabel
-@onready var context_hint: Label  = %ContextHint
+@onready var context_hint: Label   = %ContextHint
 
 func _ready() -> void:
 	GameManager.coins_changed.connect(_on_coins_changed)
@@ -19,8 +19,10 @@ func _on_zone_hint_changed(hint: String) -> void:
 	context_hint.visible = hint != ""
 
 func _refresh_equipped() -> void:
-	var rod  := ItemRegistry.get_item(GameManager.equipped_rod_id)
-	var bait := ItemRegistry.get_item(GameManager.equipped_bait_id)
-	var rod_name  := rod.display_name  if rod  else "—"
-	var bait_name := bait.display_name if bait else "—"
-	equipped_label.text = "Rod: %s  Bait: %s" % [rod_name, bait_name]
+	var rod    := ItemRegistry.get_item(GameManager.equipped_rod_id)
+	var bait   := ItemRegistry.get_item(GameManager.equipped_bait_id)
+	var tackle := ItemRegistry.get_item(GameManager.equipped_tackle_id)
+	var rod_name    := rod.display_name    if rod    else "—"
+	var bait_name   := bait.display_name   if bait   else "—"
+	var tackle_name := tackle.display_name if tackle else "—"
+	equipped_label.text = "Rod: %s  Bait: %s  Hook: %s" % [rod_name, bait_name, tackle_name]

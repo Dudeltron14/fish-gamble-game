@@ -4,6 +4,7 @@ signal scene_changed(scene_path: String)
 signal coins_changed(new_amount: int)
 signal zone_hint_changed(hint: String)
 signal equipped_changed()
+signal owned_changed()
 
 var current_player_name: String = ""
 var current_coins: int = 0
@@ -12,6 +13,7 @@ var equipped_rod_id: String = ""
 var equipped_bait_id: String = ""
 var equipped_tackle_id: String = ""
 var is_hosting: bool = false
+var owned_items: Dictionary = {}  # item_id -> quantity
 
 const ZONE_HINTS := {
 	"DockZone":   "Press E to fish",
@@ -53,3 +55,17 @@ func spend_coins(amount: int) -> bool:
 func set_zone(zone_name: String) -> void:
 	current_zone = zone_name
 	zone_hint_changed.emit(ZONE_HINTS.get(zone_name, ""))
+
+func set_owned_items(items: Dictionary) -> void:
+	owned_items = items.duplicate()
+	owned_changed.emit()
+
+func set_owned(item_id: String, qty: int) -> void:
+	if qty <= 0:
+		owned_items.erase(item_id)
+	else:
+		owned_items[item_id] = qty
+	owned_changed.emit()
+
+func get_owned(item_id: String) -> int:
+	return owned_items.get(item_id, 0)

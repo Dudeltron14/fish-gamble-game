@@ -72,6 +72,14 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 		session.coins = int(row.coins)
 		_load_equipped(session, int(row.id))
 
+	# Send full inventory before login confirmation
+	_db.query_with_bindings(
+		"SELECT item_id, quantity FROM inventory WHERE player_id = ?", [int(row.id)]
+	)
+	var inventory := {}
+	for inv_row in _db.query_result:
+		inventory[inv_row.item_id] = int(inv_row.quantity)
+	NetAPI.rpc_id(peer_id, "notify_inventory_loaded", inventory)
 	NetAPI.rpc_id(peer_id, "notify_login", true, "", int(row.coins))
 
 func handle_register(peer_id: int, username: String, pw_hash: String) -> void:

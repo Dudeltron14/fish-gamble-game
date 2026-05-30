@@ -17,6 +17,7 @@ func handle_buy(peer_id: int, item_id: String) -> void:
 
 	session.coins -= item.buy_price
 	_persist(session, item_id)
+	NetAPI.rpc_id(peer_id, "notify_inventory_updated", item_id, _get_qty(session, item_id))
 	NetAPI.rpc_id(peer_id, "notify_shop_result", true, "Purchased %s!" % item.display_name, session.coins)
 
 func handle_equip(peer_id: int, item_id: String) -> void:
@@ -43,7 +44,12 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 	else:
 		NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
 		return
+
+	_decrement(session, item_id)
+	NetAPI.rpc_id(peer_id, "notify_inventory_updated", item_id, _get_qty(session, item_id))
 	NetAPI.rpc_id(peer_id, "notify_equip_result", true, item_id, slot)
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 func _player_owns(session: PlayerSession, item_id: String) -> bool:
 	var auth := GameServer.get_node_or_null("AuthServer")
@@ -55,6 +61,29 @@ func _player_owns(session: PlayerSession, item_id: String) -> bool:
 		AND item_id = ? AND quantity > 0
 	""", [session.username, item_id])
 	return auth._db.query_result.size() > 0
+
+func _get_qty(session: PlayerSession, item_id: String) -> int:
+	var auth := GameServer.get_node_or_null("AuthServer")
+	if auth == null or auth._db == null:
+		return 0
+	auth._db.query_with_bindings("""
+		SELECT quantity FROM inventory
+		WHERE player_id = (SELECT id FROM players WHERE username = ?)
+		AND item_id = ?
+	""", [session.username, item_id])
+	if auth._db.query_result.size() > 0:
+		return int(auth._db.query_result[0].quantity)
+	return 0
+
+func _decrement(session: PlayerSession, item_id: String) -> void:
+	var auth := GameServer.get_node_or_null("AuthServer")
+	if auth == null or auth._db == null:
+		return
+	auth._db.query_with_bindings("""
+		UPDATE inventory SET quantity = MAX(0, quantity - 1)
+		WHERE player_id = (SELECT id FROM players WHERE username = ?)
+		AND item_id = ?
+	""", [session.username, item_id])
 
 func _persist(session: PlayerSession, item_id: String) -> void:
 	var auth := GameServer.get_node_or_null("AuthServer")

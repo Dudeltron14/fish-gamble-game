@@ -9,6 +9,7 @@ signal completed
 func _ready() -> void:
 	NetAPI.shop_result.connect(_on_shop_result)
 	NetAPI.equip_result.connect(_on_equip_result)
+	GameManager.owned_changed.connect(_populate.call_deferred)
 	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_close)
 	coins_label.text = "Coins: %d" % GameManager.current_coins
 	_populate()
@@ -27,8 +28,9 @@ func _populate() -> void:
 		item_list.add_child(_make_row(item))
 
 func _make_row(item: ItemData) -> Control:
+	var owned := GameManager.get_owned(item.id)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
+	row.add_theme_constant_override("separation", 10)
 
 	var info := VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -44,6 +46,12 @@ func _make_row(item: ItemData) -> Control:
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.add_child(desc_lbl)
 
+	var owned_lbl := Label.new()
+	owned_lbl.text = "Owned: %d" % owned
+	owned_lbl.add_theme_font_size_override("font_size", 10)
+	owned_lbl.modulate = Color(0.55, 0.85, 0.55) if owned > 0 else Color(0.55, 0.55, 0.55)
+	info.add_child(owned_lbl)
+
 	row.add_child(info)
 
 	var price_lbl := Label.new()
@@ -56,14 +64,15 @@ func _make_row(item: ItemData) -> Control:
 	if item.buy_price > 0:
 		var btn := Button.new()
 		btn.text = "Buy"
-		btn.custom_minimum_size = Vector2(56, 0)
+		btn.custom_minimum_size = Vector2(52, 0)
 		btn.pressed.connect(_on_buy_pressed.bind(item.id, btn))
 		row.add_child(btn)
 
 	if item is RodData or item is BaitData or item is TackleData:
 		var equip_btn := Button.new()
 		equip_btn.text = "Equip"
-		equip_btn.custom_minimum_size = Vector2(56, 0)
+		equip_btn.custom_minimum_size = Vector2(52, 0)
+		equip_btn.disabled = owned <= 0
 		equip_btn.pressed.connect(_on_equip_pressed.bind(item.id))
 		row.add_child(equip_btn)
 
@@ -88,12 +97,12 @@ func _on_equip_result(ok: bool, item_id: String, slot: String) -> void:
 		status_label.text = "Equipped %s!" % (item.display_name if item else item_id)
 		status_label.modulate = Color(0.3, 1.0, 0.4)
 		match slot:
-			"rod":    GameManager.equipped_rod_id  = item_id
-			"bait":   GameManager.equipped_bait_id = item_id
+			"rod":    GameManager.equipped_rod_id    = item_id
+			"bait":   GameManager.equipped_bait_id   = item_id
 			"tackle": GameManager.equipped_tackle_id = item_id
 		GameManager.equipped_changed.emit()
 	else:
-		status_label.text = "Could not equip item."
+		status_label.text = "You don't own that item."
 		status_label.modulate = Color(1.0, 0.4, 0.4)
 
 func _on_shop_result(ok: bool, reason: String, new_balance: int) -> void:

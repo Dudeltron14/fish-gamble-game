@@ -33,6 +33,17 @@ func _ready() -> void:
 			GameManager.equipped_bait_id   = host_session.equipped_bait_id
 			GameManager.equipped_tackle_id = host_session.equipped_tackle_id
 			GameManager.equipped_changed.emit()
+			# Load host's owned inventory from DB
+			var auth := GameServer.get_node_or_null("AuthServer")
+			if auth and auth._db:
+				auth._db.query_with_bindings(
+					"SELECT item_id, quantity FROM inventory WHERE player_id = (SELECT id FROM players WHERE username = ?)",
+					[host_session.username]
+				)
+				var inv := {}
+				for row in auth._db.query_result:
+					inv[row.item_id] = int(row.quantity)
+				GameManager.set_owned_items(inv)
 			spawn_player(1, host_session.username)
 
 func _unhandled_input(event: InputEvent) -> void:
