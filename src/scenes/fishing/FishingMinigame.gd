@@ -124,7 +124,7 @@ func _enter_reel() -> void:
 	_fish_dir = 1.0 if randf() > 0.5 else -1.0
 	_fish_dir_timer = randf_range(0.7, 1.8)
 	# Speed slides between ~15% and 100% of difficulty-scaled max, never exceeding cursor speed
-	var speed_max := minf(FISH_SPEED_MAX_NORM, _difficulty * 0.20)
+	var speed_max := minf(FISH_SPEED_MAX_NORM, _difficulty * 0.22)
 	_fish_speed = speed_max * 0.5
 	_fish_speed_target = _fish_speed
 	_fish_speed_timer = randf_range(0.5, 1.5)
@@ -143,8 +143,8 @@ func _process_reel(delta: float) -> void:
 	# Speed slides randomly — pick new target every 0.5–1.5s, lerp smoothly toward it
 	_fish_speed_timer -= delta
 	if _fish_speed_timer <= 0.0:
-		var speed_max := minf(FISH_SPEED_MAX_NORM, _difficulty * 0.20)
-		var speed_min := speed_max * 0.15  # fish never fully stops
+		var speed_max := minf(FISH_SPEED_MAX_NORM, _difficulty * 0.22)
+		var speed_min := speed_max * 0.35  # fish always moves enough to require cursor tracking
 		_fish_speed_target = randf_range(speed_min, speed_max)
 		_fish_speed_timer = randf_range(0.5, 1.5)
 	_fish_speed = lerpf(_fish_speed, _fish_speed_target, FISH_SPEED_LERP * delta)
