@@ -11,5 +11,5 @@ buy_price = 0
 sell_price = 0
 rarity = "rare"
 base_coin_value = 35
-catch_difficulty = 1.8
+catch_difficulty = 2.1
 sprite_frame = 3
