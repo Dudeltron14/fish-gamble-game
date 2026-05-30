@@ -56,7 +56,7 @@ func _process_cast(delta: float) -> void:
 		_cast_power = minf(_cast_power + _cast_speed * delta, 100.0)
 		cast_bar.value = _cast_power
 		cast_bar.visible = true
-		status.text = "Hold SPACE… release to cast!"
+		status.text = "Hold E… release to cast!"
 	elif _cast_power > 0.0:
 		_enter_wait()
 
@@ -72,7 +72,7 @@ func _process_wait(delta: float) -> void:
 	if _wait_timer <= 0.0:
 		_stage = Stage.REACT
 		_react_timer = REACT_WINDOW
-		status.text = "!! BITE !! Press SPACE!"
+		status.text = "!! BITE !! Press E!"
 
 func _process_react(delta: float) -> void:
 	if Input.is_action_just_pressed("interact"):

@@ -81,7 +81,7 @@ color = Color(1, 1, 1, 1)
 
 [node name="ReelLabel" type="Label" parent="Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
-text = "Hold ← → to keep the cursor on the catch zone!"
+text = "Hold A / D to keep the cursor on the catch zone!"
 horizontal_alignment = 1
 visible = false
 
