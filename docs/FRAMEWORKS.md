@@ -211,7 +211,7 @@ If more hooks are owned, the next auto-equips at full durability.
 | `sell_price` | int | Not currently used. |
 | `coin_multiplier` | float | Multiplies `base_coin_value` on every successful catch. `1.0` = no bonus. `1.3` = +30% coins. |
 | `durability` | int | Total uses before the hook breaks. Shown as `N/max` in HUD. |
-| `escape_reduction` | float | **Stored but not yet wired.** Intended to reduce fish escape chance at reel bar edges. |
+| `escape_reduction` | float | Extends the react window (time to press E on bite). `0.10` = +10% longer window. `0.25` = +25%. Scales with fish difficulty. |
 
 ### Example — Enchanted Hook
 ```ini

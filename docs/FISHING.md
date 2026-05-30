@@ -323,8 +323,7 @@ applied to gameplay logic.
 
 | Stat | Lives on | Intended effect |
 |---|---|---|
-| `escape_reduction` | TackleData | Reduce chance fish escapes at bar edge |
-| `line_strength` (secondary) | RodData | Also intended to interact with escape_reduction |
+| `line_strength` (secondary) | RodData | Intended to interact with escape_reduction at bar edge (not yet wired) |
 | `uses_per_stack` | BaitData | Per-purchase stack size (currently always 1 per buy) |
 
 ---
