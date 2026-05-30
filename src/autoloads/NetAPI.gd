@@ -5,6 +5,7 @@ signal register_result(ok: bool, reason: String)
 signal fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float)
 signal fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int)
 signal shop_result(ok: bool, reason: String, new_balance: int)
+signal equip_result(ok: bool, item_id: String, slot: String)
 signal bj_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int)
 signal bj_hit(card: Dictionary, new_val: int)
 signal bj_dealer_reveal(full_hand: Array, value: int)
@@ -52,6 +53,12 @@ func c2s_fishing_result(succeeded: bool) -> void:
 	if not multiplayer.is_server(): return
 	var f := _srv("FishingServer")
 	if f: f.handle_result(multiplayer.get_remote_sender_id(), succeeded)
+
+@rpc("any_peer", "call_remote", "reliable")
+func c2s_equip(item_id: String) -> void:
+	if not multiplayer.is_server(): return
+	var s := _srv("ShopServer")
+	if s: s.handle_equip(multiplayer.get_remote_sender_id(), item_id)
 
 @rpc("any_peer", "call_remote", "reliable")
 func c2s_shop_buy(item_id: String) -> void:
@@ -104,6 +111,10 @@ func notify_fishing_result(caught: bool, fish_id: String, earned: int, new_balan
 @rpc("authority", "call_remote", "reliable")
 func notify_shop_result(ok: bool, reason: String, new_balance: int) -> void:
 	shop_result.emit(ok, reason, new_balance)
+
+@rpc("authority", "call_remote", "reliable")
+func notify_equip_result(ok: bool, item_id: String, slot: String) -> void:
+	equip_result.emit(ok, item_id, slot)
 
 @rpc("authority", "call_remote", "reliable")
 func notify_bj_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int) -> void:

@@ -8,6 +8,7 @@ signal completed
 
 func _ready() -> void:
 	NetAPI.shop_result.connect(_on_shop_result)
+	NetAPI.equip_result.connect(_on_equip_result)
 	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_close)
 	coins_label.text = "Coins: %d" % GameManager.current_coins
 	_populate()
@@ -53,11 +54,19 @@ func _make_row(item: ItemData) -> Control:
 	price_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	row.add_child(price_lbl)
 
-	var btn := Button.new()
-	btn.text = "Buy"
-	btn.custom_minimum_size = Vector2(64, 0)
-	btn.pressed.connect(_on_buy_pressed.bind(item.id, btn))
-	row.add_child(btn)
+	if item.buy_price > 0:
+		var btn := Button.new()
+		btn.text = "Buy"
+		btn.custom_minimum_size = Vector2(56, 0)
+		btn.pressed.connect(_on_buy_pressed.bind(item.id, btn))
+		row.add_child(btn)
+
+	if item is RodData or item is BaitData or item is TackleData:
+		var equip_btn := Button.new()
+		equip_btn.text = "Equip"
+		equip_btn.custom_minimum_size = Vector2(56, 0)
+		equip_btn.pressed.connect(_on_equip_pressed.bind(item.id))
+		row.add_child(equip_btn)
 
 	var sep := HSeparator.new()
 	var wrapper := VBoxContainer.new()
@@ -69,6 +78,24 @@ func _on_buy_pressed(item_id: String, btn: Button) -> void:
 	btn.disabled = true
 	status_label.text = "Buying…"
 	NetAPI.rpc("c2s_shop_buy", item_id)
+
+func _on_equip_pressed(item_id: String) -> void:
+	status_label.text = "Equipping…"
+	NetAPI.rpc("c2s_equip", item_id)
+
+func _on_equip_result(ok: bool, item_id: String, slot: String) -> void:
+	if ok:
+		var item := ItemRegistry.get_item(item_id)
+		status_label.text = "Equipped %s!" % (item.display_name if item else item_id)
+		status_label.modulate = Color(0.3, 1.0, 0.4)
+		match slot:
+			"rod":    GameManager.equipped_rod_id  = item_id
+			"bait":   GameManager.equipped_bait_id = item_id
+			"tackle": GameManager.equipped_tackle_id = item_id
+		GameManager.equipped_changed.emit()
+	else:
+		status_label.text = "Could not equip item."
+		status_label.modulate = Color(1.0, 0.4, 0.4)
 
 func _on_shop_result(ok: bool, reason: String, new_balance: int) -> void:
 	GameManager.set_coins(new_balance)

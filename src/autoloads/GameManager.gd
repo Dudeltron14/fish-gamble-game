@@ -3,12 +3,14 @@ extends Node
 signal scene_changed(scene_path: String)
 signal coins_changed(new_amount: int)
 signal zone_hint_changed(hint: String)
+signal equipped_changed()
 
 var current_player_name: String = ""
 var current_coins: int = 0
 var current_zone: String = ""
 var equipped_rod_id: String = ""
 var equipped_bait_id: String = ""
+var equipped_tackle_id: String = ""
 
 const ZONE_HINTS := {
 	"DockZone":   "Press E to fish",

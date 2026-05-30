@@ -19,6 +19,29 @@ func handle_buy(peer_id: int, item_id: String) -> void:
 	_persist(session, item_id)
 	NetAPI.rpc_id(peer_id, "notify_shop_result", true, "Purchased %s!" % item.display_name, session.coins)
 
+func handle_equip(peer_id: int, item_id: String) -> void:
+	var session := GameServer.get_authenticated_session(peer_id)
+	if session == null:
+		return
+	var item: ItemData = ItemRegistry.get_item(item_id)
+	if item == null:
+		NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
+		return
+	var slot := ""
+	if item is RodData:
+		session.equipped_rod_id = item_id
+		slot = "rod"
+	elif item is BaitData:
+		session.equipped_bait_id = item_id
+		slot = "bait"
+	elif item is TackleData:
+		session.equipped_tackle_id = item_id
+		slot = "tackle"
+	else:
+		NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
+		return
+	NetAPI.rpc_id(peer_id, "notify_equip_result", true, item_id, slot)
+
 func _persist(session: PlayerSession, item_id: String) -> void:
 	var auth := GameServer.get_node_or_null("AuthServer")
 	if auth == null or auth._db == null:

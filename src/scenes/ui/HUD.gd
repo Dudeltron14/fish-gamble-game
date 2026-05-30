@@ -7,6 +7,7 @@ extends CanvasLayer
 func _ready() -> void:
 	GameManager.coins_changed.connect(_on_coins_changed)
 	GameManager.zone_hint_changed.connect(_on_zone_hint_changed)
+	GameManager.equipped_changed.connect(_refresh_equipped)
 	_on_coins_changed(GameManager.current_coins)
 	_refresh_equipped()
 
