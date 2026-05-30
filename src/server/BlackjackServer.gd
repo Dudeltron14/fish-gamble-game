@@ -18,8 +18,8 @@ func handle_bet(peer_id: int, amount: int) -> void:
 
 	var deck := _make_deck()
 	deck.shuffle()
-	var ph := [deck.pop_back(), deck.pop_back()]
-	var dh := [deck.pop_back(), deck.pop_back()]
+	var ph: Array = [deck.pop_back(), deck.pop_back()]
+	var dh: Array = [deck.pop_back(), deck.pop_back()]
 	session.set_meta("bj_state", State.PLAYER_TURN)
 	session.set_meta("bj_deck",  deck)
 	session.set_meta("bj_ph",    ph)
@@ -58,7 +58,7 @@ func handle_double(peer_id: int) -> void:
 	session.coins -= extra
 	session.set_meta("bj_bet", bet + extra)
 	var deck: Array = session.get_meta("bj_deck")
-	var card := deck.pop_back()
+	var card: Dictionary = deck.pop_back()
 	ph.append(card)
 	session.set_meta("bj_deck", deck)
 	session.set_meta("bj_ph",   ph)
@@ -75,7 +75,7 @@ func _run_dealer(peer_id: int, session: PlayerSession) -> void:
 	NetAPI.rpc_id(peer_id, "notify_bj_dealer_reveal", dh, _val(dh))
 
 	while _val(dh) < 17:
-		var card := deck.pop_back()
+		var card: Dictionary = deck.pop_back()
 		dh.append(card)
 		NetAPI.rpc_id(peer_id, "notify_bj_dealer_card", card, _val(dh))
 

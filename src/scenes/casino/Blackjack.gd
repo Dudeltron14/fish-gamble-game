@@ -111,8 +111,8 @@ func _on_error(msg: String) -> void:
 const SUIT_NAMES := ["spades", "hearts", "diamonds", "clubs"]
 
 func _card_texture(card: Dictionary) -> Texture2D:
-	var suit := SUIT_NAMES[card["suit"]]
-	var rank := int(card["rank"]) + 1  # server rank 0-12 → file rank 1-13
+	var suit: String = SUIT_NAMES[card["suit"]]
+	var rank: int = int(card["rank"]) + 1  # server rank 0-12 → file rank 1-13
 	var path := "res://assets/Playing Cards/card-%s-%d.png" % [suit, rank]
 	return load(path) as Texture2D
 
