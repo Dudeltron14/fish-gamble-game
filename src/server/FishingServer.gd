@@ -99,15 +99,26 @@ func _consume_gear(peer_id: int, session: PlayerSession) -> void:
 			session.equipped_bait_id = ""
 			NetAPI.rpc_id(peer_id, "notify_bait_empty")
 
-	# Deduct one hook durability use
+	# Deduct one hook durability (not quantity — hook survives multiple casts)
 	if not session.equipped_tackle_id.is_empty():
-		session.add_owned(session.equipped_tackle_id, -1)
-		var hook_qty := session.get_owned(session.equipped_tackle_id)
-		_persist_decrement(session, session.equipped_tackle_id)
-		NetAPI.rpc_id(peer_id, "notify_inventory_updated", session.equipped_tackle_id, hook_qty)
-		if hook_qty <= 0:
-			session.equipped_tackle_id = ""
-			NetAPI.rpc_id(peer_id, "notify_hook_broken")
+		session.hook_durability = maxi(0, session.hook_durability - 1)
+		var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
+		var max_dur := tackle.durability if tackle else 10
+		if session.hook_durability <= 0:
+			# Hook broke — consume one from inventory
+			session.add_owned(session.equipped_tackle_id, -1)
+			var hook_qty := session.get_owned(session.equipped_tackle_id)
+			_persist_decrement(session, session.equipped_tackle_id)
+			NetAPI.rpc_id(peer_id, "notify_inventory_updated", session.equipped_tackle_id, hook_qty)
+			if hook_qty <= 0:
+				session.equipped_tackle_id = ""
+				NetAPI.rpc_id(peer_id, "notify_hook_broken")
+			else:
+				# Player still has hooks — re-equip next one at full durability
+				session.hook_durability = max_dur
+				NetAPI.rpc_id(peer_id, "notify_hook_durability", session.hook_durability, max_dur)
+		else:
+			NetAPI.rpc_id(peer_id, "notify_hook_durability", session.hook_durability, max_dur)
 
 func _persist_decrement(session: PlayerSession, item_id: String) -> void:
 	var auth := GameServer.get_node_or_null("AuthServer")

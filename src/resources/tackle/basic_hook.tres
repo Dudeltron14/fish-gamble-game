@@ -6,8 +6,9 @@
 script = ExtResource("1")
 id = "basic_hook"
 display_name = "Basic Hook"
-description = "Reduces the chance of fish wriggling free."
+description = "Reduces the chance of fish wriggling free. 10 uses."
 buy_price = 15
 sell_price = 5
 escape_reduction = 0.1
 coin_multiplier = 1.0
+durability = 10

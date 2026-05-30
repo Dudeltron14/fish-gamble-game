@@ -80,6 +80,13 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 	for inv_row in _db.query_result:
 		inventory[inv_row.item_id] = int(inv_row.quantity)
 	NetAPI.rpc_id(peer_id, "notify_inventory_loaded", inventory)
+	# Send initial hook durability
+	if session and not session.equipped_tackle_id.is_empty():
+		var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
+		if tackle:
+			if session.hook_durability == 0:
+				session.hook_durability = tackle.durability
+			NetAPI.rpc_id(peer_id, "notify_hook_durability", session.hook_durability, tackle.durability)
 	NetAPI.rpc_id(peer_id, "notify_login", true, "", int(row.coins))
 
 func handle_register(peer_id: int, username: String, pw_hash: String) -> void:

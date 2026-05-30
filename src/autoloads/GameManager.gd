@@ -5,6 +5,7 @@ signal coins_changed(new_amount: int)
 signal zone_hint_changed(hint: String)
 signal equipped_changed()
 signal owned_changed()
+signal hook_durability_changed(current: int, max_val: int)
 
 var current_player_name: String = ""
 var current_coins: int = 0
@@ -14,6 +15,8 @@ var equipped_bait_id: String = ""
 var equipped_tackle_id: String = ""
 var is_hosting: bool = false
 var owned_items: Dictionary = {}  # item_id -> quantity
+var hook_durability: int = 0
+var hook_max_durability: int = 0
 
 const ZONE_HINTS := {
 	"DockZone":   "Press E to fish",

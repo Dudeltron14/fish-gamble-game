@@ -10,6 +10,7 @@ signal inventory_loaded(items: Dictionary)
 signal inventory_updated(item_id: String, new_qty: int)
 signal bait_empty()
 signal hook_broken()
+signal hook_durability_changed(current: int, max_val: int)
 signal bj_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int)
 signal bj_hit(card: Dictionary, new_val: int)
 signal bj_dealer_reveal(full_hand: Array, value: int)
@@ -186,8 +187,18 @@ func notify_bait_empty() -> void:
 func notify_hook_broken() -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	GameManager.equipped_tackle_id = ""
+	GameManager.hook_durability = 0
+	GameManager.hook_max_durability = 0
 	GameManager.equipped_changed.emit()
+	GameManager.hook_durability_changed.emit(0, 0)
 	hook_broken.emit()
+
+@rpc("authority", "call_local", "reliable")
+func notify_hook_durability(current: int, max_val: int) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	GameManager.hook_durability = current
+	GameManager.hook_max_durability = max_val
+	GameManager.hook_durability_changed.emit(current, max_val)
 
 func _srv(server_name: String) -> Node:
 	return GameServer.get_node_or_null(server_name)

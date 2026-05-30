@@ -39,6 +39,7 @@ func init_host_session(username: String) -> void:
 	session.equipped_bait_id   = "worm"
 	session.equipped_tackle_id = "basic_hook"
 	session.owned_items = {"starter_rod": 1, "worm": 1, "basic_hook": 1}
+	session.hook_durability = 10
 	sessions[1] = session
 
 func get_session(peer_id: int) -> PlayerSession:

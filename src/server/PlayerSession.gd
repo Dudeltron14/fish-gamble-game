@@ -10,6 +10,7 @@ var equipped_rod_id: String = ""
 var equipped_bait_id: String = ""
 var equipped_tackle_id: String = ""
 var owned_items: Dictionary = {}  # item_id -> quantity (authoritative server-side cache)
+var hook_durability: int = 0      # current uses remaining on equipped hook
 
 func add_owned(item_id: String, delta: int) -> void:
 	var q: int = owned_items.get(item_id, 0) + delta

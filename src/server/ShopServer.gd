@@ -38,7 +38,10 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 	elif item is BaitData:
 		session.equipped_bait_id = item_id;   slot = "bait"
 	elif item is TackleData:
-		session.equipped_tackle_id = item_id; slot = "tackle"
+		session.equipped_tackle_id = item_id
+		session.hook_durability = (item as TackleData).durability
+		slot = "tackle"
+		NetAPI.rpc_id(peer_id, "notify_hook_durability", session.hook_durability, session.hook_durability)
 	else:
 		NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
 		return

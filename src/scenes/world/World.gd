@@ -33,17 +33,13 @@ func _ready() -> void:
 			GameManager.equipped_bait_id   = host_session.equipped_bait_id
 			GameManager.equipped_tackle_id = host_session.equipped_tackle_id
 			GameManager.equipped_changed.emit()
-			# Load host's owned inventory from DB
-			var auth := GameServer.get_node_or_null("AuthServer")
-			if auth and auth._db:
-				auth._db.query_with_bindings(
-					"SELECT item_id, quantity FROM inventory WHERE player_id = (SELECT id FROM players WHERE username = ?)",
-					[host_session.username]
-				)
-				var inv := {}
-				for row in auth._db.query_result:
-					inv[row.item_id] = int(row.quantity)
-				GameManager.set_owned_items(inv)
+			# Sync session inventory directly to client (no DB query needed for host)
+			GameManager.set_owned_items(host_session.owned_items.duplicate())
+			var tackle := ItemRegistry.get_item(host_session.equipped_tackle_id) as TackleData
+			if tackle:
+				GameManager.hook_durability = host_session.hook_durability
+				GameManager.hook_max_durability = tackle.durability
+				GameManager.hook_durability_changed.emit(host_session.hook_durability, tackle.durability)
 			spawn_player(1, host_session.username)
 
 func _unhandled_input(event: InputEvent) -> void:
