@@ -9,6 +9,8 @@ const REACT_WINDOW := 1.2  # base at difficulty 1.0, no hook
 const REEL_BAR_WIDTH := 420.0
 const CATCH_ZONE_FRAC := 0.18
 const CURSOR_SPEED := 150.0
+const FISH_SPEED_MAX_NORM := CURSOR_SPEED / REEL_BAR_WIDTH  # 0.357 — cursor speed in bar units
+const FISH_SPEED_LERP := 2.5   # how fast speed transitions (higher = snappier changes)
 const PROGRESS_RATE := 0.35    # base fill rate; multiplied by rod line_strength
 const DRAIN_RATE := 0.35       # base drain rate; multiplied by fish difficulty
 
@@ -26,6 +28,9 @@ var _line_strength := 1.0      # rod stat — scales how fast progress fills in 
 var _fish_pos := 0.5
 var _fish_dir := 1.0
 var _fish_dir_timer := 0.0
+var _fish_speed := 0.0          # current speed (normalized bar units/s), slides smoothly
+var _fish_speed_target := 0.0   # target to lerp toward
+var _fish_speed_timer := 0.0    # countdown to next random speed change
 var _cursor_pos := 0.5
 var _reel_progress := 0.0
 
@@ -116,8 +121,13 @@ func _enter_reel() -> void:
 	_fish_pos = 0.5
 	_cursor_pos = 0.5
 	_reel_progress = 0.0
-	_fish_dir = 1.0 if randf() > 0.5 else -1.0   # random start direction
-	_fish_dir_timer = randf_range(0.7, 1.8)        # first random turn
+	_fish_dir = 1.0 if randf() > 0.5 else -1.0
+	_fish_dir_timer = randf_range(0.7, 1.8)
+	# Speed slides between ~15% and 100% of difficulty-scaled max, never exceeding cursor speed
+	var speed_max := minf(FISH_SPEED_MAX_NORM, _difficulty * 0.20)
+	_fish_speed = speed_max * 0.5
+	_fish_speed_target = _fish_speed
+	_fish_speed_timer = randf_range(0.5, 1.5)
 	reel_container.visible = true
 	reel_label.visible = true
 	status.text = "Reeling in…"
@@ -130,9 +140,15 @@ func _process_reel(delta: float) -> void:
 		_fish_dir *= -1.0
 		_fish_dir_timer = randf_range(0.6, 1.6)
 
-	# Max fish speed (at diff 2.8) equals cursor speed (150/420 ≈ 0.357/s) — always catchable
-	var fish_speed := 0.1275 * _difficulty
-	_fish_pos += fish_speed * _fish_dir * delta
+	# Speed slides randomly — pick new target every 0.5–1.5s, lerp smoothly toward it
+	_fish_speed_timer -= delta
+	if _fish_speed_timer <= 0.0:
+		var speed_max := minf(FISH_SPEED_MAX_NORM, _difficulty * 0.20)
+		var speed_min := speed_max * 0.15  # fish never fully stops
+		_fish_speed_target = randf_range(speed_min, speed_max)
+		_fish_speed_timer = randf_range(0.5, 1.5)
+	_fish_speed = lerpf(_fish_speed, _fish_speed_target, FISH_SPEED_LERP * delta)
+	_fish_pos += _fish_speed * _fish_dir * delta
 	if _fish_pos >= 1.0 or _fish_pos <= 0.0:
 		_fish_dir *= -1.0
 		_fish_pos = clampf(_fish_pos, 0.0, 1.0)
