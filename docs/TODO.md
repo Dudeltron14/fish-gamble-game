@@ -6,11 +6,12 @@ Living task list. Move items to DONE when complete.
 
 ## Phase 11 — Art / Manual (user)
 
-- [ ] **Paint TileMap** — open `World.tscn` → `TileMapLayer`, create TileSet from `assets/ForgottenMemories/TileSet.png`, paint map
-- [ ] **Reposition zones** — drag `DockZone`, `ShopZone`, `CasinoZone` in `World.tscn` to match painted map
+- [~] **Paint TileMap** — TileSet configured (32×32, ForgottenMemories + WaterTiles + Props). Map painting in progress.
+- [ ] **Reposition zones** — drag `DockZone`, `ShopZone`, `CasinoZone` in `World.tscn` to match painted map. Tell Claude tile coords and zones get updated.
 - [ ] **Move SpawnPoint** — drag `Marker2D` to town center on painted map
 - [ ] **Item icons** — set `icon: Texture2D` on each `.tres` in `src/resources/` using icon sheets from `assets/`
 - [ ] **Water animation** — set up `WaterTiles-6frames.png` as an AnimatedTile in the TileSet
+- [ ] **Windows export preset** — add Windows Desktop preset in Project → Export for local testing
 
 ---
 
@@ -39,3 +40,8 @@ Living task list. Move items to DONE when complete.
 - [x] HUD + polish (Phase 8)
 - [x] Docker + CI/CD (Phase 9)
 - [x] All framework wiring + equip system (Phase 10)
+- [x] Player animations rigged: idle, walk_right (flip_h for left), fishing, hook
+- [x] Playing card sprites wired (individual PNGs from assets/Playing Cards/)
+- [x] All assets imported to fish-game/assets/
+- [x] Host & Play button on LoginScreen for single-instance local testing
+- [x] export_presets.cfg: Linux (dedicated server) + Web presets
