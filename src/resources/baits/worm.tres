@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "worm"
 display_name = "Worm"
-description = "A classic. Fish love 'em, you hate touching 'em."
+description = "A classic. Opens the door to rare fish."
 buy_price = 5
 sell_price = 1
-rarity_weights = {"common": 0.70, "uncommon": 0.22, "rare": 0.075, "legendary": 0.005}
+rarity_weights = {"common": 0.70, "uncommon": 0.22, "rare": 0.07, "legendary": 0.01}
 uses_per_stack = 10
 wait_modifier = 0.90

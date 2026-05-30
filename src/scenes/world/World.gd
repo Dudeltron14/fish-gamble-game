@@ -6,6 +6,7 @@ const SHOP_SCENE    := preload("res://src/scenes/ui/Shop.tscn")
 const BJ_SCENE      := preload("res://src/scenes/casino/Blackjack.tscn")
 const HUD_SCENE     := preload("res://src/scenes/ui/HUD.tscn")
 const DEBUG_SCENE   := preload("res://src/scenes/ui/DebugMenu.tscn")
+const STATS_SCENE   := preload("res://src/scenes/ui/GearStatsPanel.tscn")
 
 @onready var players: Node2D       = $Players
 @onready var spawn_point: Marker2D = $SpawnPoint
@@ -23,12 +24,14 @@ func _ready() -> void:
 	if not multiplayer.is_server():
 		add_child(HUD_SCENE.instantiate())
 		add_child(DEBUG_SCENE.instantiate())
+		add_child(STATS_SCENE.instantiate())
 		NetAPI.fishing_result.connect(_on_fishing_result_received)
 		NetAPI.rpc("c2s_world_ready")
 	elif GameManager.is_hosting:
 		# Host plays in the same instance — spawn host player directly
 		add_child(HUD_SCENE.instantiate())
 		add_child(DEBUG_SCENE.instantiate())
+		add_child(STATS_SCENE.instantiate())
 		NetAPI.fishing_result.connect(_on_fishing_result_received)
 		var host_session := GameServer.get_session(1)
 		if host_session:

@@ -1,10 +1,10 @@
 extends Node
 
 const DEFAULT_WEIGHTS := {
-	"common": 0.65,
-	"uncommon": 0.25,
-	"rare": 0.09,
-	"legendary": 0.01,
+	"common": 0.95,
+	"uncommon": 0.05,
+	"rare": 0.00,
+	"legendary": 0.00,
 }
 
 func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:

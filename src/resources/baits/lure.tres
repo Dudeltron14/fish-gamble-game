@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "lure"
 display_name = "Shiny Lure"
-description = "Attracts rarer fish. Also small children."
+description = "Rare fish take notice. Legendary fish are curious."
 buy_price = 20
 sell_price = 8
-rarity_weights = {"common": 0.45, "uncommon": 0.35, "rare": 0.17, "legendary": 0.03}
+rarity_weights = {"common": 0.40, "uncommon": 0.35, "rare": 0.20, "legendary": 0.05}
 uses_per_stack = 10
 wait_modifier = 0.75

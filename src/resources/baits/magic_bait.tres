@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "magic_bait"
 display_name = "Magic Bait"
-description = "Smells like secrets. Common fish won't touch it."
+description = "Common fish won't touch it. Legendary fish can't resist."
 buy_price = 60
 sell_price = 20
-rarity_weights = {"common": 0.0, "uncommon": 0.45, "rare": 0.35, "legendary": 0.20}
+rarity_weights = {"common": 0.00, "uncommon": 0.30, "rare": 0.40, "legendary": 0.30}
 uses_per_stack = 5
 wait_modifier = 0.55
