@@ -16,15 +16,16 @@ func handle_buy(peer_id: int, item_id: String) -> void:
 		return
 
 	session.coins -= item.buy_price
-	_persist(session, item_id)
-	NetAPI.rpc_id(peer_id, "notify_inventory_updated", item_id, _get_qty(session, item_id))
+	session.add_owned(item_id, 1)
+	_persist_buy(session, item_id)
+	NetAPI.rpc_id(peer_id, "notify_inventory_updated", item_id, session.get_owned(item_id))
 	NetAPI.rpc_id(peer_id, "notify_shop_result", true, "Purchased %s!" % item.display_name, session.coins)
 
 func handle_equip(peer_id: int, item_id: String) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
 	if session == null:
 		return
-	if not _player_owns(session, item_id):
+	if session.get_owned(item_id) <= 0:
 		NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
 		return
 	var item: ItemData = ItemRegistry.get_item(item_id)
@@ -33,59 +34,23 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 		return
 	var slot := ""
 	if item is RodData:
-		session.equipped_rod_id = item_id
-		slot = "rod"
+		session.equipped_rod_id = item_id;    slot = "rod"
 	elif item is BaitData:
-		session.equipped_bait_id = item_id
-		slot = "bait"
+		session.equipped_bait_id = item_id;   slot = "bait"
 	elif item is TackleData:
-		session.equipped_tackle_id = item_id
-		slot = "tackle"
+		session.equipped_tackle_id = item_id; slot = "tackle"
 	else:
 		NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
 		return
 
-	_decrement(session, item_id)
-	NetAPI.rpc_id(peer_id, "notify_inventory_updated", item_id, _get_qty(session, item_id))
+	session.add_owned(item_id, -1)
+	_persist_decrement(session, item_id)
+	NetAPI.rpc_id(peer_id, "notify_inventory_updated", item_id, session.get_owned(item_id))
 	NetAPI.rpc_id(peer_id, "notify_equip_result", true, item_id, slot)
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Persistence (DB only, session is authoritative) ───────────────────────────
 
-func _player_owns(session: PlayerSession, item_id: String) -> bool:
-	var auth := GameServer.get_node_or_null("AuthServer")
-	if auth == null or auth._db == null:
-		return false
-	auth._db.query_with_bindings("""
-		SELECT quantity FROM inventory
-		WHERE player_id = (SELECT id FROM players WHERE username = ?)
-		AND item_id = ? AND quantity > 0
-	""", [session.username, item_id])
-	return auth._db.query_result.size() > 0
-
-func _get_qty(session: PlayerSession, item_id: String) -> int:
-	var auth := GameServer.get_node_or_null("AuthServer")
-	if auth == null or auth._db == null:
-		return 0
-	auth._db.query_with_bindings("""
-		SELECT quantity FROM inventory
-		WHERE player_id = (SELECT id FROM players WHERE username = ?)
-		AND item_id = ?
-	""", [session.username, item_id])
-	if auth._db.query_result.size() > 0:
-		return int(auth._db.query_result[0].quantity)
-	return 0
-
-func _decrement(session: PlayerSession, item_id: String) -> void:
-	var auth := GameServer.get_node_or_null("AuthServer")
-	if auth == null or auth._db == null:
-		return
-	auth._db.query_with_bindings("""
-		UPDATE inventory SET quantity = MAX(0, quantity - 1)
-		WHERE player_id = (SELECT id FROM players WHERE username = ?)
-		AND item_id = ?
-	""", [session.username, item_id])
-
-func _persist(session: PlayerSession, item_id: String) -> void:
+func _persist_buy(session: PlayerSession, item_id: String) -> void:
 	var auth := GameServer.get_node_or_null("AuthServer")
 	if auth == null or auth._db == null:
 		return
@@ -97,4 +62,14 @@ func _persist(session: PlayerSession, item_id: String) -> void:
 		INSERT INTO inventory (player_id, item_id, quantity)
 		VALUES ((SELECT id FROM players WHERE username = ?), ?, 1)
 		ON CONFLICT(player_id, item_id) DO UPDATE SET quantity = quantity + 1
+	""", [session.username, item_id])
+
+func _persist_decrement(session: PlayerSession, item_id: String) -> void:
+	var auth := GameServer.get_node_or_null("AuthServer")
+	if auth == null or auth._db == null:
+		return
+	auth._db.query_with_bindings("""
+		UPDATE inventory SET quantity = MAX(0, quantity - 1)
+		WHERE player_id = (SELECT id FROM players WHERE username = ?)
+		AND item_id = ?
 	""", [session.username, item_id])

@@ -8,6 +8,8 @@ signal shop_result(ok: bool, reason: String, new_balance: int)
 signal equip_result(ok: bool, item_id: String, slot: String)
 signal inventory_loaded(items: Dictionary)
 signal inventory_updated(item_id: String, new_qty: int)
+signal bait_empty()
+signal hook_broken()
 signal bj_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int)
 signal bj_hit(card: Dictionary, new_val: int)
 signal bj_dealer_reveal(full_hand: Array, value: int)
@@ -172,6 +174,20 @@ func notify_bj_error(msg: String) -> void:
 	bj_error.emit(msg)
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+@rpc("authority", "call_local", "reliable")
+func notify_bait_empty() -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	GameManager.equipped_bait_id = ""
+	GameManager.equipped_changed.emit()
+	bait_empty.emit()
+
+@rpc("authority", "call_local", "reliable")
+func notify_hook_broken() -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	GameManager.equipped_tackle_id = ""
+	GameManager.equipped_changed.emit()
+	hook_broken.emit()
 
 func _srv(server_name: String) -> Node:
 	return GameServer.get_node_or_null(server_name)

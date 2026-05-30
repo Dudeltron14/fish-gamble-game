@@ -19,6 +19,10 @@ func handle_start(peer_id: int) -> void:
 		return
 
 	session.set_meta("pending_fish_id", fish.id)
+
+	# Consume one bait and reduce hook durability — happens on every bite
+	_consume_gear(peer_id, session)
+
 	var rod := ItemRegistry.get_item(session.equipped_rod_id) as RodData
 	var cast_speed := rod.cast_speed if rod else 1.0
 	NetAPI.rpc_id(peer_id, "notify_fishing_start", true, fish.id, fish.catch_difficulty, cast_speed)
@@ -83,6 +87,37 @@ func _weighted_rarity(weights: Dictionary) -> String:
 		if roll < cumulative:
 			return rarity
 	return "common"
+
+func _consume_gear(peer_id: int, session: PlayerSession) -> void:
+	# Deduct one bait use
+	if not session.equipped_bait_id.is_empty():
+		session.add_owned(session.equipped_bait_id, -1)
+		var bait_qty := session.get_owned(session.equipped_bait_id)
+		_persist_decrement(session, session.equipped_bait_id)
+		NetAPI.rpc_id(peer_id, "notify_inventory_updated", session.equipped_bait_id, bait_qty)
+		if bait_qty <= 0:
+			session.equipped_bait_id = ""
+			NetAPI.rpc_id(peer_id, "notify_bait_empty")
+
+	# Deduct one hook durability use
+	if not session.equipped_tackle_id.is_empty():
+		session.add_owned(session.equipped_tackle_id, -1)
+		var hook_qty := session.get_owned(session.equipped_tackle_id)
+		_persist_decrement(session, session.equipped_tackle_id)
+		NetAPI.rpc_id(peer_id, "notify_inventory_updated", session.equipped_tackle_id, hook_qty)
+		if hook_qty <= 0:
+			session.equipped_tackle_id = ""
+			NetAPI.rpc_id(peer_id, "notify_hook_broken")
+
+func _persist_decrement(session: PlayerSession, item_id: String) -> void:
+	var auth := GameServer.get_node_or_null("AuthServer")
+	if auth == null or auth._db == null:
+		return
+	auth._db.query_with_bindings("""
+		UPDATE inventory SET quantity = MAX(0, quantity - 1)
+		WHERE player_id = (SELECT id FROM players WHERE username = ?)
+		AND item_id = ?
+	""", [session.username, item_id])
 
 func _save_coins(session: PlayerSession) -> void:
 	var auth := GameServer.get_node_or_null("AuthServer")

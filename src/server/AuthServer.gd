@@ -115,10 +115,13 @@ func _give_starter_items(username: String) -> void:
 
 func _load_equipped(session: PlayerSession, player_id: int) -> void:
 	_db.query_with_bindings(
-		"SELECT item_id FROM inventory WHERE player_id = ?", [player_id]
+		"SELECT item_id, quantity FROM inventory WHERE player_id = ?", [player_id]
 	)
 	for inv_row in _db.query_result:
 		var item_id: String = inv_row.item_id
+		var qty: int = int(inv_row.quantity)
+		if qty > 0:
+			session.owned_items[item_id] = qty
 		var item := ItemRegistry.get_item(item_id)
 		if item is RodData    and session.equipped_rod_id.is_empty():
 			session.equipped_rod_id = item_id
