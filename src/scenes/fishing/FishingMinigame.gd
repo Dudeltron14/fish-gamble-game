@@ -9,8 +9,8 @@ const REACT_WINDOW := 1.5
 const REEL_BAR_WIDTH := 420.0
 const CATCH_ZONE_FRAC := 0.18
 const CURSOR_SPEED := 150.0
-const PROGRESS_RATE := 0.35    # base fill rate; multiplied by rod line_strength (1.4 * 0.25)
-const DRAIN_RATE := 1.1        # base drain rate; multiplied by fish difficulty
+const PROGRESS_RATE := 0.35    # base fill rate; multiplied by rod line_strength
+const DRAIN_RATE := 0.35       # base drain rate; multiplied by fish difficulty
 
 var _stage := Stage.CAST
 var _cast_power := 0.0
@@ -104,8 +104,8 @@ func _process_reel(delta: float) -> void:
 		_fish_dir *= -1.0
 		_fish_dir_timer = randf_range(0.6, 1.6)
 
-	# Fish speed slightly below max cursor speed so it's catchable but requires effort
-	var fish_speed := 0.32 * _difficulty
+	# Max fish speed (at diff 2.8) equals cursor speed (150/420 ≈ 0.357/s) — always catchable
+	var fish_speed := 0.1275 * _difficulty
 	_fish_pos += fish_speed * _fish_dir * delta
 	if _fish_pos >= 1.0 or _fish_pos <= 0.0:
 		_fish_dir *= -1.0
