@@ -40,6 +40,8 @@ extends CanvasLayer
 @onready var cast_hint_icon: TextureRect = %CastHintIcon
 @onready var cast_hint_lbl:  Label       = %CastHintLabel
 
+@export var tooltip_opacity: float = 0.92
+
 var _visible_state := true
 var _tooltip_popup: PanelContainer
 var _tooltip_label: Label
@@ -47,6 +49,7 @@ var _tooltip_label: Label
 func _ready() -> void:
 	# Build a custom tooltip popup (Godot's built-in tooltip_text is unreliable in CanvasLayer)
 	_tooltip_popup = PanelContainer.new()
+	_tooltip_popup.modulate.a = tooltip_opacity
 	_tooltip_popup.visible = false
 	_tooltip_label = Label.new()
 	_tooltip_label.add_theme_font_size_override("font_size", 11)
