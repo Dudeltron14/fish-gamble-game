@@ -65,6 +65,14 @@ func handle_double(peer_id: int) -> void:
 	NetAPI.rpc_id(peer_id, "notify_bj_hit", card, _val(ph))
 	_run_dealer(peer_id, session)
 
+func handle_forfeit(peer_id: int) -> void:
+	var session := GameServer.get_authenticated_session(peer_id)
+	if session == null: return
+	for key in ["bj_state", "bj_deck", "bj_ph", "bj_dh", "bj_bet"]:
+		if session.has_meta(key):
+			session.remove_meta(key)
+	_save_coins(session)  # persist — bet was already deducted, no refund
+
 # ── Internal ──────────────────────────────────────────────────────────────────
 
 func _run_dealer(peer_id: int, session: PlayerSession) -> void:

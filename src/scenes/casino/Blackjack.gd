@@ -21,12 +21,13 @@ var _state := State.IDLE
 func _ready() -> void:
 	AudioManager.set_music_context("casino")
 	NetAPI.bj_deal.connect(_on_deal)
+	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_on_leave_pressed)
 	NetAPI.bj_hit.connect(_on_hit)
 	NetAPI.bj_dealer_reveal.connect(_on_dealer_reveal)
 	NetAPI.bj_dealer_card.connect(_on_dealer_card)
 	NetAPI.bj_result.connect(_on_result)
 	NetAPI.bj_error.connect(_on_error)
-	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_close)
+	# CloseBtn now connected to _on_leave_pressed in _ready() above
 	deal_btn.pressed.connect(_on_deal_pressed)
 	hit_btn.pressed.connect(func(): NetAPI.rpc("c2s_bj_hit"))
 	stand_btn.pressed.connect(func(): NetAPI.rpc("c2s_bj_stand"))
@@ -215,8 +216,26 @@ func _clear_node(node: Node) -> void:
 		c.queue_free()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and _state == State.IDLE:
+	if event.is_action_pressed("ui_cancel"):
+		_on_leave_pressed()
+
+func _on_leave_pressed() -> void:
+	if _state == State.IDLE:
 		_close()
+		return
+	var dialog := ConfirmationDialog.new()
+	dialog.title = "Leave the Table?"
+	dialog.dialog_text = "You have an active hand.\nLeaving now forfeits your bet — you will not be refunded."
+	dialog.ok_button_text = "Leave and Forfeit"
+	dialog.cancel_button_text = "Stay"
+	dialog.confirmed.connect(_forfeit_and_close)
+	dialog.canceled.connect(dialog.queue_free)
+	add_child(dialog)
+	dialog.popup_centered()
+
+func _forfeit_and_close() -> void:
+	NetAPI.rpc("c2s_bj_forfeit")
+	_close()
 
 func _close() -> void:
 	AudioManager.set_music_context("world")

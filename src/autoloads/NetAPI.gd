@@ -98,6 +98,12 @@ func c2s_bj_double() -> void:
 	var bj := _srv("BlackjackServer")
 	if bj: bj.handle_double(_peer_id())
 
+@rpc("any_peer", "call_local", "reliable")
+func c2s_bj_forfeit() -> void:
+	if not multiplayer.is_server(): return
+	var bj := _srv("BlackjackServer")
+	if bj: bj.handle_forfeit(_peer_id())
+
 # ── Server → Client ───────────────────────────────────────────────────────────
 # call_local so that in Host & Play mode, rpc_id(1, ...) executes locally
 # on the host (who is both server and client).
