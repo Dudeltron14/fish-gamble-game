@@ -90,7 +90,12 @@ func _preload_playlists() -> void:
 func set_music_context(context: String) -> void:
 	if context == _current_context:
 		return
+	# If new context shares the same playlist paths, just relabel — don't restart
+	var new_paths: Array = PLAYLIST_PATHS.get(context, [])
+	var old_paths: Array = PLAYLIST_PATHS.get(_current_context, [])
 	_current_context = context
+	if new_paths == old_paths and not _current_playlist.is_empty():
+		return
 	var playlist: Array = _playlist_loaded.get(context, [])
 	if playlist.is_empty():
 		stop_music(context_fade_out)
