@@ -40,18 +40,21 @@ extends CanvasLayer
 @onready var cast_hint_icon: TextureRect = %CastHintIcon
 @onready var cast_hint_lbl:  Label       = %CastHintLabel
 
-@export var panel_bg_opacity: float = 1.0
+## Background colour of the panel (A = opacity). Adjust in Inspector without touching code.
+@export var panel_bg_color: Color = Color(0.12, 0.14, 0.18, 1.0)
+## Corner radius of the panel background.
+@export var panel_corner_radius: int = 4
 
 var _visible_state := true
 
 func _ready() -> void:
-	# Background-only opacity — keeps text fully opaque
+	# Background-only style — text/icons remain fully opaque regardless of colour alpha
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.14, 0.18, panel_bg_opacity)
-	style.corner_radius_top_left    = 4
-	style.corner_radius_top_right   = 4
-	style.corner_radius_bottom_left = 4
-	style.corner_radius_bottom_right = 4
+	style.bg_color = panel_bg_color
+	style.corner_radius_top_left    = panel_corner_radius
+	style.corner_radius_top_right   = panel_corner_radius
+	style.corner_radius_bottom_left = panel_corner_radius
+	style.corner_radius_bottom_right = panel_corner_radius
 	$Panel.add_theme_stylebox_override("panel", style)
 
 	# Enable mouse on all nodes so built-in tooltip_text shows on hover
@@ -159,4 +162,8 @@ func _refresh() -> void:
 		_tip(react_icon, react_lbl, "React Window: +0%% (no hook)\nEquip a hook to give yourself more time to react to bites.")
 
 	# ── Cast hint ─────────────────────────────────────────────────────────────
-	_tip(cast_hint_icon, cast_hint_lbl, "Cast Quality\nRelease E close to 100%% for a perfect cast.\nPerfect cast: +10%% rare/legendary, shorter bite wait, wider react window.\nTerrible cast: -10%% rare/legendary, much longer wait, shorter react window.")
+	cast_hint_lbl.text = "Cast: perfect = Common -10%, Rare +7%, Legendary +3%"
+	_tip(cast_hint_icon, cast_hint_lbl,
+		"Cast Quality — how close to 100%% you release E.\n\n" +
+		"Perfect cast (100%%):\n  Common -10%%,  Rare +7%%,  Legendary +3%%\n  Shorter bite wait,  wider react window.\n\n" +
+		"Terrible cast (0%%):\n  Common +10%%,  Rare -7%%,  Legendary -3%%\n  Much longer wait,  shorter react window.")

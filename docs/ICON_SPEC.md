@@ -117,7 +117,7 @@ These colours appear in the game world and UI. Use them as your base palette.
 ---
 
 ### `icon_cast_hint.png`
-**Meaning:** Reminder that perfect cast adds +10% to rare/legendary  
+**Meaning:** Reminder that cast quality shifts fish rarity — perfect cast moves 10% from Common into Rare (+7%) and Legendary (+3%)  
 **Description:** A small fishing rod (simplified, like icon_rod.png but tiny) with a sparkle above the tip. Rod colour: tan `#C48A3A`. Sparkle: gold `#FFD700`. Dark outline. Conveys "good cast = better fish."
 
 ---
