@@ -28,6 +28,7 @@ var _difficulty := 1.0
 var _line_strength := 1.0      # rod stat — scales how fast progress fills in zone
 var _result_shown := false
 var _reel_tick_timer := 0.0
+var _auto_catch := false   # junk/chest/key — skip REACT+REEL, resolve on wait end
 var _fish_pos := 0.5
 var _fish_dir := 1.0
 var _fish_dir_timer := 0.0
@@ -107,9 +108,14 @@ func _enter_wait() -> void:
 func _process_wait(delta: float) -> void:
 	_wait_timer -= delta
 	if _wait_timer <= 0.0:
+		if _auto_catch:
+			# Junk / Chest / Key — no minigame, just resolve immediately
+			_stage = Stage.RESULT
+			NetAPI.rpc("c2s_fishing_result", true)
+			return
 		_stage = Stage.REACT
 		var diff_penalty := 1.0 + maxf(0.0, _difficulty - 1.0) * 0.35
-		var cast_penalty := lerpf(0.5, 1.0, _cast_quality)  # terrible cast = 50% shorter window
+		var cast_penalty := lerpf(0.5, 1.0, _cast_quality)
 		_react_timer = REACT_WINDOW / diff_penalty * (1.0 + _hook_react_bonus) * cast_penalty
 		AudioManager.sfx("sfx_bite")
 		status.text = "!! BITE !! Press E!"
@@ -141,6 +147,7 @@ func _enter_reel() -> void:
 	_reel_progress = 0.0
 	_escape_timer = ESCAPE_TIME_MAX
 	_result_shown = false
+	_auto_catch = false
 	_fish_dir = 1.0 if randf() > 0.5 else -1.0
 	_fish_dir_timer = randf_range(0.7, 1.8)
 	# Speed slides between ~15% and 100% of difficulty-scaled max, never exceeding cursor speed
@@ -284,7 +291,7 @@ func _finish_reel(success: bool) -> void:
 
 # ── NetAPI callbacks ──────────────────────────────────────────────────────────
 
-func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float, hook_react_bonus: float) -> void:
+func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float, hook_react_bonus: float, auto_catch: bool) -> void:
 	if not ok:
 		_show_result(false, "No fish nearby.")
 		return
@@ -292,6 +299,7 @@ func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed:
 	_difficulty = difficulty
 	_line_strength = line_strength
 	_hook_react_bonus = hook_react_bonus
+	_auto_catch = auto_catch
 	_cast_speed = BASE_CAST_SPEED * cast_speed
 	_wait_timer *= wait_modifier
 

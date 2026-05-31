@@ -30,7 +30,11 @@ func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 	var wait_modifier := bait.wait_modifier if bait else 1.0
 	var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
 	var hook_react_bonus := tackle.escape_reduction if tackle else 0.0
-	NetAPI.rpc_id(peer_id, "notify_fishing_start", true, fish.id, fish.catch_difficulty, cast_speed, line_strength, wait_modifier, hook_react_bonus)
+	# Junk, Chest, and Key skip the minigame — auto-resolve on bite
+	var auto_catch := fish.id.begins_with("junk_") \
+		or fish.id == "legendary_chest" \
+		or fish.id == "legendary_key"
+	NetAPI.rpc_id(peer_id, "notify_fishing_start", true, fish.id, fish.catch_difficulty, cast_speed, line_strength, wait_modifier, hook_react_bonus, auto_catch)
 
 func handle_result(peer_id: int, succeeded: bool) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
@@ -61,6 +65,12 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	NetAPI.rpc_id(peer_id, "notify_fishing_result", true, fish_id, earned, session.coins)
 
 func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
+	# Sunken Chest: fixed 1% chance regardless of bait, rod, or cast quality
+	if randf() < 0.01:
+		var chest := ItemRegistry.get_item("legendary_chest") as FishData
+		if chest:
+			return chest
+
 	# Apply bait rarity_weights
 	var weights := DEFAULT_WEIGHTS.duplicate()
 	var bait := ItemRegistry.get_item(session.equipped_bait_id) as BaitData
