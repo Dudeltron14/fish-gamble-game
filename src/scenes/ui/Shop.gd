@@ -11,6 +11,7 @@ func _ready() -> void:
 	NetAPI.equip_result.connect(_on_equip_result)
 	GameManager.owned_changed.connect(_populate.call_deferred)
 	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_close)
+	AudioManager.set_music_context("shop")
 	coins_label.text = "Coins: %d" % GameManager.current_coins
 	_populate()
 
@@ -118,5 +119,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_close()
 
 func _close() -> void:
+	AudioManager.set_music_context("world")
 	completed.emit()
 	queue_free()

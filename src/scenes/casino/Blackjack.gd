@@ -19,6 +19,7 @@ var _state := State.IDLE
 @onready var double_btn: Button     = %DoubleBtn
 
 func _ready() -> void:
+	AudioManager.set_music_context("casino")
 	NetAPI.bj_deal.connect(_on_deal)
 	NetAPI.bj_hit.connect(_on_hit)
 	NetAPI.bj_dealer_reveal.connect(_on_dealer_reveal)
@@ -210,5 +211,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_close()
 
 func _close() -> void:
+	AudioManager.set_music_context("world")
 	completed.emit()
 	queue_free()

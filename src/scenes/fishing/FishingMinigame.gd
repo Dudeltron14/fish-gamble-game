@@ -48,6 +48,7 @@ var _escape_timer := ESCAPE_TIME_MAX  # drains when off fish, fills when on — 
 func _ready() -> void:
 	NetAPI.fishing_start.connect(_on_fishing_start)
 	NetAPI.fishing_result.connect(_on_fishing_result)
+	AudioManager.set_music_context("fishing")
 	set_process(true)
 	set_process_input(true)
 
@@ -315,5 +316,6 @@ func _show_result(success: bool, msg: String) -> void:
 	_close()
 
 func _close() -> void:
+	AudioManager.set_music_context("world")
 	completed.emit()
 	queue_free()

@@ -1,256 +1,334 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://d38a1ospjex4s"]
 
-[ext_resource type="Script" path="res://src/scenes/ui/GearStatsPanel.gd" id="1"]
+[ext_resource type="Script" uid="uid://b8ais5wi5o3ih" path="res://src/scenes/ui/GearStatsPanel.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://cm2i4ugd121ca" path="res://assets/ui_icons/icon_rod.png" id="2_4sntk"]
+[ext_resource type="Texture2D" uid="uid://b3cxmm0gf1i8c" path="res://assets/ui_icons/icon_cast_speed.png" id="3_4sntk"]
+[ext_resource type="Texture2D" uid="uid://wse8dnsbea7u" path="res://assets/ui_icons/icon_reel_speed.png" id="4_cos8a"]
+[ext_resource type="Texture2D" uid="uid://dsowij1v5wvq3" path="res://assets/ui_icons/icon_rarity_bonus.png" id="5_waxhm"]
+[ext_resource type="Texture2D" uid="uid://diqwxbp8jmggw" path="res://assets/ui_icons/icon_bait.png" id="6_cfpgu"]
+[ext_resource type="Texture2D" uid="uid://c5sqm3un4y7nl" path="res://assets/ui_icons/icon_bite_speed.png" id="7_222ne"]
+[ext_resource type="Texture2D" uid="uid://ta7jvmw8wkh" path="res://assets/ui_icons/icon_tier_common.png" id="8_oad5x"]
+[ext_resource type="Texture2D" uid="uid://ea0xr1bd8sdq" path="res://assets/ui_icons/icon_tier_uncommon.png" id="9_3p7tx"]
+[ext_resource type="Texture2D" uid="uid://dfdgs2o6wsekc" path="res://assets/ui_icons/icon_tier_rare.png" id="10_ew38p"]
+[ext_resource type="Texture2D" uid="uid://ce0vemwpb7123" path="res://assets/ui_icons/icon_tier_legendary.png" id="11_bx00a"]
+[ext_resource type="Texture2D" uid="uid://5eq1i2qux34u" path="res://assets/ui_icons/icon_hook.png" id="12_pmof4"]
+[ext_resource type="Texture2D" uid="uid://ssoj460ibb4x" path="res://assets/ui_icons/icon_durability.png" id="13_n1ofk"]
+[ext_resource type="Texture2D" uid="uid://d00td7mo4qbkx" path="res://assets/ui_icons/icon_coin_bonus.png" id="14_bdtue"]
+[ext_resource type="Texture2D" uid="uid://doevs05h4gvgt" path="res://assets/ui_icons/icon_react_window.png" id="15_iyjbn"]
+[ext_resource type="Texture2D" uid="uid://bnr7ugrjvxti8" path="res://assets/ui_icons/icon_cast_hint.png" id="16_pu1aq"]
 
-[node name="GearStatsPanel" type="CanvasLayer"]
+[node name="GearStatsPanel" type="CanvasLayer" unique_id=856407416]
 layer = 2
 script = ExtResource("1")
+tooltip_opacity = 1.1
+panel_bg_opacity = 0.95
 
-[node name="Panel" type="PanelContainer" parent="."]
+[node name="Panel" type="PanelContainer" parent="." unique_id=89946165]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
 offset_left = -250.0
 offset_top = 80.0
 offset_right = -8.0
 offset_bottom = 80.0
-anchor_left = 1.0
-anchor_right = 1.0
 grow_horizontal = 0
 
-[node name="Margin" type="MarginContainer" parent="Panel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+[node name="Margin" type="MarginContainer" parent="Panel" unique_id=105395771]
+layout_mode = 2
 theme_override_constants/margin_left = 10
-theme_override_constants/margin_right = 10
 theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin" unique_id=1858637150]
 custom_minimum_size = Vector2(230, 0)
+layout_mode = 2
 theme_override_constants/separation = 3
 
-[node name="Title" type="Label" parent="Panel/Margin/VBox"]
-text = "GEAR MODIFIERS  [Tab]"
-theme_override_font_sizes/font_size = 10
+[node name="Title" type="Label" parent="Panel/Margin/VBox" unique_id=888349711]
 modulate = Color(0.65, 0.65, 0.65, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "GEAR MODIFIERS  [Tab]"
 
-[node name="Sep0" type="HSeparator" parent="Panel/Margin/VBox"]
+[node name="Sep0" type="HSeparator" parent="Panel/Margin/VBox" unique_id=316329078]
+layout_mode = 2
 
-[node name="RodHeader" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="RodHeader" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=243359441]
+layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="RodIcon" type="TextureRect" parent="Panel/Margin/VBox/RodHeader"]
+[node name="RodIcon" type="TextureRect" parent="Panel/Margin/VBox/RodHeader" unique_id=641321251]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(18, 18)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("2_4sntk")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="RodHeaderLabel" type="Label" parent="Panel/Margin/VBox/RodHeader"]
+[node name="RodHeaderLabel" type="Label" parent="Panel/Margin/VBox/RodHeader" unique_id=403521474]
 unique_name_in_owner = true
-text = "ROD"
-theme_override_font_sizes/font_size = 11
 modulate = Color(0.9, 0.75, 0.4, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "ROD"
 
-[node name="CastRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="CastRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=977775313]
+layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="CastIcon" type="TextureRect" parent="Panel/Margin/VBox/CastRow"]
+[node name="CastIcon" type="TextureRect" parent="Panel/Margin/VBox/CastRow" unique_id=1926001073]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("3_4sntk")
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 3
 
-[node name="CastLabel" type="Label" parent="Panel/Margin/VBox/CastRow"]
+[node name="CastLabel" type="Label" parent="Panel/Margin/VBox/CastRow" unique_id=2143277759]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Cast: x1.0"
-theme_override_font_sizes/font_size = 11
 
-[node name="ReelRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="ReelRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1081079049]
+layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ReelIcon" type="TextureRect" parent="Panel/Margin/VBox/ReelRow"]
+[node name="ReelIcon" type="TextureRect" parent="Panel/Margin/VBox/ReelRow" unique_id=1546896644]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("4_cos8a")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ReelLabel" type="Label" parent="Panel/Margin/VBox/ReelRow"]
+[node name="ReelLabel" type="Label" parent="Panel/Margin/VBox/ReelRow" unique_id=1304634627]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Reel: x1.0"
-theme_override_font_sizes/font_size = 11
 
-[node name="RarityBonusRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="RarityBonusRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=2006248570]
+layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="RarityBonusIcon" type="TextureRect" parent="Panel/Margin/VBox/RarityBonusRow"]
+[node name="RarityBonusIcon" type="TextureRect" parent="Panel/Margin/VBox/RarityBonusRow" unique_id=790149925]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("5_waxhm")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="RarityBonusLabel" type="Label" parent="Panel/Margin/VBox/RarityBonusRow"]
+[node name="RarityBonusLabel" type="Label" parent="Panel/Margin/VBox/RarityBonusRow" unique_id=551971577]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Rare bonus: none"
-theme_override_font_sizes/font_size = 11
 
-[node name="Sep1" type="HSeparator" parent="Panel/Margin/VBox"]
+[node name="Sep1" type="HSeparator" parent="Panel/Margin/VBox" unique_id=917679277]
+layout_mode = 2
 
-[node name="BaitHeader" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="BaitHeader" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1552970619]
+layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="BaitIcon" type="TextureRect" parent="Panel/Margin/VBox/BaitHeader"]
+[node name="BaitIcon" type="TextureRect" parent="Panel/Margin/VBox/BaitHeader" unique_id=1555768130]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(18, 18)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("6_cfpgu")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="BaitHeaderLabel" type="Label" parent="Panel/Margin/VBox/BaitHeader"]
+[node name="BaitHeaderLabel" type="Label" parent="Panel/Margin/VBox/BaitHeader" unique_id=940947287]
 unique_name_in_owner = true
-text = "BAIT"
-theme_override_font_sizes/font_size = 11
 modulate = Color(0.5, 0.9, 0.5, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "BAIT"
 
-[node name="BiteRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="BiteRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=434860464]
+layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="BiteIcon" type="TextureRect" parent="Panel/Margin/VBox/BiteRow"]
+[node name="BiteIcon" type="TextureRect" parent="Panel/Margin/VBox/BiteRow" unique_id=397166551]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("7_222ne")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="BiteLabel" type="Label" parent="Panel/Margin/VBox/BiteRow"]
+[node name="BiteLabel" type="Label" parent="Panel/Margin/VBox/BiteRow" unique_id=1124895702]
 unique_name_in_owner = true
-text = "Bite wait: —"
+layout_mode = 2
 theme_override_font_sizes/font_size = 11
+text = "Bite wait: —"
 
-[node name="PoolRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="PoolRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1519218093]
+layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="CommonIcon" type="TextureRect" parent="Panel/Margin/VBox/PoolRow"]
+[node name="CommonIcon" type="TextureRect" parent="Panel/Margin/VBox/PoolRow" unique_id=5574013]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(12, 12)
-expand_mode = 1
-stretch_mode = 5
 modulate = Color(0.7, 0.7, 0.7, 1)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("8_oad5x")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="CommonLabel" type="Label" parent="Panel/Margin/VBox/PoolRow"]
+[node name="CommonLabel" type="Label" parent="Panel/Margin/VBox/PoolRow" unique_id=794359336]
 unique_name_in_owner = true
-text = "0%"
-theme_override_font_sizes/font_size = 10
 modulate = Color(0.7, 0.7, 0.7, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "0%"
 
-[node name="UncommonIcon" type="TextureRect" parent="Panel/Margin/VBox/PoolRow"]
+[node name="UncommonIcon" type="TextureRect" parent="Panel/Margin/VBox/PoolRow" unique_id=1947241889]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(12, 12)
-expand_mode = 1
-stretch_mode = 5
 modulate = Color(0.4, 0.9, 0.4, 1)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("9_3p7tx")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="UncommonLabel" type="Label" parent="Panel/Margin/VBox/PoolRow"]
+[node name="UncommonLabel" type="Label" parent="Panel/Margin/VBox/PoolRow" unique_id=861683072]
 unique_name_in_owner = true
-text = "0%"
-theme_override_font_sizes/font_size = 10
 modulate = Color(0.4, 0.9, 0.4, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "0%"
 
-[node name="RareIcon" type="TextureRect" parent="Panel/Margin/VBox/PoolRow"]
+[node name="RareIcon" type="TextureRect" parent="Panel/Margin/VBox/PoolRow" unique_id=1049110595]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(12, 12)
+modulate = Color(0.4, 0.6, 1, 1)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("10_ew38p")
 expand_mode = 1
 stretch_mode = 5
-modulate = Color(0.4, 0.6, 1.0, 1)
 
-[node name="RareLabel" type="Label" parent="Panel/Margin/VBox/PoolRow"]
+[node name="RareLabel" type="Label" parent="Panel/Margin/VBox/PoolRow" unique_id=1097183165]
 unique_name_in_owner = true
-text = "0%"
+modulate = Color(0.4, 0.6, 1, 1)
+layout_mode = 2
 theme_override_font_sizes/font_size = 10
-modulate = Color(0.4, 0.6, 1.0, 1)
+text = "0%"
 
-[node name="LegendaryIcon" type="TextureRect" parent="Panel/Margin/VBox/PoolRow"]
+[node name="LegendaryIcon" type="TextureRect" parent="Panel/Margin/VBox/PoolRow" unique_id=1419357477]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(12, 12)
+modulate = Color(1, 0.8, 0.2, 1)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("11_bx00a")
 expand_mode = 1
 stretch_mode = 5
-modulate = Color(1.0, 0.8, 0.2, 1)
 
-[node name="LegendaryLabel" type="Label" parent="Panel/Margin/VBox/PoolRow"]
+[node name="LegendaryLabel" type="Label" parent="Panel/Margin/VBox/PoolRow" unique_id=931151536]
 unique_name_in_owner = true
-text = "0%"
+modulate = Color(1, 0.8, 0.2, 1)
+layout_mode = 2
 theme_override_font_sizes/font_size = 10
-modulate = Color(1.0, 0.8, 0.2, 1)
+text = "0%"
 
-[node name="Sep2" type="HSeparator" parent="Panel/Margin/VBox"]
+[node name="Sep2" type="HSeparator" parent="Panel/Margin/VBox" unique_id=655049511]
+layout_mode = 2
 
-[node name="HookHeader" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="HookHeader" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1421436774]
+layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="HookIcon" type="TextureRect" parent="Panel/Margin/VBox/HookHeader"]
+[node name="HookIcon" type="TextureRect" parent="Panel/Margin/VBox/HookHeader" unique_id=835588082]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(18, 18)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("12_pmof4")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="HookHeaderLabel" type="Label" parent="Panel/Margin/VBox/HookHeader"]
+[node name="HookHeaderLabel" type="Label" parent="Panel/Margin/VBox/HookHeader" unique_id=19880741]
 unique_name_in_owner = true
-text = "HOOK"
-theme_override_font_sizes/font_size = 11
 modulate = Color(0.9, 0.5, 0.3, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "HOOK"
 
-[node name="DurabilityRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="DurabilityRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=2011828028]
+layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="DurabilityIcon" type="TextureRect" parent="Panel/Margin/VBox/DurabilityRow"]
+[node name="DurabilityIcon" type="TextureRect" parent="Panel/Margin/VBox/DurabilityRow" unique_id=1944485782]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("13_n1ofk")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="DurabilityLabel" type="Label" parent="Panel/Margin/VBox/DurabilityRow"]
+[node name="DurabilityLabel" type="Label" parent="Panel/Margin/VBox/DurabilityRow" unique_id=903536195]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Durability: —"
-theme_override_font_sizes/font_size = 11
 
-[node name="CoinRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="CoinRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1144137569]
+layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="CoinIcon" type="TextureRect" parent="Panel/Margin/VBox/CoinRow"]
+[node name="CoinIcon" type="TextureRect" parent="Panel/Margin/VBox/CoinRow" unique_id=1736991323]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("14_bdtue")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="CoinLabel" type="Label" parent="Panel/Margin/VBox/CoinRow"]
+[node name="CoinLabel" type="Label" parent="Panel/Margin/VBox/CoinRow" unique_id=634564446]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Coins: x1.0"
-theme_override_font_sizes/font_size = 11
 
-[node name="ReactRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="ReactRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=935058604]
+layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ReactIcon" type="TextureRect" parent="Panel/Margin/VBox/ReactRow"]
+[node name="ReactIcon" type="TextureRect" parent="Panel/Margin/VBox/ReactRow" unique_id=1911386666]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("15_iyjbn")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ReactLabel" type="Label" parent="Panel/Margin/VBox/ReactRow"]
+[node name="ReactLabel" type="Label" parent="Panel/Margin/VBox/ReactRow" unique_id=494800920]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "React: +0%"
-theme_override_font_sizes/font_size = 11
 
-[node name="Sep3" type="HSeparator" parent="Panel/Margin/VBox"]
+[node name="Sep3" type="HSeparator" parent="Panel/Margin/VBox" unique_id=1940090736]
+layout_mode = 2
 
-[node name="CastHintRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="CastHintRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1263028019]
+layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="CastHintIcon" type="TextureRect" parent="Panel/Margin/VBox/CastHintRow"]
+[node name="CastHintIcon" type="TextureRect" parent="Panel/Margin/VBox/CastHintRow" unique_id=1558471974]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("16_pu1aq")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="CastHintLabel" type="Label" parent="Panel/Margin/VBox/CastHintRow"]
+[node name="CastHintLabel" type="Label" parent="Panel/Margin/VBox/CastHintRow" unique_id=1739170980]
 unique_name_in_owner = true
-text = "Perfect cast: +10% rare/legendary"
-theme_override_font_sizes/font_size = 10
 modulate = Color(0.75, 0.75, 0.5, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Perfect cast: +10% rare/legendary"
