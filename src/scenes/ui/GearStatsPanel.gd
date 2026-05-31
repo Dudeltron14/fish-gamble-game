@@ -43,6 +43,12 @@ extends CanvasLayer
 var _visible_state := true
 
 func _ready() -> void:
+	# TextureRect ignores mouse by default — enable hover so tooltips show
+	for icon in [rod_icon, cast_icon, reel_icon, rarity_bonus_icon,
+				 bait_icon, bite_icon, common_icon, uncommon_icon, rare_icon, legendary_icon,
+				 hook_icon, durability_icon, coin_icon, react_icon, cast_hint_icon]:
+		icon.mouse_filter = Control.MOUSE_FILTER_STOP
+
 	GameManager.equipped_changed.connect(_refresh)
 	GameManager.hook_durability_changed.connect(func(_c, _m): _refresh())
 	GameManager.owned_changed.connect(_refresh)
