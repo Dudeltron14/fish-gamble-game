@@ -41,6 +41,7 @@ extends CanvasLayer
 @onready var cast_hint_lbl:  Label       = %CastHintLabel
 
 @export var tooltip_opacity: float = 0.92
+@export var panel_bg_opacity: float = 1.0
 
 var _visible_state := true
 var _tooltip_popup: PanelContainer
@@ -48,6 +49,15 @@ var _tooltip_label: Label
 
 func _ready() -> void:
 	# Build a custom tooltip popup (Godot's built-in tooltip_text is unreliable in CanvasLayer)
+	# Apply background-only opacity via a custom StyleBoxFlat (keeps text fully opaque)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.14, 0.18, panel_bg_opacity)
+	style.corner_radius_top_left    = 4
+	style.corner_radius_top_right   = 4
+	style.corner_radius_bottom_left = 4
+	style.corner_radius_bottom_right = 4
+	$Panel.add_theme_stylebox_override("panel", style)
+
 	_tooltip_popup = PanelContainer.new()
 	_tooltip_popup.modulate.a = tooltip_opacity
 	_tooltip_popup.visible = false
