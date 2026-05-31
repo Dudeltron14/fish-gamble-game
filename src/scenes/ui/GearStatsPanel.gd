@@ -40,15 +40,16 @@ extends CanvasLayer
 @onready var cast_hint_icon: TextureRect = %CastHintIcon
 @onready var cast_hint_lbl:  Label       = %CastHintLabel
 
-## Background colour of the panel (A = opacity). Adjust in Inspector without touching code.
 @export var panel_bg_color: Color = Color(0.12, 0.14, 0.18, 1.0)
-## Corner radius of the panel background.
 @export var panel_corner_radius: int = 4
 
-var _visible_state := true
+const SETTINGS_FILE := "user://settings.cfg"
+var _expanded := false
+var _music_vol := 80.0
+var _sfx_vol   := 80.0
+var _vbox: VBoxContainer
 
 func _ready() -> void:
-	# Background-only style — text/icons remain fully opaque regardless of colour alpha
 	var style := StyleBoxFlat.new()
 	style.bg_color = panel_bg_color
 	style.corner_radius_top_left    = panel_corner_radius
@@ -57,7 +58,11 @@ func _ready() -> void:
 	style.corner_radius_bottom_right = panel_corner_radius
 	$Panel.add_theme_stylebox_override("panel", style)
 
-	# Enable mouse on all nodes so built-in tooltip_text shows on hover
+	_vbox = $Panel/Margin/VBox
+	_build_volume_section()
+	_load_settings()
+	_set_expanded(false)   # collapsed by default — only title shows
+
 	for node: Control in [rod_icon, cast_icon, reel_icon, rarity_bonus_icon,
 				 bait_icon, bite_icon, common_icon, uncommon_icon, rare_icon, legendary_icon,
 				 hook_icon, durability_icon, coin_icon, react_icon, cast_hint_icon,
@@ -71,14 +76,86 @@ func _ready() -> void:
 	GameManager.owned_changed.connect(_refresh)
 	_refresh()
 
+func _build_volume_section() -> void:
+	var sep := HSeparator.new()
+	_vbox.add_child(sep)
+
+	var music_row := HBoxContainer.new()
+	music_row.add_theme_constant_override("separation", 8)
+	var music_lbl := Label.new()
+	music_lbl.text = "Music"
+	music_lbl.custom_minimum_size = Vector2(40, 0)
+	music_lbl.add_theme_font_size_override("font_size", 11)
+	var music_slider := HSlider.new()
+	music_slider.name = "MusicSlider"
+	music_slider.min_value = 0.0
+	music_slider.max_value = 100.0
+	music_slider.step = 1.0
+	music_slider.value = _music_vol
+	music_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	music_slider.value_changed.connect(_on_music_changed)
+	music_row.add_child(music_lbl)
+	music_row.add_child(music_slider)
+	_vbox.add_child(music_row)
+
+	var sfx_row := HBoxContainer.new()
+	sfx_row.add_theme_constant_override("separation", 8)
+	var sfx_lbl := Label.new()
+	sfx_lbl.text = "SFX"
+	sfx_lbl.custom_minimum_size = Vector2(40, 0)
+	sfx_lbl.add_theme_font_size_override("font_size", 11)
+	var sfx_slider := HSlider.new()
+	sfx_slider.name = "SFXSlider"
+	sfx_slider.min_value = 0.0
+	sfx_slider.max_value = 100.0
+	sfx_slider.step = 1.0
+	sfx_slider.value = _sfx_vol
+	sfx_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sfx_slider.value_changed.connect(_on_sfx_changed)
+	sfx_row.add_child(sfx_lbl)
+	sfx_row.add_child(sfx_slider)
+	_vbox.add_child(sfx_row)
+
+func _on_music_changed(value: float) -> void:
+	_music_vol = value
+	AudioManager.set_volume(AudioManager.BUS_MUSIC,
+		linear_to_db(maxf(value / 100.0, 0.0001)))
+	_save_settings()
+
+func _on_sfx_changed(value: float) -> void:
+	_sfx_vol = value
+	AudioManager.set_volume(AudioManager.BUS_SFX,
+		linear_to_db(maxf(value / 100.0, 0.0001)))
+	_save_settings()
+
+func _set_expanded(expand: bool) -> void:
+	_expanded = expand
+	# Index 0 = Title label — always visible. Hide everything else when collapsed.
+	for i in range(1, _vbox.get_child_count()):
+		_vbox.get_child(i).visible = expand
+
+func _save_settings() -> void:
+	var cfg := ConfigFile.new()
+	cfg.set_value("audio", "music_volume", _music_vol)
+	cfg.set_value("audio", "sfx_volume",   _sfx_vol)
+	cfg.save(SETTINGS_FILE)
+
+func _load_settings() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(SETTINGS_FILE) != OK:
+		return
+	_music_vol = cfg.get_value("audio", "music_volume", 80.0)
+	_sfx_vol   = cfg.get_value("audio", "sfx_volume",   80.0)
+	_on_music_changed(_music_vol)
+	_on_sfx_changed(_sfx_vol)
+
 func _tip(icon: TextureRect, lbl: Label, text: String) -> void:
 	icon.tooltip_text = text
 	lbl.tooltip_text  = text
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("stats_toggle"):
-		_visible_state = not _visible_state
-		panel.visible = _visible_state
+		_set_expanded(not _expanded)
 
 func _refresh() -> void:
 	var rod    := ItemRegistry.get_item(GameManager.equipped_rod_id)    as RodData
