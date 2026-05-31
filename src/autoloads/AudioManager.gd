@@ -67,6 +67,8 @@ var _current_playlist: Array      = []
 var _current_context: String      = ""
 var _track_index: int             = 0
 var _playlist_loaded: Dictionary  = {}
+var _music_vol_linear: float      = 1.0
+var _sfx_vol_linear: float        = 1.0
 
 func _ready() -> void:
 	_music_player = AudioStreamPlayer.new()
@@ -166,12 +168,23 @@ func stop_music(fade_out: float = 0.5) -> void:
 
 # ── SFX ───────────────────────────────────────────────────────────────────────
 
+func set_music_volume(linear: float) -> void:
+	_music_vol_linear = clampf(linear, 0.0, 1.0)
+	_music_player.volume_db = linear_to_db(maxf(_music_vol_linear, 0.0001))
+
+func set_sfx_volume(linear: float) -> void:
+	_sfx_vol_linear = clampf(linear, 0.0, 1.0)
+	var db := linear_to_db(maxf(_sfx_vol_linear, 0.0001))
+	for player: AudioStreamPlayer in _sfx_pool:
+		player.volume_db = db
+
 func play_sfx(stream: AudioStream) -> void:
 	if stream == null:
 		return
 	for player in _sfx_pool:
 		if not player.playing:
 			player.stream = stream
+			player.volume_db = linear_to_db(maxf(_sfx_vol_linear, 0.0001))
 			player.play()
 			return
 

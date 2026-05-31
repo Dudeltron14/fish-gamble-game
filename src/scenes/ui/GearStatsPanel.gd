@@ -93,6 +93,7 @@ func _build_volume_section() -> void:
 	music_slider.step = 1.0
 	music_slider.value = _music_vol
 	music_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	music_slider.focus_mode = Control.FOCUS_NONE  # prevent Tab key capture
 	music_slider.value_changed.connect(_on_music_changed)
 	music_row.add_child(music_lbl)
 	music_row.add_child(music_slider)
@@ -111,6 +112,7 @@ func _build_volume_section() -> void:
 	sfx_slider.step = 1.0
 	sfx_slider.value = _sfx_vol
 	sfx_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sfx_slider.focus_mode = Control.FOCUS_NONE  # prevent Tab key capture
 	sfx_slider.value_changed.connect(_on_sfx_changed)
 	sfx_row.add_child(sfx_lbl)
 	sfx_row.add_child(sfx_slider)
@@ -118,14 +120,12 @@ func _build_volume_section() -> void:
 
 func _on_music_changed(value: float) -> void:
 	_music_vol = value
-	AudioManager.set_volume(AudioManager.BUS_MUSIC,
-		linear_to_db(maxf(value / 100.0, 0.0001)))
+	AudioManager.set_music_volume(value / 100.0)
 	_save_settings()
 
 func _on_sfx_changed(value: float) -> void:
 	_sfx_vol = value
-	AudioManager.set_volume(AudioManager.BUS_SFX,
-		linear_to_db(maxf(value / 100.0, 0.0001)))
+	AudioManager.set_sfx_volume(value / 100.0)
 	_save_settings()
 
 func _set_expanded(expand: bool) -> void:
@@ -146,8 +146,8 @@ func _load_settings() -> void:
 		return
 	_music_vol = cfg.get_value("audio", "music_volume", 80.0)
 	_sfx_vol   = cfg.get_value("audio", "sfx_volume",   80.0)
-	_on_music_changed(_music_vol)
-	_on_sfx_changed(_sfx_vol)
+	AudioManager.set_music_volume(_music_vol / 100.0)
+	AudioManager.set_sfx_volume(_sfx_vol / 100.0)
 
 func _tip(icon: TextureRect, lbl: Label, text: String) -> void:
 	icon.tooltip_text = text
