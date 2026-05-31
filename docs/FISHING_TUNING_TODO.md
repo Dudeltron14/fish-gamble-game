@@ -15,6 +15,8 @@ Branch: `fishing-tuning`
 - [ ] **Chest (legendary)** — add a Chest as a legendary-rarity catchable. Should have high coin value or potentially contain items. Lives in the fish resource pool as a FishData.
 - [ ] **Key (legendary)** — add a Key as a legendary-rarity catchable alongside the Chest. Future use: keys could unlock chests for bonus loot. For now, treat as a high-value coin reward.
 
+- [ ] **Fish sprites** — assign sprite frames from `assets/free fish/free fish.png` to each fish `.tres` file via `sprite_frame` field. Also wire up the catch result UI to display the fish sprite when a player lands a catch, so players see what they caught rather than just a text name.
+
 ---
 
 ## Notes
