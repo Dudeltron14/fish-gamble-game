@@ -26,6 +26,7 @@ var _react_timer := 0.0
 var _fish_id := ""
 var _difficulty := 1.0
 var _line_strength := 1.0      # rod stat — scales how fast progress fills in zone
+var _result_shown := false     # true once _show_result has fired — guards duplicate server callbacks
 var _fish_pos := 0.5
 var _fish_dir := 1.0
 var _fish_dir_timer := 0.0
@@ -134,6 +135,7 @@ func _enter_reel() -> void:
 	_cursor_pos = 0.5
 	_reel_progress = 0.0
 	_escape_timer = ESCAPE_TIME_MAX
+	_result_shown = false
 	_fish_dir = 1.0 if randf() > 0.5 else -1.0
 	_fish_dir_timer = randf_range(0.7, 1.8)
 	# Speed slides between ~15% and 100% of difficulty-scaled max, never exceeding cursor speed
@@ -284,8 +286,8 @@ func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed:
 	_wait_timer *= wait_modifier
 
 func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int) -> void:
-	if _stage == Stage.RESULT:
-		return  # already showing result (e.g. missed react already called _show_result)
+	if _result_shown:
+		return  # _show_result already fired (e.g. missed react showed result before server responded)
 	var fish: FishData = ItemRegistry.get_item(fish_id) as FishData
 	var fish_name := fish.display_name if fish else fish_id
 	if caught:
@@ -298,6 +300,7 @@ func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance:
 
 func _show_result(success: bool, msg: String) -> void:
 	_stage = Stage.RESULT
+	_result_shown = true
 	reel_container.visible = false
 	reel_label.visible = false
 	cast_bar.visible = false
