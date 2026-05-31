@@ -16,17 +16,35 @@ const PLAYLISTS: Dictionary = {
 }
 
 const PLAYLIST_PATHS: Dictionary = {
-	"world":   [
-		# "res://assets/music/Harbor Dice.mp3",
+	"world": [
+		"res://assets/music/Harbor Dice.mp3",
+		"res://assets/music/Harbor Dice (1).mp3",
+		"res://assets/music/Velvet Reel.mp3",
+		"res://assets/music/Velvet Reel (1).mp3",
+		"res://assets/music/Dockside Dice.mp3",
+		"res://assets/music/Dockside Dice (1).mp3",
 	],
 	"fishing": [
-		# "res://assets/music/Velvet Reel.mp3",
+		"res://assets/music/Harbor Dice.mp3",
+		"res://assets/music/Harbor Dice (1).mp3",
+		"res://assets/music/Velvet Reel.mp3",
+		"res://assets/music/Velvet Reel (1).mp3",
+		"res://assets/music/Dockside Dice.mp3",
+		"res://assets/music/Dockside Dice (1).mp3",
 	],
-	"shop":    [
-		# "res://assets/music/Dockside Dice.mp3",
+	"shop": [
+		"res://assets/music/Harbor Dice.mp3",
+		"res://assets/music/Harbor Dice (1).mp3",
+		"res://assets/music/Velvet Reel.mp3",
+		"res://assets/music/Velvet Reel (1).mp3",
+		"res://assets/music/Dockside Dice.mp3",
+		"res://assets/music/Dockside Dice (1).mp3",
 	],
-	"casino":  [
-		# "res://assets/music/Dockside Jackpot.mp3",
+	"casino": [
+		"res://assets/music/Dockside Jackpot.mp3",
+		"res://assets/music/Dockside Jackpot (1).mp3",
+		"res://assets/music/Jackpot Harbor.mp3",
+		"res://assets/music/Jackpot Harbor (1).mp3",
 	],
 }
 
