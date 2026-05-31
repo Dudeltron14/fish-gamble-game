@@ -40,16 +40,12 @@ extends CanvasLayer
 @onready var cast_hint_icon: TextureRect = %CastHintIcon
 @onready var cast_hint_lbl:  Label       = %CastHintLabel
 
-@export var tooltip_opacity: float = 0.92
 @export var panel_bg_opacity: float = 1.0
 
 var _visible_state := true
-var _tooltip_popup: PanelContainer
-var _tooltip_label: Label
 
 func _ready() -> void:
-	# Build a custom tooltip popup (Godot's built-in tooltip_text is unreliable in CanvasLayer)
-	# Apply background-only opacity via a custom StyleBoxFlat (keeps text fully opaque)
+	# Background-only opacity — keeps text fully opaque
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.12, 0.14, 0.18, panel_bg_opacity)
 	style.corner_radius_top_left    = 4
@@ -58,17 +54,7 @@ func _ready() -> void:
 	style.corner_radius_bottom_right = 4
 	$Panel.add_theme_stylebox_override("panel", style)
 
-	_tooltip_popup = PanelContainer.new()
-	_tooltip_popup.modulate.a = tooltip_opacity
-	_tooltip_popup.visible = false
-	_tooltip_label = Label.new()
-	_tooltip_label.add_theme_font_size_override("font_size", 11)
-	_tooltip_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_tooltip_label.custom_minimum_size = Vector2(200, 0)
-	_tooltip_popup.add_child(_tooltip_label)
-	add_child(_tooltip_popup)
-
-	# Enable mouse on all icons and labels
+	# Enable mouse on all nodes so built-in tooltip_text shows on hover
 	for node: Control in [rod_icon, cast_icon, reel_icon, rarity_bonus_icon,
 				 bait_icon, bite_icon, common_icon, uncommon_icon, rare_icon, legendary_icon,
 				 hook_icon, durability_icon, coin_icon, react_icon, cast_hint_icon,
@@ -76,37 +62,11 @@ func _ready() -> void:
 				 bait_header_lbl, bite_lbl, common_lbl, uncommon_lbl, rare_lbl, legendary_lbl,
 				 hook_header_lbl, durability_lbl, coin_lbl, react_lbl, cast_hint_lbl]:
 		node.mouse_filter = Control.MOUSE_FILTER_STOP
-		node.mouse_entered.connect(_on_node_hovered.bind(node))
-		node.mouse_exited.connect(_hide_tooltip)
 
 	GameManager.equipped_changed.connect(_refresh)
 	GameManager.hook_durability_changed.connect(func(_c, _m): _refresh())
 	GameManager.owned_changed.connect(_refresh)
 	_refresh()
-
-func _on_node_hovered(node: Control) -> void:
-	var tip := node.tooltip_text
-	if tip.is_empty():
-		return
-	_tooltip_label.text = tip
-	# Position near the node, offset so it doesn't cover it
-	var vp := get_viewport()
-	var mouse := vp.get_mouse_position() if vp else Vector2.ZERO
-	var popup_x := mouse.x + 16.0
-	var popup_y := mouse.y + 16.0
-	# Keep on screen
-	var vp_size := vp.get_visible_rect().size if vp else Vector2(1920, 1080)
-	_tooltip_popup.reset_size()
-	var popup_size := _tooltip_popup.get_minimum_size()
-	if popup_x + popup_size.x > vp_size.x:
-		popup_x = mouse.x - popup_size.x - 8.0
-	if popup_y + popup_size.y > vp_size.y:
-		popup_y = mouse.y - popup_size.y - 8.0
-	_tooltip_popup.position = Vector2(popup_x, popup_y)
-	_tooltip_popup.visible = true
-
-func _hide_tooltip() -> void:
-	_tooltip_popup.visible = false
 
 func _tip(icon: TextureRect, lbl: Label, text: String) -> void:
 	icon.tooltip_text = text
