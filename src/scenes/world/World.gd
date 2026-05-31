@@ -27,8 +27,12 @@ func _ready() -> void:
 		add_child(DEBUG_SCENE.instantiate())
 		add_child(STATS_SCENE.instantiate())
 		NetAPI.fishing_result.connect(_on_fishing_result_received)
+		NetAPI.bait_empty.connect(func(): AudioManager.sfx("sfx_bait_empty"))
+		NetAPI.hook_broken.connect(func(): AudioManager.sfx("sfx_hook_break"))
 		NetAPI.rpc("c2s_world_ready")
 	elif GameManager.is_hosting:
+		NetAPI.bait_empty.connect(func(): AudioManager.sfx("sfx_bait_empty"))
+		NetAPI.hook_broken.connect(func(): AudioManager.sfx("sfx_hook_break"))
 		# Host plays in the same instance — spawn host player directly
 		add_child(HUD_SCENE.instantiate())
 		add_child(DEBUG_SCENE.instantiate())
@@ -82,12 +86,14 @@ func _open_overlay(scene: PackedScene) -> void:
 	_overlay_scene = scene
 	_overlay.completed.connect(_on_overlay_closed)
 	add_child(_overlay)
+	AudioManager.sfx("sfx_menu_open")
 	if scene == FISHING_SCENE:
 		var player := _get_local_player()
 		if player:
 			player.start_fishing()
 
 func _on_overlay_closed() -> void:
+	AudioManager.sfx("sfx_menu_close")
 	if _overlay_scene == FISHING_SCENE:
 		var player := _get_local_player()
 		if player:

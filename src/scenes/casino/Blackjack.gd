@@ -101,6 +101,10 @@ func _on_result(outcome: String, _dh: Array, payout: int, new_balance: int) -> v
 		"push": "Push — bet returned.",
 	}
 	status_label.text = messages.get(outcome, outcome)
+	match outcome:
+		"win":  AudioManager.sfx("sfx_blackjack_win");  AudioManager.sfx("sfx_coins")
+		"bust", "lose": AudioManager.sfx("sfx_blackjack_lose")
+		"push": AudioManager.sfx("sfx_blackjack_push")
 	# Pulse the result label
 	status_label.scale = Vector2(0.8, 0.8)
 	var tween := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
@@ -179,6 +183,10 @@ func _deal_card_animated(hand: HBoxContainer, card_widget: Control, delay: float
 		tween.tween_interval(delay)
 	tween.tween_property(card_widget, "scale", Vector2.ONE, 0.22).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK).set_delay(delay)
 	tween.tween_property(card_widget, "modulate:a", 1.0, 0.15).set_delay(delay)
+	if delay == 0.0:
+		AudioManager.sfx("sfx_card_deal")
+	else:
+		get_tree().create_timer(delay).timeout.connect(func(): AudioManager.sfx("sfx_card_deal"))
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 

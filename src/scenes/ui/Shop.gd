@@ -103,6 +103,7 @@ func _on_equip_result(ok: bool, item_id: String, slot: String) -> void:
 			"bait":   GameManager.equipped_bait_id   = item_id
 			"tackle": GameManager.equipped_tackle_id = item_id
 		GameManager.equipped_changed.emit()
+		AudioManager.sfx("sfx_equip")
 	else:
 		status_label.text = "You don't own that item."
 		status_label.modulate = Color(1.0, 0.4, 0.4)
@@ -112,6 +113,10 @@ func _on_shop_result(ok: bool, reason: String, new_balance: int) -> void:
 	coins_label.text = "Coins: %d" % new_balance
 	status_label.text = reason
 	status_label.modulate = Color(0.3, 1.0, 0.4) if ok else Color(1.0, 0.4, 0.4)
+	if ok:
+		AudioManager.sfx("sfx_buy")
+	else:
+		AudioManager.sfx("sfx_not_enough_coins")
 	_populate.call_deferred()
 
 func _unhandled_input(event: InputEvent) -> void:

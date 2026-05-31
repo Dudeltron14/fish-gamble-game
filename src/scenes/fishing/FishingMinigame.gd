@@ -26,7 +26,8 @@ var _react_timer := 0.0
 var _fish_id := ""
 var _difficulty := 1.0
 var _line_strength := 1.0      # rod stat — scales how fast progress fills in zone
-var _result_shown := false     # true once _show_result has fired — guards duplicate server callbacks
+var _result_shown := false
+var _reel_tick_timer := 0.0
 var _fish_pos := 0.5
 var _fish_dir := 1.0
 var _fish_dir_timer := 0.0
@@ -99,6 +100,7 @@ func _enter_wait() -> void:
 	var quality_text := "Perfect cast! 🎯" if _cast_quality > 0.95 else \
 		("Good cast!" if _cast_quality > 0.70 else \
 		("Weak cast…" if _cast_quality > 0.30 else "Terrible cast…"))
+	AudioManager.sfx("sfx_cast")
 	status.text = "%s Waiting for a bite…" % quality_text
 	NetAPI.rpc("c2s_fishing_start", _cast_quality)
 
@@ -109,6 +111,7 @@ func _process_wait(delta: float) -> void:
 		var diff_penalty := 1.0 + maxf(0.0, _difficulty - 1.0) * 0.35
 		var cast_penalty := lerpf(0.5, 1.0, _cast_quality)  # terrible cast = 50% shorter window
 		_react_timer = REACT_WINDOW / diff_penalty * (1.0 + _hook_react_bonus) * cast_penalty
+		AudioManager.sfx("sfx_bite")
 		status.text = "!! BITE !! Press E!"
 
 func _process_react(delta: float) -> void:
@@ -118,7 +121,8 @@ func _process_react(delta: float) -> void:
 		return
 	_react_timer -= delta
 	if _react_timer <= 0.0:
-		NetAPI.rpc("c2s_fishing_result", false)  # consume gear + clean up server pending_fish_id
+		NetAPI.rpc("c2s_fishing_result", false)
+		AudioManager.sfx("sfx_miss")
 		_show_result(false, "Too slow! The fish got away.")
 
 func _enter_reel() -> void:
@@ -182,7 +186,12 @@ func _process_reel(delta: float) -> void:
 	if overlapping:
 		_reel_progress = minf(_reel_progress + PROGRESS_RATE * _line_strength * delta, 1.0)
 		_escape_timer  = minf(_escape_timer  + PROGRESS_RATE * _line_strength * delta, ESCAPE_TIME_MAX)
+		_reel_tick_timer -= delta
+		if _reel_tick_timer <= 0.0:
+			AudioManager.sfx("sfx_reel_tick")
+			_reel_tick_timer = 0.12
 	else:
+		_reel_tick_timer = 0.0
 		_reel_progress = maxf(_reel_progress - DRAIN_RATE * _difficulty * delta, 0.0)
 		_escape_timer  = maxf(_escape_timer  - DRAIN_RATE * _difficulty * delta, 0.0)
 
@@ -293,8 +302,11 @@ func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance:
 	var fish_name := fish.display_name if fish else fish_id
 	if caught:
 		GameManager.set_coins(new_balance)
+		AudioManager.sfx("sfx_catch")
+		AudioManager.sfx("sfx_coins")
 		_show_result(true, "Caught %s! +%d coins" % [fish_name, earned])
 	else:
+		AudioManager.sfx("sfx_miss")
 		_show_result(false, "The %s escaped…" % fish_name)
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

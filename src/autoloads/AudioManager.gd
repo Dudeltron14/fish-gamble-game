@@ -49,8 +49,13 @@ const PLAYLIST_PATHS: Dictionary = {
 }
 
 @export var shuffle_playlists: bool = false
-@export var crossfade_time: float   = 1.5   # seconds between tracks
-@export var context_fade_out: float = 0.8   # seconds when switching context
+@export var crossfade_time: float   = 1.5
+@export var context_fade_out: float = 0.8
+
+# ── SFX library ───────────────────────────────────────────────────────────────
+
+const SFX_DIR := "res://assets/sfx/"
+var _sfx_lib: Dictionary = {}
 
 # ── Internal state ────────────────────────────────────────────────────────────
 
@@ -76,6 +81,21 @@ func _ready() -> void:
 		_sfx_pool.append(player)
 
 	_preload_playlists()
+	_load_sfx()
+
+func _load_sfx() -> void:
+	for name: String in [
+		"sfx_cast", "sfx_bite", "sfx_reel_tick", "sfx_catch", "sfx_miss",
+		"sfx_hook_break", "sfx_bait_empty", "sfx_buy", "sfx_equip",
+		"sfx_not_enough_coins", "sfx_menu_open", "sfx_menu_close", "sfx_coins",
+		"sfx_card_deal", "sfx_blackjack_win", "sfx_blackjack_lose", "sfx_blackjack_push",
+	]:
+		var path := SFX_DIR + name + ".wav"
+		if ResourceLoader.exists(path):
+			_sfx_lib[name] = load(path)
+
+func sfx(name: String) -> void:
+	play_sfx(_sfx_lib.get(name))
 
 # ── Playlist system ───────────────────────────────────────────────────────────
 
