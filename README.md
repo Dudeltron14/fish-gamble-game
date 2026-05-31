@@ -80,6 +80,13 @@ Players start with a **Starter Rod**, **1 Worm**, and **1 Basic Hook** (10 uses)
 
 ## Quick Start (Playing)
 
+> **Requires [Git LFS](https://git-lfs.com)** — assets (PNG, audio) are stored in LFS.
+> Install it once, then run `git lfs install`:
+> - macOS: `brew install git-lfs`
+> - Arch Linux: `pacman -S git-lfs`
+> - Windows: `winget install GitHub.GitLFS` (or bundled with [Git for Windows](https://gitforwindows.org))
+> - Others: [git-lfs.com](https://git-lfs.com)
+
 ```bash
 git clone https://github.com/Dudeltron14/fish-gamble-game.git
 git lfs pull
