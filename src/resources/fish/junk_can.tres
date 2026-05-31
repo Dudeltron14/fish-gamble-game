@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FishData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/FishData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "junk_can"
+display_name = "Tin Can"
+description = "A rusty tin can. The fish were laughing at you."
+buy_price = 0
+sell_price = 0
+rarity = "common"
+base_coin_value = 0
+catch_difficulty = 0.3
+sprite_frame = 0
