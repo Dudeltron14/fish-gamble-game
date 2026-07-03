@@ -27,14 +27,24 @@ signal bj_error(msg: String)
 @rpc("any_peer", "call_local", "reliable")
 func request_login(username: String, pw_hash: String) -> void:
 	if not multiplayer.is_server(): return
+	var peer_id := _peer_id()
+	print("NetAPI: request_login from peer %d username=%s" % [peer_id, username])
 	var auth := _srv("AuthServer")
-	if auth: auth.handle_login(_peer_id(), username, pw_hash)
+	if auth:
+		auth.handle_login(peer_id, username, pw_hash)
+	else:
+		NetAPI.rpc_id(peer_id, "notify_login", false, "Auth server unavailable.", 0)
 
 @rpc("any_peer", "call_local", "reliable")
 func request_register(username: String, pw_hash: String) -> void:
 	if not multiplayer.is_server(): return
+	var peer_id := _peer_id()
+	print("NetAPI: request_register from peer %d username=%s" % [peer_id, username])
 	var auth := _srv("AuthServer")
-	if auth: auth.handle_register(_peer_id(), username, pw_hash)
+	if auth:
+		auth.handle_register(peer_id, username, pw_hash)
+	else:
+		NetAPI.rpc_id(peer_id, "notify_register", false, "Auth server unavailable.")
 
 @rpc("any_peer", "call_local", "reliable")
 func c2s_world_ready() -> void:
