@@ -41,6 +41,10 @@ func _init_schema() -> void:
 			UNIQUE(player_id, item_id)
 		)
 	""")
+	_ensure_player_column("equipped_rod_id", "TEXT DEFAULT ''")
+	_ensure_player_column("equipped_bait_id", "TEXT DEFAULT ''")
+	_ensure_player_column("equipped_tackle_id", "TEXT DEFAULT ''")
+	_ensure_player_column("hook_durability", "INTEGER DEFAULT 0")
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
@@ -86,7 +90,9 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 		if tackle:
 			if session.hook_durability == 0:
 				session.hook_durability = tackle.durability
-			NetAPI.rpc_id(peer_id, "notify_hook_durability", session.hook_durability, tackle.durability)
+			NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, session.hook_durability, tackle.durability)
+	elif session:
+		NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, 0, 0)
 	NetAPI.rpc_id(peer_id, "notify_login", true, "", int(row.coins))
 
 func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
@@ -119,23 +125,82 @@ func _give_starter_items(username: String) -> void:
 			INSERT OR IGNORE INTO inventory (player_id, item_id, quantity)
 			VALUES ((SELECT id FROM players WHERE username = ?), ?, 1)
 		""", [username, item_id])
+	_db.query_with_bindings("""
+		UPDATE players
+		SET equipped_rod_id = 'starter_rod',
+			equipped_bait_id = 'worm',
+			equipped_tackle_id = 'basic_hook',
+			hook_durability = 10
+		WHERE username = ?
+	""", [username])
 
 func _load_equipped(session: PlayerSession, player_id: int) -> void:
 	_db.query_with_bindings(
 		"SELECT item_id, quantity FROM inventory WHERE player_id = ?", [player_id]
 	)
+	var first_rod := ""
+	var first_bait := ""
+	var first_tackle := ""
 	for inv_row in _db.query_result:
 		var item_id: String = inv_row.item_id
 		var qty: int = int(inv_row.quantity)
 		if qty > 0:
 			session.owned_items[item_id] = qty
-		var item := ItemRegistry.get_item(item_id)
-		if item is RodData    and session.equipped_rod_id.is_empty():
-			session.equipped_rod_id = item_id
-		elif item is BaitData  and session.equipped_bait_id.is_empty():
-			session.equipped_bait_id = item_id
-		elif item is TackleData and session.equipped_tackle_id.is_empty():
-			session.equipped_tackle_id = item_id
+			var item := ItemRegistry.get_item(item_id)
+			if item is RodData and first_rod.is_empty():
+				first_rod = item_id
+			elif item is BaitData and first_bait.is_empty():
+				first_bait = item_id
+			elif item is TackleData and first_tackle.is_empty():
+				first_tackle = item_id
+	_db.query_with_bindings(
+		"SELECT equipped_rod_id, equipped_bait_id, equipped_tackle_id, hook_durability FROM players WHERE id = ?",
+		[player_id]
+	)
+	if not _db.query_result.is_empty():
+		var row: Dictionary = _db.query_result[0]
+		var rod_id := str(row.equipped_rod_id)
+		var bait_id := str(row.equipped_bait_id)
+		var tackle_id := str(row.equipped_tackle_id)
+		session.equipped_rod_id = rod_id if session.get_owned(rod_id) > 0 else first_rod
+		session.equipped_bait_id = bait_id if session.get_owned(bait_id) > 0 else first_bait
+		session.equipped_tackle_id = tackle_id if session.get_owned(tackle_id) > 0 else first_tackle
+		session.hook_durability = int(row.hook_durability)
+	else:
+		session.equipped_rod_id = first_rod
+		session.equipped_bait_id = first_bait
+		session.equipped_tackle_id = first_tackle
+
+	if not session.equipped_tackle_id.is_empty():
+		var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
+		if tackle and session.hook_durability <= 0:
+			session.hook_durability = tackle.durability
+	save_equipment(session)
+
+func save_equipment(session: PlayerSession) -> void:
+	if _db == null:
+		return
+	_db.query_with_bindings("""
+		UPDATE players
+		SET equipped_rod_id = ?,
+			equipped_bait_id = ?,
+			equipped_tackle_id = ?,
+			hook_durability = ?
+		WHERE username = ?
+	""", [
+		session.equipped_rod_id,
+		session.equipped_bait_id,
+		session.equipped_tackle_id,
+		session.hook_durability,
+		session.username,
+	])
+
+func _ensure_player_column(column_name: String, column_def: String) -> void:
+	_db.query("PRAGMA table_info(players)")
+	for row in _db.query_result:
+		if str(row.name) == column_name:
+			return
+	_db.query("ALTER TABLE players ADD COLUMN %s %s" % [column_name, column_def])
 
 func _generate_salt() -> String:
 	var bytes := PackedByteArray()

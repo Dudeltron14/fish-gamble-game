@@ -9,6 +9,6 @@ display_name = "Shiny Lure"
 description = "Rare fish take notice. Legendary fish are curious."
 buy_price = 20
 sell_price = 8
-rarity_weights = {"common": 0.40, "uncommon": 0.35, "rare": 0.20, "legendary": 0.05}
+rarity_weights = {"common": 0.55, "uncommon": 0.34, "rare": 0.10, "legendary": 0.01}
 uses_per_stack = 10
 wait_modifier = 0.75

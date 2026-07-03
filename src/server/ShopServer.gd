@@ -40,14 +40,16 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 		session.equipped_bait_id = item_id;   slot = "bait"
 	elif item is TackleData:
 		session.equipped_tackle_id = item_id
-		session.hook_durability = (item as TackleData).durability
+		var tackle := item as TackleData
+		session.hook_durability = tackle.durability
 		slot = "tackle"
-		NetAPI.rpc_id(peer_id, "notify_hook_durability", session.hook_durability, session.hook_durability)
+		NetAPI.rpc_id(peer_id, "notify_hook_durability", session.hook_durability, tackle.durability)
 	else:
 		NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
 		return
 
 	# Equipping is free — bait/hook counts only decrease when fishing, not when swapping
+	_persist_equipment(session)
 	NetAPI.rpc_id(peer_id, "notify_equip_result", true, item_id, slot)
 
 # ── Persistence (DB only, session is authoritative) ───────────────────────────
@@ -75,3 +77,8 @@ func _persist_decrement(session: PlayerSession, item_id: String) -> void:
 		WHERE player_id = (SELECT id FROM players WHERE username = ?)
 		AND item_id = ?
 	""", [session.username, item_id])
+
+func _persist_equipment(session: PlayerSession) -> void:
+	var auth := GameServer.get_node_or_null("AuthServer")
+	if auth != null and auth.has_method("save_equipment"):
+		auth.save_equipment(session)

@@ -229,11 +229,11 @@ The server selects a rarity tier, then picks a random fish of that rarity.
 
 | Bait | Cost | Common | Uncommon | Rare | Legendary | Wait modifier |
 |---|---|---|---|---|---|---|
-| Worm | 5c | 70% | 22% | 7% | 1% | ×0.90 |
-| Shiny Lure | 20c | 40% | 35% | 20% | 5% | ×0.75 |
-| Magic Bait | 60c | **0%** | 30% | 40% | 30% | ×0.55 |
+| Worm | 5c | 85% | 15% | 0% | 0% | ×0.90 |
+| Shiny Lure | 20c | 55% | 34% | 10% | 1% | ×0.75 |
+| Magic Bait | 60c | 2.5% | 42.5% | 40% | 15% | ×0.55 |
 
-Magic Bait completely eliminates junk and common fish.
+Magic Bait almost eliminates junk and common fish, but keeps a 2.5% common miss chance.
 
 ### Rod Rarity Bonus
 
@@ -248,6 +248,8 @@ weights["legendary"] += rarity_bonus × 0.3
 | Starter Rod | 0.00 | No change |
 | Angler's Rod | 0.05 | Common −5%, Rare +3.5%, Legendary +1.5% |
 | Master Rod | 0.12 | Common −12%, Rare +8.4%, Legendary +3.6% |
+
+Worm is intentionally capped to starter catches: 8% junk, 70% Perch, 22% Bass. It does not use rod/cast rarity bonuses to enter the normal Rare/Legendary pool.
 
 ---
 
@@ -267,9 +269,9 @@ Buying bait adds `uses_per_stack` to owned count.
 
 | Bait | Price | Stack | Wait modifier | Pool |
 |---|---|---|---|---|
-| Worm | 5c | 10 uses | −10% | Common/Uncommon/Rare/Legendary |
+| Worm | 5c | 10 uses | −10% | Starter fish only; rare junk |
 | Shiny Lure | 20c | 10 uses | −25% | No dominant common |
-| Magic Bait | 60c | 5 uses | −45% | Zero common, 30% legendary |
+| Magic Bait | 60c | 5 uses | −45% | Mostly rare fish, 15% legendary |
 
 ### Hooks — Durability depletes 1 per bite
 

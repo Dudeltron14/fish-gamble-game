@@ -57,9 +57,9 @@ Players start with a **Starter Rod**, **1 Worm**, and **1 Basic Hook** (10 uses)
 ### Bait (consumed each cast)
 | Bait | Cost | Rare % | Legendary % |
 |---|---|---|---|
-| Worm | 5c | 7.5% | 0.5% |
-| Shiny Lure | 20c | 17% | 3% |
-| Magic Bait | 60c | 30% | 15% |
+| Worm | 5c | 0% | 0% |
+| Shiny Lure | 20c | 10% | 1% |
+| Magic Bait | 60c | 40% | 15% |
 
 ### Hooks (durability depletes each cast)
 | Hook | Cost | Durability | Coin bonus |
@@ -151,6 +151,7 @@ See [docs/FRAMEWORKS.md](docs/FRAMEWORKS.md) for the full guide.
 | Doc | Contents |
 |---|---|
 | [FISHING.md](docs/FISHING.md) | Complete fishing system reference — every value, formula, and mechanic |
+| [SHIP_CHECKLIST.md](docs/SHIP_CHECKLIST.md) | Current release gate: validation, playtest, art, export, and deployment tasks |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Multiplayer flow, server authority model, RPC conventions, DB schema |
 | [FRAMEWORKS.md](docs/FRAMEWORKS.md) | How to add fish, rods, bait, tackle, and casino games |
 | [SETUP.md](docs/SETUP.md) | Collaborator quickstart, Docker deploy, Nginx config |

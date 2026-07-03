@@ -7,21 +7,20 @@ const DEFAULT_WEIGHTS := {
 	"legendary": 0.00,
 }
 
+const MIN_AUTO_RESULT_MS := 350
+const MIN_REEL_RESULT_MS := 1000
+
 func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
+	cast_quality = clampf(cast_quality, 0.0, 1.0)
 	var session := GameServer.get_authenticated_session(peer_id)
 	if session == null or session.current_zone != "DockZone":
-		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0, 1.0)
+		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0, 1.0, 1.0)
 		return
 
 	var fish := _pick_fish(session, cast_quality)
 	if fish == null:
-		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0, 1.0)
+		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0, 1.0, 1.0)
 		return
-
-	session.set_meta("pending_fish_id", fish.id)
-
-	# Consume one bait and reduce hook durability — happens on every bite
-	_consume_gear(peer_id, session)
 
 	var rod := ItemRegistry.get_item(session.equipped_rod_id) as RodData
 	var cast_speed    := rod.cast_speed    if rod else 1.0
@@ -34,6 +33,15 @@ func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 	var auto_catch := fish.id.begins_with("junk_") \
 		or fish.id == "legendary_chest" \
 		or fish.id == "legendary_key"
+
+	session.set_meta("pending_fish_id", fish.id)
+	session.set_meta("pending_started_ms", Time.get_ticks_msec())
+	session.set_meta("pending_auto_catch", auto_catch)
+	session.set_meta("pending_min_result_ms", MIN_AUTO_RESULT_MS if auto_catch else MIN_REEL_RESULT_MS)
+
+	# Consume one bait and reduce hook durability after this bite's stats are captured.
+	_consume_gear(peer_id, session)
+
 	NetAPI.rpc_id(peer_id, "notify_fishing_start", true, fish.id, fish.catch_difficulty, cast_speed, line_strength, wait_modifier, hook_react_bonus, auto_catch)
 
 func handle_result(peer_id: int, succeeded: bool) -> void:
@@ -42,14 +50,29 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 		return
 
 	var fish_id: String = session.get_meta("pending_fish_id")
-	session.remove_meta("pending_fish_id")
+	var started_ms: int = int(session.get_meta("pending_started_ms", 0))
+	var min_result_ms: int = int(session.get_meta("pending_min_result_ms", MIN_REEL_RESULT_MS))
+	var auto_catch: bool = bool(session.get_meta("pending_auto_catch", false))
+	_clear_pending_fish(session)
 
 	if not succeeded:
 		NetAPI.rpc_id(peer_id, "notify_fishing_result", false, fish_id, 0, session.coins)
 		return
 
+	var elapsed_ms: int = Time.get_ticks_msec() - started_ms
+	if elapsed_ms < min_result_ms:
+		NetAPI.rpc_id(peer_id, "notify_fishing_result", false, fish_id, 0, session.coins)
+		return
+
 	var fish: FishData = ItemRegistry.get_item(fish_id) as FishData
 	if fish == null:
+		return
+
+	var expected_auto_catch: bool = fish.id.begins_with("junk_") \
+		or fish.id == "legendary_chest" \
+		or fish.id == "legendary_key"
+	if auto_catch != expected_auto_catch:
+		NetAPI.rpc_id(peer_id, "notify_fishing_result", false, fish_id, 0, session.coins)
 		return
 
 	# Payout = rarity base × difficulty × hook multiplier
@@ -75,6 +98,8 @@ func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 	var weights := DEFAULT_WEIGHTS.duplicate()
 	var bait := ItemRegistry.get_item(session.equipped_bait_id) as BaitData
 	if bait:
+		if bait.id == "worm":
+			return _pick_worm_fish()
 		weights = bait.rarity_weights.duplicate()
 
 	# Apply rod rarity_bonus
@@ -117,6 +142,30 @@ func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 		return null
 	return candidates[randi() % candidates.size()]
 
+func _pick_worm_fish() -> FishData:
+	var roll := randf()
+	if roll < 0.08:
+		var junk := _fish_candidates(["junk_boot", "junk_can", "junk_seaweed"])
+		if not junk.is_empty():
+			return junk[randi() % junk.size()]
+	if roll < 0.78:
+		var perch := ItemRegistry.get_item("common_perch") as FishData
+		if perch:
+			return perch
+	var bass := ItemRegistry.get_item("uncommon_bass") as FishData
+	if bass:
+		return bass
+	var fallback := _fish_candidates(["common_perch", "uncommon_bass"])
+	return fallback[randi() % fallback.size()] if not fallback.is_empty() else null
+
+func _fish_candidates(ids: Array[String]) -> Array[FishData]:
+	var candidates: Array[FishData] = []
+	for id: String in ids:
+		var fish := ItemRegistry.get_item(id) as FishData
+		if fish:
+			candidates.append(fish)
+	return candidates
+
 func _weighted_rarity(weights: Dictionary) -> String:
 	var roll := randf()
 	var cumulative := 0.0
@@ -125,6 +174,11 @@ func _weighted_rarity(weights: Dictionary) -> String:
 		if roll < cumulative:
 			return rarity
 	return "common"
+
+func _clear_pending_fish(session: PlayerSession) -> void:
+	for key: String in ["pending_fish_id", "pending_started_ms", "pending_auto_catch", "pending_min_result_ms"]:
+		if session.has_meta(key):
+			session.remove_meta(key)
 
 func _consume_gear(peer_id: int, session: PlayerSession) -> void:
 	# Deduct one bait use
@@ -135,6 +189,7 @@ func _consume_gear(peer_id: int, session: PlayerSession) -> void:
 		NetAPI.rpc_id(peer_id, "notify_inventory_updated", session.equipped_bait_id, bait_qty)
 		if bait_qty <= 0:
 			session.equipped_bait_id = ""
+			_persist_equipment(session)
 			NetAPI.rpc_id(peer_id, "notify_bait_empty")
 
 	# Deduct one hook durability (not quantity — hook survives multiple casts)
@@ -150,12 +205,16 @@ func _consume_gear(peer_id: int, session: PlayerSession) -> void:
 			NetAPI.rpc_id(peer_id, "notify_inventory_updated", session.equipped_tackle_id, hook_qty)
 			if hook_qty <= 0:
 				session.equipped_tackle_id = ""
+				session.hook_durability = 0
+				_persist_equipment(session)
 				NetAPI.rpc_id(peer_id, "notify_hook_broken")
 			else:
 				# Player still has hooks — re-equip next one at full durability
 				session.hook_durability = max_dur
+				_persist_equipment(session)
 				NetAPI.rpc_id(peer_id, "notify_hook_durability", session.hook_durability, max_dur)
 		else:
+			_persist_equipment(session)
 			NetAPI.rpc_id(peer_id, "notify_hook_durability", session.hook_durability, max_dur)
 
 func _persist_decrement(session: PlayerSession, item_id: String) -> void:
@@ -176,3 +235,8 @@ func _save_coins(session: PlayerSession) -> void:
 		"UPDATE players SET coins = ? WHERE username = ?",
 		[session.coins, session.username]
 	)
+
+func _persist_equipment(session: PlayerSession) -> void:
+	var auth := GameServer.get_node_or_null("AuthServer")
+	if auth != null and auth.has_method("save_equipment"):
+		auth.save_equipment(session)

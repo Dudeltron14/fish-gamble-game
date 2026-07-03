@@ -151,10 +151,10 @@ The full wait time = `randf_range(cast_min, cast_max) × wait_modifier`
 ### Rarity Weights Reference
 
 ```
-Default (no bait): {common:0.65, uncommon:0.25, rare:0.09, legendary:0.01}
-Worm:              {common:0.70, uncommon:0.22, rare:0.075, legendary:0.005}
-Shiny Lure:        {common:0.45, uncommon:0.35, rare:0.17,  legendary:0.03}
-Magic Bait:        {common:0.20, uncommon:0.35, rare:0.30,  legendary:0.15}
+Default (no bait): {common:0.95, uncommon:0.05, rare:0.00, legendary:0.00}
+Worm:              {common:0.85, uncommon:0.15, rare:0.00, legendary:0.00}
+Shiny Lure:        {common:0.55, uncommon:0.34, rare:0.10, legendary:0.01}
+Magic Bait:        {common:0.025, uncommon:0.425, rare:0.40, legendary:0.15}
 ```
 
 ---
@@ -226,12 +226,12 @@ To change starter items: edit `AuthServer._give_starter_items()` in `src/server/
 
 | Action | Requires code? |
 |---|---|
-| Add new fish | ❌ Duplicate `_template.tres` |
-| Add new rod | ❌ Duplicate `_template.tres` |
-| Add new bait | ❌ Duplicate `_template.tres` |
-| Add new hook | ❌ Duplicate `_template.tres` |
-| Change any stat | ❌ Edit `.tres` in Inspector |
-| Change rarity base payout | ❌ Edit `base_coin_value` |
-| Change difficulty | ❌ Edit `catch_difficulty` (affects zone, speed, drain, payout) |
-| Add a new **item category** | ✅ New Resource class + server handler |
-| Wire `line_strength` to escape chance | ✅ One-line FishingServer change |
+| Add new fish | No - duplicate `_template.tres` |
+| Add new rod | No - duplicate `_template.tres` |
+| Add new bait | No - duplicate `_template.tres` |
+| Add new hook | No - duplicate `_template.tres` |
+| Change any stat | No - edit `.tres` in Inspector |
+| Change rarity base payout | No - edit `base_coin_value` |
+| Change difficulty | No - edit `catch_difficulty` |
+| Add a new item category | Yes - new Resource class + server handler |
+| Change fishing validation/security model | Yes - server/client protocol change |

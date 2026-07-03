@@ -78,6 +78,28 @@ func _despawn_player(peer_id: int) -> void:
 	if player:
 		player.queue_free()
 
+func get_zone_for_peer(peer_id: int) -> String:
+	var player := players.get_node_or_null(str(peer_id))
+	if player == null:
+		return ""
+	for zone in $Zones.get_children():
+		if zone is Area2D and _zone_contains_point(zone, player.global_position):
+			return zone.name
+	return ""
+
+func _zone_contains_point(zone: Area2D, point: Vector2) -> bool:
+	for child in zone.get_children():
+		var shape_node := child as CollisionShape2D
+		if shape_node == null or shape_node.disabled:
+			continue
+		var rect := shape_node.shape as RectangleShape2D
+		if rect == null:
+			continue
+		var local_point := shape_node.global_transform.affine_inverse() * point
+		if absf(local_point.x) <= rect.size.x * 0.5 and absf(local_point.y) <= rect.size.y * 0.5:
+			return true
+	return false
+
 func _get_local_player() -> Node:
 	return players.get_node_or_null(str(multiplayer.get_unique_id()))
 

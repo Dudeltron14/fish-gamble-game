@@ -8,6 +8,7 @@ signal shop_result(ok: bool, reason: String, new_balance: int)
 signal equip_result(ok: bool, item_id: String, slot: String)
 signal inventory_loaded(items: Dictionary)
 signal inventory_updated(item_id: String, new_qty: int)
+signal equipment_loaded(rod_id: String, bait_id: String, tackle_id: String, hook_durability: int, hook_max_durability: int)
 signal bait_empty()
 signal hook_broken()
 signal hook_durability_changed(current: int, max_val: int)
@@ -47,12 +48,12 @@ func c2s_world_ready() -> void:
 @rpc("any_peer", "call_local", "reliable")
 func c2s_zone_changed(zone_name: String) -> void:
 	if not multiplayer.is_server(): return
-	var s := GameServer.get_authenticated_session(_peer_id())
-	if s: s.current_zone = zone_name
+	_refresh_peer_zone(_peer_id(), zone_name)
 
 @rpc("any_peer", "call_local", "reliable")
 func c2s_fishing_start(cast_quality: float = 1.0) -> void:
 	if not multiplayer.is_server(): return
+	_refresh_peer_zone(_peer_id())
 	var f := _srv("FishingServer")
 	if f: f.handle_start(_peer_id(), cast_quality)
 
@@ -71,12 +72,14 @@ func c2s_equip(item_id: String) -> void:
 @rpc("any_peer", "call_local", "reliable")
 func c2s_shop_buy(item_id: String) -> void:
 	if not multiplayer.is_server(): return
+	_refresh_peer_zone(_peer_id())
 	var s := _srv("ShopServer")
 	if s: s.handle_buy(_peer_id(), item_id)
 
 @rpc("any_peer", "call_local", "reliable")
 func c2s_bj_bet(amount: int) -> void:
 	if not multiplayer.is_server(): return
+	_refresh_peer_zone(_peer_id())
 	var bj := _srv("BlackjackServer")
 	if bj: bj.handle_bet(_peer_id(), amount)
 
@@ -151,6 +154,18 @@ func notify_inventory_updated(item_id: String, new_qty: int) -> void:
 	inventory_updated.emit(item_id, new_qty)
 
 @rpc("authority", "call_local", "reliable")
+func notify_equipment_loaded(rod_id: String, bait_id: String, tackle_id: String, hook_durability: int, hook_max_durability: int) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	GameManager.equipped_rod_id = rod_id
+	GameManager.equipped_bait_id = bait_id
+	GameManager.equipped_tackle_id = tackle_id
+	GameManager.hook_durability = hook_durability
+	GameManager.hook_max_durability = hook_max_durability
+	GameManager.equipped_changed.emit()
+	GameManager.hook_durability_changed.emit(hook_durability, hook_max_durability)
+	equipment_loaded.emit(rod_id, bait_id, tackle_id, hook_durability, hook_max_durability)
+
+@rpc("authority", "call_local", "reliable")
 func notify_bj_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	bj_deal.emit(player_cards, dealer_visible, bet, balance)
@@ -208,6 +223,16 @@ func notify_hook_durability(current: int, max_val: int) -> void:
 
 func _srv(server_name: String) -> Node:
 	return GameServer.get_node_or_null(server_name)
+
+func _refresh_peer_zone(peer_id: int, fallback_zone: String = "") -> void:
+	var session := GameServer.get_authenticated_session(peer_id)
+	if session == null:
+		return
+	for world in get_tree().get_nodes_in_group("world"):
+		if world.has_method("get_zone_for_peer"):
+			session.current_zone = world.get_zone_for_peer(peer_id)
+			return
+	session.current_zone = fallback_zone
 
 func _peer_id() -> int:
 	var id := multiplayer.get_remote_sender_id()

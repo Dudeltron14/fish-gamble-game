@@ -68,12 +68,20 @@ func _maybe_connect() -> void:
 	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
 		_execute_pending()
 		return
-	var parts := server_field.text.strip_edges().split(":")
-	var host := parts[0] if parts.size() > 0 else "localhost"
-	var port := int(parts[1]) if parts.size() > 1 else DEFAULT_PORT
+	var server_text := server_field.text.strip_edges()
+	if server_text.is_empty():
+		server_text = "localhost"
 	set_buttons_enabled(false)
-	set_status("Connecting to %s:%d…" % [host, port])
-	var err := NetworkManager.connect_to_server(host, port)
+	var err := OK
+	if server_text.contains("://"):
+		set_status("Connecting to %s…" % server_text)
+		err = NetworkManager.connect_to_url(server_text)
+	else:
+		var parts := server_text.split(":")
+		var host := parts[0] if parts.size() > 0 else "localhost"
+		var port := int(parts[1]) if parts.size() > 1 else DEFAULT_PORT
+		set_status("Connecting to %s:%d…" % [host, port])
+		err = NetworkManager.connect_to_server(host, port)
 	if err != OK:
 		set_status("Connection error: " + error_string(err))
 		set_buttons_enabled(true)

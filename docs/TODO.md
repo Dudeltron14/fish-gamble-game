@@ -1,67 +1,61 @@
 # TODO
 
-Living task list. Move items to DONE when complete.
+Living task list. The stricter release gate lives in `docs/SHIP_CHECKLIST.md`.
 
 ---
 
-## Phase 11 — Art / Manual (user)
+## Active Ship Work
 
-- [~] **Paint TileMap** — In progress. Island with dock complete. Casino + shop sprites placed.
-- [ ] **Reposition zones** — Match zone boxes to final building positions after all sprites placed
-- [ ] **Move SpawnPoint** — Already done (user confirmed correct)
-- [ ] **Item icons** — set `icon: Texture2D` on each `.tres` in `src/resources/` using icon sheets from `assets/`
-- [ ] **Water animation** — set up `WaterTiles-6frames.png` as an AnimatedTile in the TileSet
-- [ ] **Windows export preset** — add Windows Desktop preset in Project → Export for local testing
-- [ ] **Tilemap physics collision** — Paint physics shapes on water tiles in TileSet editor so player can't walk into water
-
----
-
-## Active bugs
-
-- [ ] **Playing card sprites not rendering** — Blackjack shows empty card areas instead of images. Fix: right-click `assets/Playing Cards/` in FileSystem dock → Reimport. If still broken after reimport, path or import issue.
-- [ ] **Second client multiplayer** — Use Debug → Run Multiple Instances (not two editors). Register account first, then Login.
+- [ ] Playtest bait rarity/no-bait junk economy and sign off weights.
+- [ ] Verify 2-player fishing sync, gear consumption, HUD refresh, and GearStatsPanel refresh.
+- [ ] Implement bobber visual with multiplayer sync.
+- [ ] Render caught fish/key/chest/junk sprites in result UI using `FishData.sprite_frame`.
+- [ ] Validate blackjack card rendering in an exported build.
+- [ ] Confirm deployed Web client can connect through `wss://.../ws`.
+- [ ] Confirm Docker SQLite persistence through restart/update.
 
 ---
 
-## Nice to have (backlog)
+## Phase 11 - Art / Manual
 
-- [ ] **Inventory panel** — dedicated UI to view owned items (currently only accessible via Shop Equip button)
-- [ ] **Chat box** — HUD chat for connected players
-- [ ] **VFX on catch** — wire Super Pixel Effects frames to fishing catch moment
-- [ ] **Audio** — wire `AudioManager.play_sfx()` calls to catch, purchase, blackjack win
-- [ ] **Casting distance wired** — power bar currently cosmetic; wire to wait time (full cast = shorter wait)
-- [ ] **Rod line_strength** — stored but not wired to fish escape chance
-- [ ] **Bait uses_per_stack** — display only; should decrement on use in FishingServer
-- [ ] **Nginx TLS** — run `certbot --nginx -d yourdomain.com` on VPS before first player session
-- [ ] **GitHub Packages visibility** — set `ghcr.io/dudeltron14/fish-gamble-game` to public so Docker pull works without auth
+- [ ] Reposition zones to match final building positions.
+- [ ] Assign item icons on `.tres` resources if item display surfaces use them.
+- [ ] Set up `WaterTiles-6frames.png` as animated water in the TileSet.
+- [ ] Confirm tilemap physics collision on water/buildings in a real play session.
+- [ ] Final SpawnPoint pass.
+- [ ] Add Windows Desktop export preset if local desktop builds are part of ship.
+- [ ] Capture gameplay screenshots for README.
 
 ---
 
-## Done
+## Done / Current Baseline
 
-- [x] Project skeleton + autoloads (Phase 1)
-- [x] WebSocket networking (Phase 2)
-- [x] Auth + SQLite (Phase 3)
-- [x] World + Player + multiplayer spawn (Phase 4)
-- [x] Fishing system (Phase 5)
-- [x] Shop system (Phase 6)
-- [x] Blackjack (Phase 7)
-- [x] HUD + polish (Phase 8)
-- [x] Docker + CI/CD (Phase 9)
-- [x] All framework wiring + equip system (Phase 10)
-- [x] Player animations: idle, walk_right (flip_h for left), fishing, hook
-- [x] Playing card sprites wired (loads from assets/Playing Cards/)
-- [x] All assets imported to fish-game/assets/
-- [x] Host & Play button for single-instance local testing
-- [x] export_presets.cfg: Linux (dedicated server) + Web presets
-- [x] Camera2D following local player (2.5x zoom, smooth)
-- [x] WASD + arrow keys movement
-- [x] E key to interact / open overlays
-- [x] Fishing minigame difficulty tuned (fish speed fix, harder reel)
-- [x] Fishing controls text corrected (E to cast/react, A/D to reel)
-- [x] Shop display fix (theme_override_constants, free() instead of queue_free())
-- [x] Host & Play RPC routing fixed (call_local + _peer_id() fallback)
-- [x] Blackjack type inference errors fixed
-- [x] Casino sprite placed in world
-- [x] Shop sprite updated in world
-- [x] Player size correct (CollisionShape2D scaled, AnimatedSprite2D scale reset)
+- [x] Project skeleton + autoloads.
+- [x] WebSocket networking.
+- [x] Auth + SQLite.
+- [x] World + Player + multiplayer spawn.
+- [x] Fishing system and tuning branch mechanics.
+- [x] Shop system and equip flow.
+- [x] Blackjack.
+- [x] HUD, GearStatsPanel, volume sliders.
+- [x] Docker + CI/CD baseline.
+- [x] Data-driven `.tres` item framework.
+- [x] Player animations: idle, walk_right, fishing, hook.
+- [x] Host & Play local testing flow.
+- [x] Linux dedicated server + Web export presets.
+- [x] Music playlists and SFX wiring.
+- [x] Bait uses-per-stack purchasing and per-bite decrement.
+- [x] Rod line_strength affects reel fill and escape timer refill.
+- [x] Equipped gear and hook durability persist in SQLite.
+- [x] Full URL client connection support for `ws://` and `wss://` endpoints.
+- [x] Basic server-side zone refresh before gated actions.
+- [x] Basic fishing result timing guardrails.
+
+---
+
+## Backlog
+
+- [ ] Inventory panel.
+- [ ] Chat box.
+- [ ] VFX on catch.
+- [ ] Stronger anti-cheat: server-authoritative movement and server-validated fishing reel simulation.

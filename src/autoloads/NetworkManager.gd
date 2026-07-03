@@ -28,8 +28,10 @@ func start_server(port: int = DEFAULT_PORT) -> Error:
 	return OK
 
 func connect_to_server(address: String, port: int = DEFAULT_PORT) -> Error:
+	return connect_to_url("ws://%s:%d" % [address, port])
+
+func connect_to_url(url: String) -> Error:
 	_peer = WebSocketMultiplayerPeer.new()
-	var url := "ws://%s:%d" % [address, port]
 	var err := _peer.create_client(url)
 	if err != OK:
 		push_error("NetworkManager: failed to connect to %s — %s" % [url, error_string(err)])
