@@ -50,8 +50,11 @@ func request_register(username: String, pw_hash: String) -> void:
 func c2s_world_ready() -> void:
 	if not multiplayer.is_server(): return
 	var peer_id := _peer_id()
+	print("NetAPI: c2s_world_ready from peer %d" % peer_id)
 	var session := GameServer.get_authenticated_session(peer_id)
-	if session == null: return
+	if session == null:
+		print("NetAPI: world_ready ignored; peer %d is not authenticated" % peer_id)
+		return
 	for world in get_tree().get_nodes_in_group("world"):
 		world.spawn_player(peer_id, session.username)
 

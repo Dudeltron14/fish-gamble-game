@@ -29,7 +29,7 @@ func _ready() -> void:
 		NetAPI.fishing_result.connect(_on_fishing_result_received)
 		NetAPI.bait_empty.connect(func(): AudioManager.sfx("sfx_bait_empty"))
 		NetAPI.hook_broken.connect(func(): AudioManager.sfx("sfx_hook_break"))
-		NetAPI.rpc("c2s_world_ready")
+		_notify_world_ready()
 	elif GameManager.is_hosting:
 		NetAPI.bait_empty.connect(func(): AudioManager.sfx("sfx_bait_empty"))
 		NetAPI.hook_broken.connect(func(): AudioManager.sfx("sfx_hook_break"))
@@ -66,12 +66,18 @@ func spawn_player(peer_id: int, p_name: String) -> void:
 		return
 	if players.get_node_or_null(str(peer_id)):
 		return
+	print("World: spawning player peer=%d name=%s" % [peer_id, p_name])
 	var player: CharacterBody2D = PLAYER_SCENE.instantiate()
 	player.name = str(peer_id)
 	player.set_multiplayer_authority(peer_id)
 	player.player_name = p_name
 	player.position = spawn_point.position
 	players.add_child(player, true)
+
+func _notify_world_ready() -> void:
+	await get_tree().process_frame
+	print("World: sending c2s_world_ready to server")
+	NetAPI.rpc_id(1, "c2s_world_ready")
 
 func _despawn_player(peer_id: int) -> void:
 	var player := players.get_node_or_null(str(peer_id))
@@ -134,11 +140,11 @@ func _on_zone_entered(body: Node2D, zone_name: String) -> void:
 	if body.get_multiplayer_authority() != multiplayer.get_unique_id(): return
 	_local_zone = zone_name
 	GameManager.set_zone(zone_name)
-	NetAPI.rpc("c2s_zone_changed", zone_name)
+	NetAPI.rpc_id(1, "c2s_zone_changed", zone_name)
 
 func _on_zone_exited(body: Node2D, _zone_name: String) -> void:
 	if not body is CharacterBody2D: return
 	if body.get_multiplayer_authority() != multiplayer.get_unique_id(): return
 	_local_zone = ""
 	GameManager.set_zone("")
-	NetAPI.rpc("c2s_zone_changed", "")
+	NetAPI.rpc_id(1, "c2s_zone_changed", "")

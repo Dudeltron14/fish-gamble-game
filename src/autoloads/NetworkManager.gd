@@ -18,10 +18,12 @@ func _ready() -> void:
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 
 func start_server(port: int = DEFAULT_PORT) -> Error:
+	disconnect_from_server()
 	_peer = WebSocketMultiplayerPeer.new()
 	var err := _peer.create_server(port)
 	if err != OK:
-		push_error("NetworkManager: failed to start server on port %d — %s" % [port, error_string(err)])
+		push_error("NetworkManager: failed to start server on port %d: %s" % [port, error_string(err)])
+		_peer = null
 		return err
 	multiplayer.multiplayer_peer = _peer
 	print("NetworkManager: server listening on port %d" % port)
@@ -31,10 +33,12 @@ func connect_to_server(address: String, port: int = DEFAULT_PORT) -> Error:
 	return connect_to_url("ws://%s:%d" % [address, port])
 
 func connect_to_url(url: String) -> Error:
+	disconnect_from_server()
 	_peer = WebSocketMultiplayerPeer.new()
 	var err := _peer.create_client(url)
 	if err != OK:
-		push_error("NetworkManager: failed to connect to %s — %s" % [url, error_string(err)])
+		push_error("NetworkManager: failed to connect to %s: %s" % [url, error_string(err)])
+		_peer = null
 		return err
 	multiplayer.multiplayer_peer = _peer
 	return OK

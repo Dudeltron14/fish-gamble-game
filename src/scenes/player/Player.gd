@@ -15,10 +15,18 @@ const SPEED := 100.0
 var _is_fishing := false
 
 func _ready() -> void:
+	_update_local_control()
+	name_label.text = player_name
+
+func _enter_tree() -> void:
+	call_deferred("_update_local_control")
+
+func _update_local_control() -> void:
+	if not is_node_ready():
+		return
 	var is_local := multiplayer.get_unique_id() == get_multiplayer_authority()
 	set_physics_process(is_local)
 	camera.enabled = is_local
-	name_label.text = player_name
 
 func _physics_process(_delta: float) -> void:
 	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")

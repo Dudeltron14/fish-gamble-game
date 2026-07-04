@@ -66,11 +66,6 @@ func _on_register_pressed() -> void:
 	_maybe_connect()
 
 func _maybe_connect() -> void:
-	var peer := multiplayer.multiplayer_peer
-	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
-		_execute_pending()
-		return
-
 	var server_text := server_field.text.strip_edges()
 	if server_text.is_empty():
 		server_text = "localhost"
