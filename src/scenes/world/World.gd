@@ -66,6 +66,7 @@ func spawn_player(peer_id: int, p_name: String) -> void:
 		return
 	if players.get_node_or_null(str(peer_id)):
 		push_warning("World: spawn ignored; peer %d already exists" % peer_id)
+		_sync_players_to_peer(peer_id)
 		return
 	push_warning("World: spawning player peer=%d name=%s" % [peer_id, p_name])
 	var player: CharacterBody2D = PLAYER_SCENE.instantiate()
@@ -73,7 +74,36 @@ func spawn_player(peer_id: int, p_name: String) -> void:
 	player.set_multiplayer_authority(peer_id)
 	player.player_name = p_name
 	player.position = spawn_point.position
-	players.add_child(player, true)
+	players.add_child(player)
+	_broadcast_player_spawn(player)
+	_sync_players_to_peer(peer_id)
+
+func ensure_player(peer_id: int, p_name: String, spawn_position: Vector2) -> void:
+	var player := players.get_node_or_null(str(peer_id)) as CharacterBody2D
+	if player == null:
+		player = PLAYER_SCENE.instantiate()
+		player.name = str(peer_id)
+		player.position = spawn_position
+		players.add_child(player)
+	player.set_multiplayer_authority(peer_id)
+	player.player_name = p_name
+	if player.position == Vector2.ZERO:
+		player.position = spawn_position
+
+func despawn_remote_player(peer_id: int) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting:
+		return
+	_remove_player_node(peer_id)
+
+func _broadcast_player_spawn(player: CharacterBody2D) -> void:
+	NetAPI.rpc("notify_world_player_spawned", player.name.to_int(), player.player_name, player.position)
+
+func _sync_players_to_peer(peer_id: int) -> void:
+	for child in players.get_children():
+		var player := child as CharacterBody2D
+		if player == null:
+			continue
+		NetAPI.rpc_id(peer_id, "notify_world_player_spawned", player.name.to_int(), player.player_name, player.position)
 
 func _notify_world_ready() -> void:
 	await get_tree().process_frame
@@ -85,6 +115,11 @@ func _notify_world_ready() -> void:
 		await get_tree().create_timer(0.5).timeout
 
 func _despawn_player(peer_id: int) -> void:
+	_remove_player_node(peer_id)
+	if multiplayer.is_server():
+		NetAPI.rpc("notify_world_player_despawned", peer_id)
+
+func _remove_player_node(peer_id: int) -> void:
 	var player := players.get_node_or_null(str(peer_id))
 	if player:
 		player.queue_free()

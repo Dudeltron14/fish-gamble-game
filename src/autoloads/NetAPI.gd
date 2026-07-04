@@ -130,6 +130,20 @@ func notify_login(ok: bool, reason: String, coins: int) -> void:
 	login_result.emit(ok, reason, coins)
 
 @rpc("authority", "call_local", "reliable")
+func notify_world_player_spawned(peer_id: int, p_name: String, spawn_position: Vector2) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	for world in get_tree().get_nodes_in_group("world"):
+		if world.has_method("ensure_player"):
+			world.ensure_player(peer_id, p_name, spawn_position)
+
+@rpc("authority", "call_local", "reliable")
+func notify_world_player_despawned(peer_id: int) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	for world in get_tree().get_nodes_in_group("world"):
+		if world.has_method("despawn_remote_player"):
+			world.despawn_remote_player(peer_id)
+
+@rpc("authority", "call_local", "reliable")
 func notify_register(ok: bool, reason: String) -> void:
 	if multiplayer.is_server(): return
 	register_result.emit(ok, reason)
