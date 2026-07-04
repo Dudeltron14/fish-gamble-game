@@ -49,7 +49,7 @@ func _init_schema() -> void:
 # ── Public API ────────────────────────────────────────────────────────────────
 
 func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
-	print("AuthServer: login attempt peer=%d username=%s" % [peer_id, username])
+	push_warning("AuthServer: login attempt peer=%d username=%s" % [peer_id, username])
 	if _db == null:
 		NetAPI.rpc_id(peer_id, "notify_login", false, "Server database unavailable.", 0)
 		return
@@ -57,13 +57,13 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 	_db.query_with_bindings("SELECT * FROM players WHERE username = ?", [username])
 	var rows: Array = _db.query_result
 	if rows.is_empty():
-		print("AuthServer: login failed unknown username=%s" % username)
+		push_warning("AuthServer: login failed unknown username=%s" % username)
 		NetAPI.rpc_id(peer_id, "notify_login", false, "Unknown username.", 0)
 		return
 
 	var row: Dictionary = rows[0]
 	if _hash_salted(pw_hash, row.salt) != row.password_hash:
-		print("AuthServer: login failed bad password username=%s" % username)
+		push_warning("AuthServer: login failed bad password username=%s" % username)
 		NetAPI.rpc_id(peer_id, "notify_login", false, "Incorrect password.", 0)
 		return
 
@@ -97,10 +97,10 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 	elif session:
 		NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, 0, 0)
 	NetAPI.rpc_id(peer_id, "notify_login", true, "", int(row.coins))
-	print("AuthServer: login ok peer=%d username=%s" % [peer_id, username])
+	push_warning("AuthServer: login ok peer=%d username=%s" % [peer_id, username])
 
 func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
-	print("AuthServer: register attempt peer=%d username=%s" % [peer_id, username])
+	push_warning("AuthServer: register attempt peer=%d username=%s" % [peer_id, username])
 	if _db == null:
 		NetAPI.rpc_id(peer_id, "notify_register", false, "Server database unavailable.")
 		return
@@ -119,9 +119,9 @@ func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 	if ok:
 		_give_starter_items(username)
 		NetAPI.rpc_id(peer_id, "notify_register", true, "")
-		print("AuthServer: register ok peer=%d username=%s" % [peer_id, username])
+		push_warning("AuthServer: register ok peer=%d username=%s" % [peer_id, username])
 	else:
-		print("AuthServer: register failed duplicate username=%s" % username)
+		push_warning("AuthServer: register failed duplicate username=%s" % username)
 		NetAPI.rpc_id(peer_id, "notify_register", false, "Username already taken.")
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

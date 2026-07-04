@@ -19,6 +19,8 @@ func _ready() -> void:
 	name_label.text = player_name
 
 func _enter_tree() -> void:
+	if name.is_valid_int():
+		set_multiplayer_authority(name.to_int())
 	call_deferred("_update_local_control")
 
 func _update_local_control() -> void:

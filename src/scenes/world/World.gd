@@ -65,8 +65,9 @@ func spawn_player(peer_id: int, p_name: String) -> void:
 	if not multiplayer.is_server():
 		return
 	if players.get_node_or_null(str(peer_id)):
+		push_warning("World: spawn ignored; peer %d already exists" % peer_id)
 		return
-	print("World: spawning player peer=%d name=%s" % [peer_id, p_name])
+	push_warning("World: spawning player peer=%d name=%s" % [peer_id, p_name])
 	var player: CharacterBody2D = PLAYER_SCENE.instantiate()
 	player.name = str(peer_id)
 	player.set_multiplayer_authority(peer_id)
@@ -76,8 +77,12 @@ func spawn_player(peer_id: int, p_name: String) -> void:
 
 func _notify_world_ready() -> void:
 	await get_tree().process_frame
-	print("World: sending c2s_world_ready to server")
-	NetAPI.rpc_id(1, "c2s_world_ready")
+	for attempt in 10:
+		if _get_local_player() != null:
+			return
+		print("World: sending c2s_world_ready to server attempt=%d" % [attempt + 1])
+		NetAPI.rpc_id(1, "c2s_world_ready")
+		await get_tree().create_timer(0.5).timeout
 
 func _despawn_player(peer_id: int) -> void:
 	var player := players.get_node_or_null(str(peer_id))
