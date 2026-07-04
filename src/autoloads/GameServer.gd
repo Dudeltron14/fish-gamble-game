@@ -3,6 +3,16 @@ extends Node
 var sessions: Dictionary = {}
 var _active := false
 
+const STARTER_COINS := 50
+const STARTER_ROD_ID := "starter_rod"
+const STARTER_BAIT_ID := "worm"
+const STARTER_TACKLE_ID := "basic_hook"
+const STARTER_ITEMS := {
+	STARTER_ROD_ID: 1,
+	STARTER_BAIT_ID: 1,
+	STARTER_TACKLE_ID: 1,
+}
+
 func init_server() -> void:
 	if _active:
 		return
@@ -34,13 +44,20 @@ func init_host_session(username: String) -> void:
 	var session := PlayerSession.new(1)
 	session.authenticated = true
 	session.username = username
-	session.coins = 50
-	session.equipped_rod_id    = "starter_rod"
-	session.equipped_bait_id   = "worm"
-	session.equipped_tackle_id = "basic_hook"
-	session.owned_items = {"starter_rod": 1, "worm": 1, "basic_hook": 1}
-	session.hook_durability = 10
+	apply_starter_loadout(session)
 	sessions[1] = session
+
+func apply_starter_loadout(session: PlayerSession) -> void:
+	session.coins = STARTER_COINS
+	session.equipped_rod_id = STARTER_ROD_ID
+	session.equipped_bait_id = STARTER_BAIT_ID
+	session.equipped_tackle_id = STARTER_TACKLE_ID
+	session.owned_items = STARTER_ITEMS.duplicate()
+	session.hook_durability = get_starter_hook_durability()
+
+func get_starter_hook_durability() -> int:
+	var tackle := ItemRegistry.get_item(STARTER_TACKLE_ID) as TackleData
+	return tackle.durability if tackle else 0
 
 func get_session(peer_id: int) -> PlayerSession:
 	return sessions.get(peer_id, null)

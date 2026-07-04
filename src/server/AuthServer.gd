@@ -71,6 +71,7 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 		"UPDATE players SET last_login = ? WHERE id = ?",
 		[int(Time.get_unix_time_from_system()), row.id]
 	)
+	_give_starter_items_if_inventory_empty(username, int(row.id))
 
 	var session := GameServer.get_session(peer_id)
 	if session:
@@ -112,8 +113,8 @@ func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 	var salt := _generate_salt()
 	var now := int(Time.get_unix_time_from_system())
 	var ok: bool = _db.query_with_bindings(
-		"INSERT INTO players (username, password_hash, salt, coins, created_at, last_login) VALUES (?, ?, ?, 50, ?, ?)",
-		[username, _hash_salted(pw_hash, salt), salt, now, now]
+		"INSERT INTO players (username, password_hash, salt, coins, created_at, last_login) VALUES (?, ?, ?, ?, ?, ?)",
+		[username, _hash_salted(pw_hash, salt), salt, GameServer.STARTER_COINS, now, now]
 	)
 
 	if ok:
@@ -127,19 +128,37 @@ func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 func _give_starter_items(username: String) -> void:
-	for item_id in ["starter_rod", "worm", "basic_hook"]:
+	for item_id in GameServer.STARTER_ITEMS:
 		_db.query_with_bindings("""
 			INSERT OR IGNORE INTO inventory (player_id, item_id, quantity)
-			VALUES ((SELECT id FROM players WHERE username = ?), ?, 1)
-		""", [username, item_id])
+			VALUES ((SELECT id FROM players WHERE username = ?), ?, ?)
+		""", [username, item_id, int(GameServer.STARTER_ITEMS[item_id])])
 	_db.query_with_bindings("""
 		UPDATE players
-		SET equipped_rod_id = 'starter_rod',
-			equipped_bait_id = 'worm',
-			equipped_tackle_id = 'basic_hook',
-			hook_durability = 10
+		SET equipped_rod_id = ?,
+			equipped_bait_id = ?,
+			equipped_tackle_id = ?,
+			hook_durability = ?
 		WHERE username = ?
-	""", [username])
+	""", [
+		GameServer.STARTER_ROD_ID,
+		GameServer.STARTER_BAIT_ID,
+		GameServer.STARTER_TACKLE_ID,
+		GameServer.get_starter_hook_durability(),
+		username,
+	])
+
+func _give_starter_items_if_inventory_empty(username: String, player_id: int) -> void:
+	_db.query_with_bindings(
+		"SELECT COUNT(*) AS item_count FROM inventory WHERE player_id = ? AND quantity > 0",
+		[player_id]
+	)
+	if _db.query_result.is_empty():
+		return
+	if int(_db.query_result[0].item_count) > 0:
+		return
+	push_warning("AuthServer: repairing empty starter inventory username=%s" % username)
+	_give_starter_items(username)
 
 func _load_equipped(session: PlayerSession, player_id: int) -> void:
 	_db.query_with_bindings(
