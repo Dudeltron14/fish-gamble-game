@@ -13,6 +13,7 @@ const REMOTE_LERP_SPEED := 12.0
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var name_label: Label = $NameLabel
 @onready var camera: Camera2D = $Camera2D
+@onready var bobber_visual: Node2D = $BobberVisual
 
 var _is_fishing := false
 var _is_hidden_for_menu := false
@@ -66,10 +67,12 @@ func start_fishing() -> void:
 	set_physics_process(false)
 	velocity = Vector2.ZERO
 	sprite.play("fishing")
+	_update_bobber(true)
 	_send_state()
 
 func play_hook() -> void:
 	sprite.play("hook")
+	_update_bobber(false)
 	_send_state()
 
 func stop_fishing() -> void:
@@ -77,11 +80,13 @@ func stop_fishing() -> void:
 	var is_local := _is_local_authority()
 	set_physics_process(is_local)
 	sprite.play("idle")
+	_update_bobber(false)
 	_send_state()
 
 func set_menu_hidden(hidden: bool) -> void:
 	_is_hidden_for_menu = hidden
 	visible = not hidden
+	_update_bobber(_is_fishing)
 	_send_state()
 
 func apply_remote_state(pos: Vector2, animation: String, flip_h: bool, hidden: bool) -> void:
@@ -90,6 +95,7 @@ func apply_remote_state(pos: Vector2, animation: String, flip_h: bool, hidden: b
 	if sprite.sprite_frames and sprite.animation != animation:
 		sprite.play(animation)
 	sprite.flip_h = flip_h
+	_update_bobber(animation == "fishing")
 
 func _send_state_if_due(delta: float) -> void:
 	_state_send_accum += delta
@@ -105,3 +111,7 @@ func _send_state() -> void:
 
 func _is_local_authority() -> bool:
 	return multiplayer.get_unique_id() == get_multiplayer_authority()
+
+func _update_bobber(force_visible: bool) -> void:
+	if bobber_visual and bobber_visual.has_method("set_cast_visible"):
+		bobber_visual.set_cast_visible(force_visible and not _is_hidden_for_menu, sprite.flip_h)
