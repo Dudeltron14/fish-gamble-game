@@ -86,6 +86,7 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	session.coins += earned
 	_save_coins(session)
 	NetAPI.rpc_id(peer_id, "notify_fishing_result", true, fish_id, earned, session.coins)
+	NetAPI.rpc("notify_player_catch", peer_id, fish_id)
 
 func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 	# Sunken Chest: fixed 1% chance regardless of bait, rod, or cast quality

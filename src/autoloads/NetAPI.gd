@@ -165,6 +165,13 @@ func notify_player_state(peer_id: int, pos: Vector2, animation: String, flip_h: 
 			world.apply_remote_player_state(peer_id, pos, animation, flip_h, hidden, bobber_cast_quality)
 
 @rpc("authority", "call_local", "reliable")
+func notify_player_catch(peer_id: int, fish_id: String) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	for world in get_tree().get_nodes_in_group("world"):
+		if world.has_method("show_player_catch"):
+			world.show_player_catch(peer_id, fish_id)
+
+@rpc("authority", "call_local", "reliable")
 func notify_register(ok: bool, reason: String) -> void:
 	if multiplayer.is_server(): return
 	register_result.emit(ok, reason)

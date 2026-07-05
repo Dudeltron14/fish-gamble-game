@@ -207,6 +207,11 @@ shape = SubResource("Shape_1")
 [node name="BobberVisual" type="Node2D" parent="." unique_id=1713500716]
 script = ExtResource("5_bobber")
 
+[node name="CatchSprite" type="Sprite2D" parent="." unique_id=1473026753]
+visible = false
+position = Vector2(8, -46)
+texture_filter = 1
+
 [node name="NameLabel" type="Label" parent="." unique_id=135989000]
 offset_left = -40.0
 offset_top = -28.0

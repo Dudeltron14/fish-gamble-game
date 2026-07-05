@@ -106,6 +106,11 @@ func apply_remote_player_state(peer_id: int, pos: Vector2, animation: String, fl
 	if player.has_method("apply_remote_state"):
 		player.apply_remote_state(pos, animation, flip_h, hidden, bobber_cast_quality)
 
+func show_player_catch(peer_id: int, fish_id: String) -> void:
+	var player := players.get_node_or_null(str(peer_id))
+	if player and player.has_method("show_catch"):
+		player.show_catch(fish_id)
+
 func despawn_remote_player(peer_id: int) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting:
 		return
