@@ -19,6 +19,7 @@ var _is_fishing := false
 var _is_hidden_for_menu := false
 var _state_send_accum := 0.0
 var _remote_target_position := Vector2.ZERO
+var _bobber_cast_quality := 0.0
 
 func _ready() -> void:
 	_update_local_control()
@@ -64,6 +65,7 @@ func _update_animation(dir: Vector2) -> void:
 
 func start_fishing() -> void:
 	_is_fishing = true
+	_bobber_cast_quality = 0.0
 	set_physics_process(false)
 	velocity = Vector2.ZERO
 	sprite.play("fishing")
@@ -77,6 +79,7 @@ func play_hook() -> void:
 
 func stop_fishing() -> void:
 	_is_fishing = false
+	_bobber_cast_quality = 0.0
 	var is_local := _is_local_authority()
 	set_physics_process(is_local)
 	sprite.play("idle")
@@ -89,12 +92,18 @@ func set_menu_hidden(hidden: bool) -> void:
 	_update_bobber(_is_fishing)
 	_send_state()
 
-func apply_remote_state(pos: Vector2, animation: String, flip_h: bool, hidden: bool) -> void:
+func set_cast_quality(cast_quality: float) -> void:
+	_bobber_cast_quality = clampf(cast_quality, 0.0, 1.0)
+	_update_bobber(_is_fishing)
+	_send_state()
+
+func apply_remote_state(pos: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = 0.0) -> void:
 	_remote_target_position = pos
 	visible = not hidden
 	if sprite.sprite_frames and sprite.animation != animation:
 		sprite.play(animation)
 	sprite.flip_h = flip_h
+	_bobber_cast_quality = clampf(bobber_cast_quality, 0.0, 1.0)
 	_update_bobber(animation == "fishing")
 
 func _send_state_if_due(delta: float) -> void:
@@ -107,11 +116,11 @@ func _send_state_if_due(delta: float) -> void:
 func _send_state() -> void:
 	if not _is_local_authority() or multiplayer.multiplayer_peer == null:
 		return
-	NetAPI.rpc_id(1, "c2s_player_state", position, str(sprite.animation), sprite.flip_h, _is_hidden_for_menu)
+	NetAPI.rpc_id(1, "c2s_player_state", position, str(sprite.animation), sprite.flip_h, _is_hidden_for_menu, _bobber_cast_quality)
 
 func _is_local_authority() -> bool:
 	return multiplayer.get_unique_id() == get_multiplayer_authority()
 
 func _update_bobber(force_visible: bool) -> void:
 	if bobber_visual and bobber_visual.has_method("set_cast_visible"):
-		bobber_visual.set_cast_visible(force_visible and not _is_hidden_for_menu, sprite.flip_h)
+		bobber_visual.set_cast_visible(force_visible and not _is_hidden_for_menu, sprite.flip_h, _bobber_cast_quality)

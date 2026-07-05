@@ -103,6 +103,9 @@ func _enter_wait() -> void:
 		("Weak cast…" if _cast_quality > 0.30 else "Terrible cast…"))
 	AudioManager.sfx("sfx_cast")
 	status.text = "%s Waiting for a bite…" % quality_text
+	for world in get_tree().get_nodes_in_group("world"):
+		if world.has_method("set_local_player_cast_quality"):
+			world.set_local_player_cast_quality(_cast_quality)
 	NetAPI.rpc_id(1, "c2s_fishing_start", _cast_quality)
 
 func _process_wait(delta: float) -> void:

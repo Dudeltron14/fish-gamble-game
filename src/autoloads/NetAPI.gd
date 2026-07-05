@@ -59,7 +59,7 @@ func c2s_world_ready() -> void:
 		world.spawn_player(peer_id, session.username)
 
 @rpc("any_peer", "call_local", "unreliable")
-func c2s_player_state(pos: Vector2, animation: String, flip_h: bool, hidden: bool) -> void:
+func c2s_player_state(pos: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = 0.0) -> void:
 	if not multiplayer.is_server(): return
 	var peer_id := _peer_id()
 	var session := GameServer.get_authenticated_session(peer_id)
@@ -67,8 +67,8 @@ func c2s_player_state(pos: Vector2, animation: String, flip_h: bool, hidden: boo
 		return
 	for world in get_tree().get_nodes_in_group("world"):
 		if world.has_method("apply_authoritative_player_state"):
-			world.apply_authoritative_player_state(peer_id, pos, animation, flip_h, hidden)
-	NetAPI.rpc("notify_player_state", peer_id, pos, animation, flip_h, hidden)
+			world.apply_authoritative_player_state(peer_id, pos, animation, flip_h, hidden, bobber_cast_quality)
+	NetAPI.rpc("notify_player_state", peer_id, pos, animation, flip_h, hidden, bobber_cast_quality)
 
 @rpc("any_peer", "call_local", "reliable")
 func c2s_zone_changed(zone_name: String) -> void:
@@ -156,13 +156,13 @@ func notify_world_player_despawned(peer_id: int) -> void:
 			world.despawn_remote_player(peer_id)
 
 @rpc("authority", "call_local", "unreliable")
-func notify_player_state(peer_id: int, pos: Vector2, animation: String, flip_h: bool, hidden: bool) -> void:
+func notify_player_state(peer_id: int, pos: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = 0.0) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	if peer_id == multiplayer.get_unique_id():
 		return
 	for world in get_tree().get_nodes_in_group("world"):
 		if world.has_method("apply_remote_player_state"):
-			world.apply_remote_player_state(peer_id, pos, animation, flip_h, hidden)
+			world.apply_remote_player_state(peer_id, pos, animation, flip_h, hidden, bobber_cast_quality)
 
 @rpc("authority", "call_local", "reliable")
 func notify_register(ok: bool, reason: String) -> void:
