@@ -90,6 +90,21 @@ func ensure_player(peer_id: int, p_name: String, spawn_position: Vector2) -> voi
 	if player.position == Vector2.ZERO:
 		player.position = spawn_position
 
+func apply_authoritative_player_state(peer_id: int, pos: Vector2, animation: String, flip_h: bool, hidden: bool) -> void:
+	var player := players.get_node_or_null(str(peer_id))
+	if player == null:
+		return
+	player.position = pos
+	if player.has_method("apply_remote_state"):
+		player.apply_remote_state(pos, animation, flip_h, hidden)
+
+func apply_remote_player_state(peer_id: int, pos: Vector2, animation: String, flip_h: bool, hidden: bool) -> void:
+	var player := players.get_node_or_null(str(peer_id))
+	if player == null or peer_id == multiplayer.get_unique_id():
+		return
+	if player.has_method("apply_remote_state"):
+		player.apply_remote_state(pos, animation, flip_h, hidden)
+
 func despawn_remote_player(peer_id: int) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting:
 		return
@@ -155,6 +170,7 @@ func _open_overlay(scene: PackedScene) -> void:
 	_overlay.completed.connect(_on_overlay_closed)
 	add_child(_overlay)
 	AudioManager.sfx("sfx_menu_open")
+	_set_local_player_menu_hidden(scene == SHOP_SCENE or scene == BJ_SCENE)
 	if scene == FISHING_SCENE:
 		var player := _get_local_player()
 		if player:
@@ -162,6 +178,7 @@ func _open_overlay(scene: PackedScene) -> void:
 
 func _on_overlay_closed() -> void:
 	AudioManager.sfx("sfx_menu_close")
+	_set_local_player_menu_hidden(false)
 	if _overlay_scene == FISHING_SCENE:
 		var player := _get_local_player()
 		if player:
@@ -174,6 +191,11 @@ func _on_fishing_result_received(caught: bool, _fish_id: String, _earned: int, _
 		var player := _get_local_player()
 		if player:
 			player.play_hook()
+
+func _set_local_player_menu_hidden(hidden: bool) -> void:
+	var player := _get_local_player()
+	if player and player.has_method("set_menu_hidden"):
+		player.set_menu_hidden(hidden)
 
 func _on_zone_entered(body: Node2D, zone_name: String) -> void:
 	if not body is CharacterBody2D: return

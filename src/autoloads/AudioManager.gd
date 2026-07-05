@@ -69,6 +69,7 @@ var _track_index: int             = 0
 var _playlist_loaded: Dictionary  = {}
 var _music_vol_linear: float      = 1.0
 var _sfx_vol_linear: float        = 1.0
+var _music_tween: Tween = null
 
 func _ready() -> void:
 	_music_player = AudioStreamPlayer.new()
@@ -153,24 +154,28 @@ func skip_track() -> void:
 func play_music(stream: AudioStream, fade_in: float = 0.5) -> void:
 	if _music_player.playing and _music_player.stream == stream:
 		return
+	_kill_music_tween()
 	_music_player.stream = stream
 	_music_player.volume_db = -80.0
 	_music_player.play()
-	var tween := create_tween()
-	tween.tween_property(_music_player, "volume_db", 0.0, fade_in)
+	_music_tween = create_tween()
+	_music_tween.tween_property(_music_player, "volume_db", _music_volume_db(), fade_in)
 
 func stop_music(fade_out: float = 0.5) -> void:
 	if not _music_player.playing:
 		return
-	var tween := create_tween()
-	tween.tween_property(_music_player, "volume_db", -80.0, fade_out)
-	tween.tween_callback(_music_player.stop)
+	_kill_music_tween()
+	_music_tween = create_tween()
+	_music_tween.tween_property(_music_player, "volume_db", -80.0, fade_out)
+	_music_tween.tween_callback(_music_player.stop)
 
 # ── SFX ───────────────────────────────────────────────────────────────────────
 
 func set_music_volume(linear: float) -> void:
 	_music_vol_linear = clampf(linear, 0.0, 1.0)
-	_music_player.volume_db = linear_to_db(maxf(_music_vol_linear, 0.0001))
+	if _music_player:
+		_kill_music_tween()
+		_music_player.volume_db = _music_volume_db()
 
 func set_sfx_volume(linear: float) -> void:
 	_sfx_vol_linear = clampf(linear, 0.0, 1.0)
@@ -192,3 +197,13 @@ func set_volume(bus: String, volume_db: float) -> void:
 	var idx := AudioServer.get_bus_index(bus)
 	if idx >= 0:
 		AudioServer.set_bus_volume_db(idx, volume_db)
+
+func _music_volume_db() -> float:
+	if _music_vol_linear <= 0.0:
+		return -80.0
+	return linear_to_db(_music_vol_linear)
+
+func _kill_music_tween() -> void:
+	if _music_tween and _music_tween.is_valid():
+		_music_tween.kill()
+	_music_tween = null

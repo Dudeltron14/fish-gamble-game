@@ -194,9 +194,7 @@ texture_filter = 1
 texture_repeat = 3
 position = Vector2(8, -2)
 sprite_frames = SubResource("SpriteFrames_1")
-animation = &"fishing"
-frame = 3
-frame_progress = 0.86450416
+animation = &"idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1642416971]
 position = Vector2(0, 2)
