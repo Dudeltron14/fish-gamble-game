@@ -85,6 +85,12 @@ text = "Hold A / D to keep the cursor on the catch zone!"
 horizontal_alignment = 1
 visible = false
 
+[node name="ResultSprite" type="TextureRect" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 96)
+visible = false
+stretch_mode = 5
+
 [node name="ResultLabel" type="Label" parent="Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
 text = ""
