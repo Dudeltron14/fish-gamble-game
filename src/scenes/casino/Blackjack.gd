@@ -7,11 +7,14 @@ const SUITS := ["♠","♥","♦","♣"]
 
 enum State { IDLE, PLAYER_TURN }
 var _state := State.IDLE
+var _dealer_cards: Array = []
+var _dealer_hole_hidden := false
 
 @onready var coins_label: Label     = %CoinsLabel
 @onready var status_label: Label    = %StatusLabel
 @onready var player_hand: HBoxContainer = %PlayerHand
 @onready var dealer_hand: HBoxContainer = %DealerHand
+@onready var dealer_info_label: Label = %DealerInfoLabel
 @onready var bet_spin: SpinBox      = %BetSpin
 @onready var deal_btn: Button       = %DealBtn
 @onready var hit_btn: Button        = %HitBtn
@@ -29,9 +32,9 @@ func _ready() -> void:
 	NetAPI.bj_error.connect(_on_error)
 	# CloseBtn now connected to _on_leave_pressed in _ready() above
 	deal_btn.pressed.connect(_on_deal_pressed)
-	hit_btn.pressed.connect(func(): NetAPI.rpc("c2s_bj_hit"))
-	stand_btn.pressed.connect(func(): NetAPI.rpc("c2s_bj_stand"))
-	double_btn.pressed.connect(func(): NetAPI.rpc("c2s_bj_double"))
+	hit_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_hit"))
+	stand_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_stand"))
+	double_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_double"))
 	bet_spin.max_value = GameManager.current_coins
 	bet_spin.value = mini(10, GameManager.current_coins)
 	coins_label.text = "Coins: %d" % GameManager.current_coins
@@ -46,13 +49,16 @@ func _on_deal_pressed() -> void:
 	_set_actions(false)
 	deal_btn.disabled = true
 	status_label.text = "Dealing…"
-	NetAPI.rpc("c2s_bj_bet", amount)
+	NetAPI.rpc_id(1, "c2s_bj_bet", amount)
 
 # ── NetAPI callbacks ──────────────────────────────────────────────────────────
 
 func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int) -> void:
 	_state = State.PLAYER_TURN
 	_clear_hands()
+	_dealer_cards = [dealer_visible]
+	_dealer_hole_hidden = true
+	_update_dealer_info()
 	# Deal cards with staggered animation — dealer card, player card 1, player card 2, hole card
 	var delay := 0.0
 	_deal_card_animated(dealer_hand, _card_widget(dealer_visible), delay); delay += 0.18
@@ -80,6 +86,9 @@ func _on_hit(card: Dictionary, new_val: int) -> void:
 
 func _on_dealer_reveal(full_hand: Array, value: int) -> void:
 	_clear_node(dealer_hand)
+	_dealer_cards = full_hand.duplicate()
+	_dealer_hole_hidden = false
+	_update_dealer_info(value)
 	# Flip the hole card with stagger
 	var delay := 0.0
 	for c in full_hand:
@@ -88,10 +97,16 @@ func _on_dealer_reveal(full_hand: Array, value: int) -> void:
 	_set_actions(false)
 
 func _on_dealer_card(card: Dictionary, value: int) -> void:
+	_dealer_cards.append(card)
+	_dealer_hole_hidden = false
+	_update_dealer_info(value)
 	_deal_card_animated(dealer_hand, _card_widget(card), 0.0)
 	status_label.text = "Dealer: %d" % value
 
-func _on_result(outcome: String, _dh: Array, payout: int, new_balance: int) -> void:
+func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> void:
+	_dealer_cards = dh.duplicate()
+	_dealer_hole_hidden = false
+	_update_dealer_info(_val(dh))
 	GameManager.set_coins(new_balance)
 	coins_label.text = "Coins: %d" % new_balance
 	bet_spin.max_value = new_balance
@@ -175,6 +190,26 @@ func _hidden_widget() -> Control:
 
 # ── Animation helpers ─────────────────────────────────────────────────────────
 
+func _card_label(card: Dictionary) -> String:
+	var rank: int = card["rank"]
+	return RANKS[rank]
+
+func _dealer_hand_text() -> String:
+	var parts: Array[String] = []
+	for card: Dictionary in _dealer_cards:
+		parts.append(_card_label(card))
+	if _dealer_hole_hidden:
+		parts.append("hidden")
+	return ", ".join(parts)
+
+func _update_dealer_info(value: int = -1) -> void:
+	if _dealer_cards.is_empty():
+		dealer_info_label.text = ""
+		return
+	var shown_value: int = value if value >= 0 else _val(_dealer_cards)
+	var title := "Dealer showing" if _dealer_hole_hidden else "Dealer hand"
+	dealer_info_label.text = "%s: %s\n\nValue: %d" % [title, _dealer_hand_text(), shown_value]
+
 func _deal_card_animated(hand: HBoxContainer, card_widget: Control, delay: float) -> void:
 	card_widget.scale = Vector2(0.0, 1.0)  # start squished horizontally (like a flip)
 	card_widget.modulate.a = 0.0
@@ -210,6 +245,9 @@ func _set_actions(on: bool) -> void:
 func _clear_hands() -> void:
 	_clear_node(player_hand)
 	_clear_node(dealer_hand)
+	_dealer_cards.clear()
+	_dealer_hole_hidden = false
+	dealer_info_label.text = ""
 
 func _clear_node(node: Node) -> void:
 	for c in node.get_children():
@@ -234,7 +272,7 @@ func _on_leave_pressed() -> void:
 	dialog.popup_centered()
 
 func _forfeit_and_close() -> void:
-	NetAPI.rpc("c2s_bj_forfeit")
+	NetAPI.rpc_id(1, "c2s_bj_forfeit")
 	_close()
 
 func _close() -> void:

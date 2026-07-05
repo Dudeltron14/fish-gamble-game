@@ -52,10 +52,20 @@ text = "Coins: 0"
 [node name="DealerLabel" type="Label" parent="Center/Panel/Margin/VBox"]
 text = "Dealer"
 
-[node name="DealerHand" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+[node name="DealerRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+theme_override_constants/separation = 12
+
+[node name="DealerHand" type="HBoxContainer" parent="Center/Panel/Margin/VBox/DealerRow"]
 unique_name_in_owner = true
+size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 74)
 theme_override_constants/separation = 6
+
+[node name="DealerInfoLabel" type="Label" parent="Center/Panel/Margin/VBox/DealerRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(190, 0)
+text = ""
+vertical_alignment = 1
 
 [node name="Sep2" type="HSeparator" parent="Center/Panel/Margin/VBox"]
 

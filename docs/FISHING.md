@@ -230,7 +230,7 @@ The server selects a rarity tier, then picks a random fish of that rarity.
 | Bait | Cost | Common | Uncommon | Rare | Legendary | Wait modifier |
 |---|---|---|---|---|---|---|
 | Worm | 5c | 85% | 15% | 0% | 0% | ×0.90 |
-| Shiny Lure | 20c | 55% | 34% | 10% | 1% | ×0.75 |
+| Shiny Lure | 20c | 50% | 35% | 14% | 1% | ×0.75 |
 | Magic Bait | 60c | 2.5% | 42.5% | 40% | 15% | ×0.55 |
 
 Magic Bait almost eliminates junk and common fish, but keeps a 2.5% common miss chance.
@@ -250,6 +250,7 @@ weights["legendary"] += rarity_bonus × 0.3
 | Master Rod | 0.12 | Common −12%, Rare +8.4%, Legendary +3.6% |
 
 Worm is intentionally capped to starter catches: 8% junk, 70% Perch, 22% Bass. It does not use rod/cast rarity bonuses to enter the normal Rare/Legendary pool.
+Shiny Lure is tuned as the first stable money-maker: 5% junk, 45% Perch, 35% Bass, 14% Rare, 1% Legendary.
 
 ---
 
@@ -270,7 +271,7 @@ Buying bait adds `uses_per_stack` to owned count.
 | Bait | Price | Stack | Wait modifier | Pool |
 |---|---|---|---|---|
 | Worm | 5c | 10 uses | −10% | Starter fish only; rare junk |
-| Shiny Lure | 20c | 10 uses | −25% | No dominant common |
+| Shiny Lure | 20c | 10 uses | −25% | Stable money-maker; occasional rare |
 | Magic Bait | 60c | 5 uses | −45% | Mostly rare fish, 15% legendary |
 
 ### Hooks — Durability depletes 1 per bite

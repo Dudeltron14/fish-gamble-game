@@ -153,7 +153,7 @@ The full wait time = `randf_range(cast_min, cast_max) × wait_modifier`
 ```
 Default (no bait): {common:0.95, uncommon:0.05, rare:0.00, legendary:0.00}
 Worm:              {common:0.85, uncommon:0.15, rare:0.00, legendary:0.00}
-Shiny Lure:        {common:0.55, uncommon:0.34, rare:0.10, legendary:0.01}
+Shiny Lure:        {common:0.50, uncommon:0.35, rare:0.14, legendary:0.01}
 Magic Bait:        {common:0.025, uncommon:0.425, rare:0.40, legendary:0.15}
 ```
 

@@ -58,7 +58,7 @@ Players start with a **Starter Rod**, **1 Worm**, and **1 Basic Hook** (10 uses)
 | Bait | Cost | Rare % | Legendary % |
 |---|---|---|---|
 | Worm | 5c | 0% | 0% |
-| Shiny Lure | 20c | 10% | 1% |
+| Shiny Lure | 20c | 14% | 1% |
 | Magic Bait | 60c | 40% | 15% |
 
 ### Hooks (durability depletes each cast)

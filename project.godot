@@ -26,6 +26,11 @@ AudioManager="*res://src/autoloads/AudioManager.gd"
 NetAPI="*res://src/autoloads/NetAPI.gd"
 GameServer="*res://src/autoloads/GameServer.gd"
 
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/godot-sqlite/plugin.cfg", "res://addons/godot_dotnet_mcp/plugin.cfg")
