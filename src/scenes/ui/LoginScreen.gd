@@ -3,6 +3,7 @@ extends Control
 const DEFAULT_PORT := 7070
 const CONNECT_TIMEOUT := 5.0
 const AUTH_TIMEOUT := 5.0
+const OFFICIAL_SERVER_URL := "wss://fishserver.dudeltron14.win"
 
 enum _Action { NONE, LOGIN, REGISTER }
 
@@ -13,6 +14,8 @@ var _connect_attempt_id := 0
 var _auth_attempt_id := 0
 
 @onready var server_field: LineEdit = %ServerField
+@onready var official_server_btn: Button = %OfficialServerBtn
+@onready var custom_server_btn: Button = %CustomServerBtn
 @onready var username_field: LineEdit = %UsernameField
 @onready var password_field: LineEdit = %PasswordField
 @onready var login_btn: Button = %LoginBtn
@@ -21,6 +24,8 @@ var _auth_attempt_id := 0
 @onready var status_label: Label = %StatusLabel
 
 func _ready() -> void:
+	official_server_btn.pressed.connect(_on_official_server_pressed)
+	custom_server_btn.pressed.connect(_on_custom_server_pressed)
 	login_btn.pressed.connect(_on_login_pressed)
 	register_btn.pressed.connect(_on_register_pressed)
 	host_btn.pressed.connect(_on_host_pressed)
@@ -29,6 +34,7 @@ func _ready() -> void:
 	NetworkManager.connected_to_server.connect(_on_network_connected)
 	NetworkManager.connection_failed.connect(_on_connection_failed)
 	NetworkManager.server_disconnected.connect(_on_server_disconnected)
+	_select_official_server()
 
 func _on_host_pressed() -> void:
 	var username := username_field.text.strip_edges()
@@ -66,7 +72,7 @@ func _on_register_pressed() -> void:
 	_maybe_connect()
 
 func _maybe_connect() -> void:
-	var server_text := server_field.text.strip_edges()
+	var server_text := _get_selected_server()
 	if server_text.is_empty():
 		server_text = "localhost"
 	set_buttons_enabled(false)
@@ -89,6 +95,23 @@ func _maybe_connect() -> void:
 		_pending = _Action.NONE
 	else:
 		_check_connect_timeout(attempt_id)
+
+func _get_selected_server() -> String:
+	if official_server_btn.button_pressed:
+		return OFFICIAL_SERVER_URL
+	return server_field.text.strip_edges()
+
+func _on_official_server_pressed() -> void:
+	_select_official_server()
+
+func _on_custom_server_pressed() -> void:
+	official_server_btn.button_pressed = false
+	server_field.visible = true
+	server_field.grab_focus()
+
+func _select_official_server() -> void:
+	official_server_btn.button_pressed = true
+	server_field.visible = false
 
 func _execute_pending() -> void:
 	_connect_attempt_id += 1
@@ -172,3 +195,5 @@ func set_buttons_enabled(enabled: bool) -> void:
 	login_btn.disabled = not enabled
 	register_btn.disabled = not enabled
 	host_btn.disabled = not enabled
+	official_server_btn.disabled = not enabled
+	custom_server_btn.disabled = not enabled

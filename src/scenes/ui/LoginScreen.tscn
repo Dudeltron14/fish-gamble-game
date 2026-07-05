@@ -50,10 +50,26 @@ theme_override_font_sizes/font_size = 22
 [node name="ServerLabel" type="Label" parent="Center/Panel/Margin/VBox"]
 text = "Server"
 
+[node name="OfficialServerBtn" type="Button" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+tooltip_text = "Connect through Cloudflare to the public dedicated server."
+toggle_mode = true
+button_pressed = true
+text = "Official Server - fishserver.dudeltron14.win"
+
+[node name="CustomServerBtn" type="Button" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+tooltip_text = "Show a custom server address field for LAN or development servers."
+text = "Other Server"
+
 [node name="ServerField" type="LineEdit" parent="Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
-placeholder_text = "localhost"
-text = "localhost"
+visible = false
+tooltip_text = "Use 127.0.0.1 for same-PC host, a LAN IP like 192.168.1.50:7070, or a full ws/wss URL."
+placeholder_text = "127.0.0.1, IP:7070, or wss://domain"
+text = "127.0.0.1"
 
 [node name="UsernameLabel" type="Label" parent="Center/Panel/Margin/VBox"]
 text = "Username"
@@ -76,7 +92,7 @@ theme_override_constants/separation = 8
 [node name="LoginBtn" type="Button" parent="Center/Panel/Margin/VBox/Buttons"]
 unique_name_in_owner = true
 size_flags_horizontal = 3
-text = "Login"
+text = "Join / Login"
 
 [node name="RegisterBtn" type="Button" parent="Center/Panel/Margin/VBox/Buttons"]
 unique_name_in_owner = true
@@ -87,7 +103,9 @@ text = "Register"
 
 [node name="HostBtn" type="Button" parent="Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
-text = "Host & Play  (local test)"
+size_flags_horizontal = 3
+tooltip_text = "Start a local server on this computer and join it as the host."
+text = "Host Local Game"
 modulate = Color(0.4, 1.0, 0.6, 1)
 
 [node name="StatusLabel" type="Label" parent="Center/Panel/Margin/VBox"]
