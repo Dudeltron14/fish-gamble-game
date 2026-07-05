@@ -5,6 +5,7 @@ extends CanvasLayer
 @onready var context_hint: Label   = %ContextHint
 
 func _ready() -> void:
+	_style_context_hint()
 	GameManager.coins_changed.connect(_on_coins_changed)
 	GameManager.zone_hint_changed.connect(_on_zone_hint_changed)
 	GameManager.equipped_changed.connect(_refresh_equipped)
@@ -47,3 +48,16 @@ func _hook_text(tackle: TackleData) -> String:
 	if max_val <= 0:
 		return tackle.display_name
 	return "%s %d/%d" % [tackle.display_name, cur, max_val]
+
+func _style_context_hint() -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.03, 0.08, 0.04, 0.78)
+	style.border_color = Color(0.68, 0.92, 0.70, 0.95)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(4)
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 6
+	style.content_margin_bottom = 6
+	context_hint.add_theme_stylebox_override("normal", style)
+	context_hint.add_theme_font_size_override("font_size", 19)

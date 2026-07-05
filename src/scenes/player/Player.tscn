@@ -209,7 +209,7 @@ script = ExtResource("5_bobber")
 
 [node name="CatchSprite" type="Sprite2D" parent="." unique_id=1473026753]
 visible = false
-position = Vector2(8, -46)
+position = Vector2(8, -41)
 texture_filter = 1
 
 [node name="NameLabel" type="Label" parent="." unique_id=135989000]

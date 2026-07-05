@@ -121,12 +121,12 @@ func show_catch(fish_id: String) -> void:
 	var max_size := maxf(texture_size.x, texture_size.y)
 	catch_sprite.scale = Vector2.ONE * (CATCH_DISPLAY_SIZE / max_size)
 	catch_sprite.modulate = Color.WHITE
-	catch_sprite.position = Vector2(8, -46)
+	catch_sprite.position = Vector2(8, -41)
 	catch_sprite.visible = true
 	if _catch_tween:
 		_catch_tween.kill()
 	_catch_tween = create_tween().set_parallel(true)
-	_catch_tween.tween_property(catch_sprite, "position:y", -58.0, CATCH_DISPLAY_SECONDS).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	_catch_tween.tween_property(catch_sprite, "position:y", -53.0, CATCH_DISPLAY_SECONDS).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
 	_catch_tween.tween_property(catch_sprite, "modulate:a", 0.0, 0.35).set_delay(CATCH_DISPLAY_SECONDS - 0.35)
 	_catch_tween.finished.connect(func() -> void:
 		catch_sprite.visible = false

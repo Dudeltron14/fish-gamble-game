@@ -20,7 +20,7 @@ var hook_durability: int = 0
 var hook_max_durability: int = 0
 
 const ZONE_HINTS := {
-	"DockZone":   "Press E to fish",
+	"DockZone":   "Press E to Fish",
 	"ShopZone":   "Press E to open shop",
 	"CasinoZone": "Press E to enter casino",
 }

@@ -49,6 +49,9 @@ var _reel_progress := 0.0
 var _escape_timer := ESCAPE_TIME_MAX  # drains when off fish, fills when on — hits 0 = loss
 
 @onready var status: Label = %StatusLabel
+@onready var bg: ColorRect = $BG
+@onready var panel: PanelContainer = $Center/Panel
+@onready var title: Label = $Center/Panel/Margin/VBox/Title
 @onready var cast_bar: ProgressBar = %CastBar
 @onready var reel_container: Control = %ReelContainer
 @onready var catch_zone: ColorRect = %CatchZone
@@ -339,6 +342,10 @@ func _show_result(success: bool, msg: String, fish: FishData = null) -> void:
 	reel_label.visible = false
 	cast_bar.visible = false
 	status.text = ""
+	status.visible = false
+	title.visible = false
+	bg.visible = false
+	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	_set_result_sprite(success, fish)
 	result_label.text = msg
 	result_label.modulate = Color(0.3, 1.0, 0.4) if success else Color(1.0, 0.4, 0.4)
