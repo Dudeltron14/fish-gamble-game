@@ -6,7 +6,7 @@ const WHITE := Color(0.94, 0.92, 0.82, 1.0)
 const WATER_RING := Color(0.30, 0.62, 0.82, 0.75)
 
 @export var close_offset := Vector2(34, 18)
-@export var far_offset := Vector2(86, 30)
+@export var far_offset := Vector2(172, 60)
 
 var _flip_h := false
 var _cast_quality := 0.0
