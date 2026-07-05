@@ -145,12 +145,13 @@ func _ensure_starter_items(username: String, player_id: int = -1, force_equipmen
 		WHERE player_id = ?
 			AND item_id IN ('STARTER_ROD_ID', 'STARTER_BAIT_ID', 'STARTER_TACKLE_ID')
 	""", [player_id])
-	for item_id in GameServer.STARTER_ITEMS:
+	var starter_items := GameServer.get_starter_items()
+	for item_id in starter_items:
 		_db.query_with_bindings("""
 			INSERT INTO inventory (player_id, item_id, quantity)
 			VALUES (?, ?, ?)
 			ON CONFLICT(player_id, item_id) DO UPDATE SET quantity = MAX(quantity, excluded.quantity)
-		""", [player_id, item_id, int(GameServer.STARTER_ITEMS[item_id])])
+		""", [player_id, item_id, int(starter_items[item_id])])
 
 	if force_equipment:
 		_set_starter_equipment(username)

@@ -7,11 +7,6 @@ const STARTER_COINS := 50
 const STARTER_ROD_ID := "starter_rod"
 const STARTER_BAIT_ID := "worm"
 const STARTER_TACKLE_ID := "basic_hook"
-const STARTER_ITEMS := {
-	"starter_rod": 1,
-	"worm": 1,
-	"basic_hook": 1,
-}
 
 func init_server() -> void:
 	if _active:
@@ -52,8 +47,19 @@ func apply_starter_loadout(session: PlayerSession) -> void:
 	session.equipped_rod_id = STARTER_ROD_ID
 	session.equipped_bait_id = STARTER_BAIT_ID
 	session.equipped_tackle_id = STARTER_TACKLE_ID
-	session.owned_items = STARTER_ITEMS.duplicate()
+	session.owned_items = get_starter_items()
 	session.hook_durability = get_starter_hook_durability()
+
+func get_starter_items() -> Dictionary:
+	var items := {}
+	items[STARTER_ROD_ID] = 1
+	items[STARTER_BAIT_ID] = get_starter_bait_quantity()
+	items[STARTER_TACKLE_ID] = 1
+	return items
+
+func get_starter_bait_quantity() -> int:
+	var bait := ItemRegistry.get_item(STARTER_BAIT_ID) as BaitData
+	return bait.uses_per_stack if bait else 1
 
 func get_starter_hook_durability() -> int:
 	var tackle := ItemRegistry.get_item(STARTER_TACKLE_ID) as TackleData
