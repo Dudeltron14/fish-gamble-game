@@ -71,7 +71,7 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 		"UPDATE players SET last_login = ? WHERE id = ?",
 		[int(Time.get_unix_time_from_system()), row.id]
 	)
-	_give_starter_items_if_inventory_empty(username, int(row.id))
+	_give_starter_items_if_inventory_unusable(username, int(row.id))
 
 	var session := GameServer.get_session(peer_id)
 	if session:
@@ -128,10 +128,16 @@ func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 func _give_starter_items(username: String) -> void:
+	_db.query_with_bindings("""
+		DELETE FROM inventory
+		WHERE player_id = (SELECT id FROM players WHERE username = ?)
+			AND item_id IN ('STARTER_ROD_ID', 'STARTER_BAIT_ID', 'STARTER_TACKLE_ID')
+	""", [username])
 	for item_id in GameServer.STARTER_ITEMS:
 		_db.query_with_bindings("""
-			INSERT OR IGNORE INTO inventory (player_id, item_id, quantity)
+			INSERT INTO inventory (player_id, item_id, quantity)
 			VALUES ((SELECT id FROM players WHERE username = ?), ?, ?)
+			ON CONFLICT(player_id, item_id) DO UPDATE SET quantity = excluded.quantity
 		""", [username, item_id, int(GameServer.STARTER_ITEMS[item_id])])
 	_db.query_with_bindings("""
 		UPDATE players
@@ -148,16 +154,15 @@ func _give_starter_items(username: String) -> void:
 		username,
 	])
 
-func _give_starter_items_if_inventory_empty(username: String, player_id: int) -> void:
+func _give_starter_items_if_inventory_unusable(username: String, player_id: int) -> void:
 	_db.query_with_bindings(
-		"SELECT COUNT(*) AS item_count FROM inventory WHERE player_id = ? AND quantity > 0",
+		"SELECT item_id, quantity FROM inventory WHERE player_id = ? AND quantity > 0",
 		[player_id]
 	)
-	if _db.query_result.is_empty():
-		return
-	if int(_db.query_result[0].item_count) > 0:
-		return
-	push_warning("AuthServer: repairing empty starter inventory username=%s" % username)
+	for row in _db.query_result:
+		if ItemRegistry.get_item(str(row.item_id)) != null:
+			return
+	push_warning("AuthServer: repairing missing starter inventory username=%s" % username)
 	_give_starter_items(username)
 
 func _load_equipped(session: PlayerSession, player_id: int) -> void:

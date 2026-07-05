@@ -8,9 +8,9 @@ const STARTER_ROD_ID := "starter_rod"
 const STARTER_BAIT_ID := "worm"
 const STARTER_TACKLE_ID := "basic_hook"
 const STARTER_ITEMS := {
-	STARTER_ROD_ID: 1,
-	STARTER_BAIT_ID: 1,
-	STARTER_TACKLE_ID: 1,
+	"starter_rod": 1,
+	"worm": 1,
+	"basic_hook": 1,
 }
 
 func init_server() -> void:
