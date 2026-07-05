@@ -96,10 +96,22 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 			if session.hook_durability == 0:
 				session.hook_durability = tackle.durability
 			NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, session.hook_durability, tackle.durability)
+		else:
+			push_warning("AuthServer: equipped tackle not found peer=%d tackle=%s items_loaded=%d" % [peer_id, session.equipped_tackle_id, ItemRegistry.items.size()])
+			NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, session.hook_durability, 0)
 	elif session:
 		NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, 0, 0)
 	NetAPI.rpc_id(peer_id, "notify_login", true, "", int(row.coins))
-	push_warning("AuthServer: login ok peer=%d username=%s" % [peer_id, username])
+	push_warning("AuthServer: login ok peer=%d username=%s owned=%s equipped=[%s,%s,%s] hook=%d registry_items=%d" % [
+		peer_id,
+		username,
+		str(session.owned_items if session else {}),
+		session.equipped_rod_id if session else "",
+		session.equipped_bait_id if session else "",
+		session.equipped_tackle_id if session else "",
+		session.hook_durability if session else 0,
+		ItemRegistry.items.size(),
+	])
 
 func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 	push_warning("AuthServer: register attempt peer=%d username=%s" % [peer_id, username])

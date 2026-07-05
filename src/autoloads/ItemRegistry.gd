@@ -26,11 +26,26 @@ func _load_all() -> void:
 		var file_name := dir.get_next()
 		while file_name != "":
 			# Skip templates (underscore prefix) and non-resource files
-			if file_name.ends_with(".tres") and not file_name.begins_with("_"):
-				var res: Resource = load(dir_path + file_name)
+			var resource_name := _resource_name_from_dir_entry(file_name)
+			if not resource_name.is_empty() and not resource_name.begins_with("_"):
+				var res: Resource = load(dir_path + resource_name)
 				if res is ItemData:
 					_register(res)
 			file_name = dir.get_next()
+	print("ItemRegistry: loaded %d items (%d rods, %d baits, %d tackle, %d fish)" % [
+		items.size(),
+		rods.size(),
+		baits.size(),
+		tackle.size(),
+		fish.size(),
+	])
+
+func _resource_name_from_dir_entry(file_name: String) -> String:
+	if file_name.ends_with(".tres"):
+		return file_name
+	if file_name.ends_with(".tres.remap"):
+		return file_name.trim_suffix(".remap")
+	return ""
 
 func _register(res: ItemData) -> void:
 	items[res.id] = res
