@@ -45,6 +45,7 @@ func _init_schema() -> void:
 	_ensure_player_column("equipped_bait_id", "TEXT DEFAULT ''")
 	_ensure_player_column("equipped_tackle_id", "TEXT DEFAULT ''")
 	_ensure_player_column("hook_durability", "INTEGER DEFAULT 0")
+	_ensure_all_players_have_starter_items()
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
@@ -71,7 +72,7 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 		"UPDATE players SET last_login = ? WHERE id = ?",
 		[int(Time.get_unix_time_from_system()), row.id]
 	)
-	_give_starter_items_if_inventory_unusable(username, int(row.id))
+	_ensure_starter_items(username, int(row.id))
 
 	var session := GameServer.get_session(peer_id)
 	if session:
@@ -118,7 +119,7 @@ func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 	)
 
 	if ok:
-		_give_starter_items(username)
+		_ensure_starter_items(username, -1, true)
 		NetAPI.rpc_id(peer_id, "notify_register", true, "")
 		push_warning("AuthServer: register ok peer=%d username=%s" % [peer_id, username])
 	else:
@@ -127,18 +128,36 @@ func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-func _give_starter_items(username: String) -> void:
+func _ensure_all_players_have_starter_items() -> void:
+	_db.query("SELECT id, username FROM players")
+	for row in _db.query_result:
+		_ensure_starter_items(str(row.username), int(row.id))
+
+func _ensure_starter_items(username: String, player_id: int = -1, force_equipment: bool = false) -> void:
+	if player_id <= 0:
+		_db.query_with_bindings("SELECT id FROM players WHERE username = ?", [username])
+		if _db.query_result.is_empty():
+			return
+		player_id = int(_db.query_result[0].id)
+
 	_db.query_with_bindings("""
 		DELETE FROM inventory
-		WHERE player_id = (SELECT id FROM players WHERE username = ?)
+		WHERE player_id = ?
 			AND item_id IN ('STARTER_ROD_ID', 'STARTER_BAIT_ID', 'STARTER_TACKLE_ID')
-	""", [username])
+	""", [player_id])
 	for item_id in GameServer.STARTER_ITEMS:
 		_db.query_with_bindings("""
 			INSERT INTO inventory (player_id, item_id, quantity)
-			VALUES ((SELECT id FROM players WHERE username = ?), ?, ?)
-			ON CONFLICT(player_id, item_id) DO UPDATE SET quantity = excluded.quantity
-		""", [username, item_id, int(GameServer.STARTER_ITEMS[item_id])])
+			VALUES (?, ?, ?)
+			ON CONFLICT(player_id, item_id) DO UPDATE SET quantity = MAX(quantity, excluded.quantity)
+		""", [player_id, item_id, int(GameServer.STARTER_ITEMS[item_id])])
+
+	if force_equipment:
+		_set_starter_equipment(username)
+	else:
+		_ensure_usable_equipment(username, player_id)
+
+func _set_starter_equipment(username: String) -> void:
 	_db.query_with_bindings("""
 		UPDATE players
 		SET equipped_rod_id = ?,
@@ -154,16 +173,43 @@ func _give_starter_items(username: String) -> void:
 		username,
 	])
 
-func _give_starter_items_if_inventory_unusable(username: String, player_id: int) -> void:
+func _ensure_usable_equipment(username: String, player_id: int) -> void:
 	_db.query_with_bindings(
-		"SELECT item_id, quantity FROM inventory WHERE player_id = ? AND quantity > 0",
+		"SELECT equipped_rod_id, equipped_bait_id, equipped_tackle_id, hook_durability FROM players WHERE id = ?",
 		[player_id]
 	)
-	for row in _db.query_result:
-		if ItemRegistry.get_item(str(row.item_id)) != null:
-			return
-	push_warning("AuthServer: repairing missing starter inventory username=%s" % username)
-	_give_starter_items(username)
+	if _db.query_result.is_empty():
+		return
+	var row: Dictionary = _db.query_result[0]
+	var has_rod := _has_owned_item(player_id, str(row.equipped_rod_id))
+	var has_bait := _has_owned_item(player_id, str(row.equipped_bait_id))
+	var has_tackle := _has_owned_item(player_id, str(row.equipped_tackle_id))
+	if has_rod and has_bait and has_tackle:
+		return
+	push_warning("AuthServer: repairing starter equipment username=%s" % username)
+	_db.query_with_bindings("""
+		UPDATE players
+		SET equipped_rod_id = ?,
+			equipped_bait_id = ?,
+			equipped_tackle_id = ?,
+			hook_durability = CASE WHEN hook_durability > 0 THEN hook_durability ELSE ? END
+		WHERE id = ?
+	""", [
+		str(row.equipped_rod_id) if has_rod else GameServer.STARTER_ROD_ID,
+		str(row.equipped_bait_id) if has_bait else GameServer.STARTER_BAIT_ID,
+		str(row.equipped_tackle_id) if has_tackle else GameServer.STARTER_TACKLE_ID,
+		GameServer.get_starter_hook_durability(),
+		player_id,
+	])
+
+func _has_owned_item(player_id: int, item_id: String) -> bool:
+	if item_id.is_empty() or ItemRegistry.get_item(item_id) == null:
+		return false
+	_db.query_with_bindings(
+		"SELECT quantity FROM inventory WHERE player_id = ? AND item_id = ?",
+		[player_id, item_id]
+	)
+	return not _db.query_result.is_empty() and int(_db.query_result[0].quantity) > 0
 
 func _load_equipped(session: PlayerSession, player_id: int) -> void:
 	_db.query_with_bindings(
