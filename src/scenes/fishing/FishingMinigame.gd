@@ -103,7 +103,7 @@ func _enter_wait() -> void:
 		("Weak cast…" if _cast_quality > 0.30 else "Terrible cast…"))
 	AudioManager.sfx("sfx_cast")
 	status.text = "%s Waiting for a bite…" % quality_text
-	NetAPI.rpc("c2s_fishing_start", _cast_quality)
+	NetAPI.rpc_id(1, "c2s_fishing_start", _cast_quality)
 
 func _process_wait(delta: float) -> void:
 	_wait_timer -= delta
@@ -111,7 +111,7 @@ func _process_wait(delta: float) -> void:
 		if _auto_catch:
 			# Junk / Chest / Key — no minigame, just resolve immediately
 			_stage = Stage.RESULT
-			NetAPI.rpc("c2s_fishing_result", true)
+			NetAPI.rpc_id(1, "c2s_fishing_result", true)
 			return
 		_stage = Stage.REACT
 		var diff_penalty := 1.0 + maxf(0.0, _difficulty - 1.0) * 0.35
@@ -127,7 +127,7 @@ func _process_react(delta: float) -> void:
 		return
 	_react_timer -= delta
 	if _react_timer <= 0.0:
-		NetAPI.rpc("c2s_fishing_result", false)
+		NetAPI.rpc_id(1, "c2s_fishing_result", false)
 		AudioManager.sfx("sfx_miss")
 		_show_result(false, "Too slow! The fish got away.")
 
@@ -287,7 +287,7 @@ func _update_reel_visuals(overlapping: bool = false) -> void:
 
 func _finish_reel(success: bool) -> void:
 	_stage = Stage.RESULT
-	NetAPI.rpc("c2s_fishing_result", success)
+	NetAPI.rpc_id(1, "c2s_fishing_result", success)
 
 # ── NetAPI callbacks ──────────────────────────────────────────────────────────
 

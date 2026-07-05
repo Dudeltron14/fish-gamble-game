@@ -8,6 +8,7 @@ func handle_buy(peer_id: int, item_id: String) -> void:
 
 	var item: ItemData = ItemRegistry.get_item(item_id)
 	if item == null or item.buy_price <= 0:
+		push_warning("ShopServer: buy rejected peer=%d item=%s found=%s price=%d" % [peer_id, item_id, str(item != null), item.buy_price if item else -1])
 		NetAPI.rpc_id(peer_id, "notify_shop_result", false, "Item not for sale.", session.coins)
 		return
 
@@ -27,10 +28,12 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 	if session == null:
 		return
 	if session.get_owned(item_id) <= 0:
+		push_warning("ShopServer: equip rejected peer=%d item=%s owned=%d" % [peer_id, item_id, session.get_owned(item_id)])
 		NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
 		return
 	var item: ItemData = ItemRegistry.get_item(item_id)
 	if item == null:
+		push_warning("ShopServer: equip rejected peer=%d item=%s not found" % [peer_id, item_id])
 		NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
 		return
 	var slot := ""

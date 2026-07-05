@@ -87,11 +87,11 @@ func _make_row(item: ItemData) -> Control:
 func _on_buy_pressed(item_id: String, btn: Button) -> void:
 	btn.disabled = true
 	status_label.text = "Buying…"
-	NetAPI.rpc("c2s_shop_buy", item_id)
+	NetAPI.rpc_id(1, "c2s_shop_buy", item_id)
 
 func _on_equip_pressed(item_id: String) -> void:
 	status_label.text = "Equipping…"
-	NetAPI.rpc("c2s_equip", item_id)
+	NetAPI.rpc_id(1, "c2s_equip", item_id)
 
 func _on_equip_result(ok: bool, item_id: String, slot: String) -> void:
 	if ok:
