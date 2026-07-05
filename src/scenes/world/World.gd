@@ -20,6 +20,7 @@ func _ready() -> void:
 	AudioManager.set_music_context("world")
 	for zone in $Zones.get_children():
 		if zone is Area2D:
+			zone.collision_mask = 4
 			zone.body_entered.connect(_on_zone_entered.bind(zone.name))
 			zone.body_exited.connect(_on_zone_exited.bind(zone.name))
 	if not multiplayer.is_server():
