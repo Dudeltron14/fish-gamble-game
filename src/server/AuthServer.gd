@@ -45,7 +45,6 @@ func _init_schema() -> void:
 	_ensure_player_column("equipped_bait_id", "TEXT DEFAULT ''")
 	_ensure_player_column("equipped_tackle_id", "TEXT DEFAULT ''")
 	_ensure_player_column("hook_durability", "INTEGER DEFAULT 0")
-	_ensure_all_players_have_starter_items()
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
@@ -72,7 +71,6 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 		"UPDATE players SET last_login = ? WHERE id = ?",
 		[int(Time.get_unix_time_from_system()), row.id]
 	)
-	_ensure_starter_items(username, int(row.id))
 
 	var session := GameServer.get_session(peer_id)
 	if session:
@@ -139,11 +137,6 @@ func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 		NetAPI.rpc_id(peer_id, "notify_register", false, "Username already taken.")
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-
-func _ensure_all_players_have_starter_items() -> void:
-	_db.query("SELECT id, username FROM players")
-	for row in _db.query_result:
-		_ensure_starter_items(str(row.username), int(row.id))
 
 func _ensure_starter_items(username: String, player_id: int = -1, force_equipment: bool = false) -> void:
 	if player_id <= 0:
