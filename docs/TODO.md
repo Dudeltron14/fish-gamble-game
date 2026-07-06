@@ -6,10 +6,10 @@ Living task list. The stricter release gate lives in `docs/SHIP_CHECKLIST.md`.
 
 ## Active Ship Work
 
-- [ ] Validate blackjack card rendering in an exported build.
+- [ ] Validate blackjack card rendering in an exported build, including visual signoff on flip animation.
 - [ ] Confirm Docker SQLite persistence through restart/update.
 - [ ] Playtest expanded 17-catch roster, payouts, and Baby Kraken difficulty after the latest art/content pass.
-- [ ] Verify new blackjack backdrop and flip animations in an exported Web build.
+- [ ] Verify new blackjack backdrop and flip animations in an exported Web build when playtesting is available.
 
 ---
 
@@ -58,7 +58,7 @@ Living task list. The stricter release gate lives in `docs/SHIP_CHECKLIST.md`.
 - [x] Generated fish/key sprites cleaned to transparent 64x64 assets and normalized in display.
 - [x] Casino exterior replaced with style-matched transparent art.
 - [x] Blackjack table backdrop added.
-- [x] Blackjack cards flip horizontally on reveal.
+- [x] Blackjack horizontal card-flip animation implemented in code; visual signoff still pending.
 - [x] Blackjack deal is blocked at 0 coins client-side and validated server-side.
 - [x] Baby Kraken catch difficulty eased from 2.8 to 2.5.
 - [x] Fish shop interior backdrop added behind the shop overlay.

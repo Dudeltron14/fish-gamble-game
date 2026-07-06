@@ -19,7 +19,7 @@ This is the current shipping bar for `fishing-tuning`. It intentionally uses the
 - [x] Verify 2-player fishing sync: cast, reel, result, animation, and no cross-player UI bleed.
 - [x] Verify gear consumption in 2-player sessions: bait decrement, hook durability, break/re-equip, reconnect state.
 - [x] Verify HUD and GearStatsPanel live refresh after bait/hook depletion.
-- [ ] Validate blackjack card rendering, backdrop, and flip animations in an exported build.
+- [ ] Validate blackjack card rendering, backdrop, and flip animations in an exported build, including visual signoff.
 - [ ] Playtest expanded 17-catch roster, payouts, and Baby Kraken 2.5 difficulty.
 
 ## Visual / Content
