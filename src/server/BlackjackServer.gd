@@ -9,8 +9,11 @@ func handle_bet(peer_id: int, amount: int) -> void:
 	if session.has_meta("bj_state"):
 		_err(peer_id, "Game already in progress."); return
 
-	amount = clampi(amount, 1, session.coins)
-	if session.coins < amount:
+	if session.coins <= 0:
+		_err(peer_id, "You need coins to play."); return
+	if amount <= 0:
+		_err(peer_id, "Enter a valid bet."); return
+	if amount > session.coins:
 		_err(peer_id, "Not enough coins."); return
 
 	session.coins -= amount

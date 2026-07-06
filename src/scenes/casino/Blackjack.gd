@@ -4,6 +4,8 @@ signal completed
 
 const RANKS := ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]
 const SUITS := ["♠","♥","♦","♣"]
+const CARD_SIZE := Vector2(48, 70)
+const CARD_FLIP_HALF_TIME := 0.14
 
 enum State { IDLE, PLAYER_TURN }
 var _state := State.IDLE
@@ -30,21 +32,26 @@ func _ready() -> void:
 	NetAPI.bj_dealer_card.connect(_on_dealer_card)
 	NetAPI.bj_result.connect(_on_result)
 	NetAPI.bj_error.connect(_on_error)
+	if not GameManager.coins_changed.is_connected(_on_coins_changed):
+		GameManager.coins_changed.connect(_on_coins_changed)
 	# CloseBtn now connected to _on_leave_pressed in _ready() above
 	deal_btn.pressed.connect(_on_deal_pressed)
 	hit_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_hit"))
 	stand_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_stand"))
 	double_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_double"))
-	bet_spin.max_value = GameManager.current_coins
-	bet_spin.value = mini(10, GameManager.current_coins)
 	coins_label.text = "Coins: %d" % GameManager.current_coins
+	_refresh_betting_controls()
 	_set_actions(false)
 
 # ── Input ─────────────────────────────────────────────────────────────────────
 
 func _on_deal_pressed() -> void:
 	var amount := int(bet_spin.value)
-	if amount <= 0: return
+	if amount <= 0 or GameManager.current_coins <= 0 or amount > GameManager.current_coins:
+		status_label.text = "You need coins to play."
+		status_label.modulate = Color(1.0, 0.4, 0.4)
+		_refresh_betting_controls()
+		return
 	_clear_hands()
 	_set_actions(false)
 	deal_btn.disabled = true
@@ -59,23 +66,23 @@ func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance
 	_dealer_cards = [dealer_visible]
 	_dealer_hole_hidden = true
 	_update_dealer_info()
-	# Deal cards with staggered animation — dealer card, player card 1, player card 2, hole card
+	# Deal cards with staggered back-to-face flips; keep the dealer hole card face down.
 	var delay := 0.0
-	_deal_card_animated(dealer_hand, _card_widget(dealer_visible), delay); delay += 0.18
+	_deal_card_animated(dealer_hand, _card_widget(dealer_visible), delay, true); delay += 0.24
 	for c in player_cards:
-		_deal_card_animated(player_hand, _card_widget(c), delay); delay += 0.18
-	_deal_card_animated(dealer_hand, _hidden_widget(), delay)
+		_deal_card_animated(player_hand, _card_widget(c), delay, true); delay += 0.24
+	_deal_card_animated(dealer_hand, _hidden_widget(), delay, false)
 
 	var pv := _val(player_cards)
 	status_label.text = "Your hand: %d — Hit or Stand?" % pv
 	status_label.modulate = Color.WHITE
 	coins_label.text = "Coins: %d  (bet: %d)" % [balance, bet]
-	bet_spin.max_value = balance
+	GameManager.set_coins(balance)
 	_set_actions(true)
 	double_btn.disabled = player_cards.size() != 2
 
 func _on_hit(card: Dictionary, new_val: int) -> void:
-	_deal_card_animated(player_hand, _card_widget(card), 0.0)
+	_deal_card_animated(player_hand, _card_widget(card), 0.0, true)
 	if new_val > 21:
 		status_label.text = "Bust! (%d)" % new_val
 		status_label.modulate = Color(1.0, 0.4, 0.4)
@@ -92,7 +99,7 @@ func _on_dealer_reveal(full_hand: Array, value: int) -> void:
 	# Flip the hole card with stagger
 	var delay := 0.0
 	for c in full_hand:
-		_deal_card_animated(dealer_hand, _card_widget(c), delay); delay += 0.2
+		_deal_card_animated(dealer_hand, _card_widget(c), delay, true); delay += 0.24
 	status_label.text = "Dealer: %d — playing…" % value
 	_set_actions(false)
 
@@ -100,7 +107,7 @@ func _on_dealer_card(card: Dictionary, value: int) -> void:
 	_dealer_cards.append(card)
 	_dealer_hole_hidden = false
 	_update_dealer_info(value)
-	_deal_card_animated(dealer_hand, _card_widget(card), 0.0)
+	_deal_card_animated(dealer_hand, _card_widget(card), 0.0, true)
 	status_label.text = "Dealer: %d" % value
 
 func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> void:
@@ -109,7 +116,6 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 	_update_dealer_info(_val(dh))
 	GameManager.set_coins(new_balance)
 	coins_label.text = "Coins: %d" % new_balance
-	bet_spin.max_value = new_balance
 	var messages := {
 		"win":  "You win! +%d coins" % payout,
 		"bust": "Bust — you lose.",
@@ -128,13 +134,13 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 	status_label.modulate = Color(0.3, 1.0, 0.4) if outcome == "win" \
 		else Color(1.0, 0.4, 0.4) if outcome in ["bust", "lose"] \
 		else Color.WHITE
-	deal_btn.disabled = false
 	_state = State.IDLE
+	_refresh_betting_controls()
 
 func _on_error(msg: String) -> void:
 	status_label.text = msg
 	status_label.modulate = Color(1.0, 0.4, 0.4)
-	deal_btn.disabled = false
+	_refresh_betting_controls()
 
 # ── Card widgets ──────────────────────────────────────────────────────────────
 
@@ -154,14 +160,14 @@ func _card_widget(card: Dictionary) -> Control:
 	if tex:
 		var rect := TextureRect.new()
 		rect.texture = tex
-		rect.custom_minimum_size = Vector2(48, 70)
+		rect.custom_minimum_size = CARD_SIZE
 		rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		return rect
 	# Fallback to text if texture missing
 	var is_red: bool = card["suit"] == 1 or card["suit"] == 2
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(48, 70)
+	panel.custom_minimum_size = CARD_SIZE
 	var lbl := Label.new()
 	lbl.text = RANKS[card["rank"]] + SUITS[card["suit"]]
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -175,12 +181,12 @@ func _hidden_widget() -> Control:
 	if back_tex:
 		var rect := TextureRect.new()
 		rect.texture = back_tex
-		rect.custom_minimum_size = Vector2(48, 70)
+		rect.custom_minimum_size = CARD_SIZE
 		rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		return rect
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(48, 70)
+	panel.custom_minimum_size = CARD_SIZE
 	var lbl := Label.new()
 	lbl.text = "?"
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -210,15 +216,37 @@ func _update_dealer_info(value: int = -1) -> void:
 	var title := "Dealer showing" if _dealer_hole_hidden else "Dealer hand"
 	dealer_info_label.text = "%s: %s\n\nValue: %d" % [title, _dealer_hand_text(), shown_value]
 
-func _deal_card_animated(hand: HBoxContainer, card_widget: Control, delay: float) -> void:
-	card_widget.scale = Vector2(0.0, 1.0)  # start squished horizontally (like a flip)
-	card_widget.modulate.a = 0.0
+func _deal_card_animated(hand: HBoxContainer, face_widget: Control, delay: float, reveal_face: bool = true) -> void:
+	var card_widget := _hidden_widget() if reveal_face else face_widget
+	card_widget.pivot_offset = CARD_SIZE * 0.5
+	card_widget.scale = Vector2(0.0, 1.0)
 	hand.add_child(card_widget)
-	var tween := create_tween().set_parallel(true)
+	var tween := create_tween()
 	if delay > 0.0:
 		tween.tween_interval(delay)
-	tween.tween_property(card_widget, "scale", Vector2.ONE, 0.22).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK).set_delay(delay)
-	tween.tween_property(card_widget, "modulate:a", 1.0, 0.15).set_delay(delay)
+	tween.tween_property(card_widget, "scale:x", 1.0, CARD_FLIP_HALF_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	if reveal_face:
+		tween.tween_interval(0.06)
+		tween.tween_property(card_widget, "scale:x", 0.0, CARD_FLIP_HALF_TIME).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
+		if card_widget is TextureRect and face_widget is TextureRect:
+			tween.tween_callback(func():
+				if is_instance_valid(card_widget):
+					(card_widget as TextureRect).texture = (face_widget as TextureRect).texture
+			)
+			tween.tween_property(card_widget, "scale:x", 1.0, CARD_FLIP_HALF_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+		else:
+			tween.tween_callback(func():
+				if not is_instance_valid(card_widget):
+					return
+				var index := card_widget.get_index()
+				card_widget.queue_free()
+				hand.add_child(face_widget)
+				hand.move_child(face_widget, index)
+				face_widget.pivot_offset = CARD_SIZE * 0.5
+				face_widget.scale = Vector2(0.0, 1.0)
+				var fallback_tween := create_tween()
+				fallback_tween.tween_property(face_widget, "scale:x", 1.0, CARD_FLIP_HALF_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+			)
 	if delay == 0.0:
 		AudioManager.sfx("sfx_card_deal")
 	else:
@@ -241,6 +269,26 @@ func _set_actions(on: bool) -> void:
 	hit_btn.disabled = not on
 	stand_btn.disabled = not on
 	double_btn.disabled = not on
+	if not on:
+		_refresh_betting_controls()
+
+func _on_coins_changed(new_amount: int) -> void:
+	coins_label.text = "Coins: %d" % new_amount if _state == State.IDLE else coins_label.text
+	_refresh_betting_controls()
+
+func _refresh_betting_controls() -> void:
+	var balance: int = maxi(0, GameManager.current_coins)
+	bet_spin.min_value = 1.0 if balance > 0 else 0.0
+	bet_spin.max_value = maxi(1, balance)
+	if balance <= 0:
+		bet_spin.value = 0.0
+		deal_btn.disabled = true
+		if _state == State.IDLE:
+			status_label.text = "You need coins to play."
+	else:
+		if int(bet_spin.value) <= 0 or int(bet_spin.value) > balance:
+			bet_spin.value = mini(10, balance)
+		deal_btn.disabled = _state != State.IDLE
 
 func _clear_hands() -> void:
 	_clear_node(player_hand)
