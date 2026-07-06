@@ -38,7 +38,7 @@ This is the current shipping bar for `fishing-tuning`. It intentionally uses the
 
 ## Release / Deployment
 
-- [ ] Add Windows export preset if desktop local builds are part of ship.
+- [x] Add Windows export preset for desktop local builds.
 - [ ] Confirm GHCR package visibility.
 - [x] Confirm deployed clients can connect through `wss://fishserver.dudeltron14.win`.
 - [x] Confirm Cloudflare Tunnel origin routing to the Docker game server.

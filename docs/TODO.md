@@ -19,7 +19,6 @@ Living task list. The stricter release gate lives in `docs/SHIP_CHECKLIST.md`.
 - [ ] Set up `WaterTiles-6frames.png` as animated water in the TileSet.
 - [ ] Confirm tilemap physics collision on water/buildings in a real play session.
 - [ ] Final SpawnPoint pass.
-- [ ] Add Windows Desktop export preset if local desktop builds are part of ship.
 - [ ] Capture gameplay screenshots for README.
 
 ---
@@ -39,6 +38,7 @@ Living task list. The stricter release gate lives in `docs/SHIP_CHECKLIST.md`.
 - [x] Player animations: idle, walk_right, fishing, hook.
 - [x] Host & Play local testing flow.
 - [x] Linux dedicated server + Web export presets.
+- [x] Windows Desktop export preset for local desktop builds.
 - [x] Music playlists and SFX wiring.
 - [x] Bait uses-per-stack purchasing and per-bite decrement.
 - [x] Rod line_strength affects reel fill and escape timer refill.
