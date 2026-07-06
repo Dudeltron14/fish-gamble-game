@@ -117,9 +117,7 @@ func show_catch(fish_id: String) -> void:
 	catch_sprite.texture = _catch_texture_for(fish)
 	if catch_sprite.texture == null:
 		return
-	var texture_size := catch_sprite.texture.get_size()
-	var max_size := maxf(texture_size.x, texture_size.y)
-	catch_sprite.scale = Vector2.ONE * (CATCH_DISPLAY_SIZE / max_size)
+	catch_sprite.scale = Vector2.ONE * _catch_display_scale(catch_sprite.texture)
 	catch_sprite.modulate = Color.WHITE
 	catch_sprite.position = Vector2(8, -41)
 	catch_sprite.visible = true
@@ -181,3 +179,21 @@ func _catch_texture_for(fish: FishData) -> Texture2D:
 			FISH_FRAME_SIZE
 		)
 	return atlas
+
+func _catch_display_scale(texture: Texture2D) -> float:
+	var visible_size := _visible_texture_size(texture)
+	var max_size := maxf(visible_size.x, visible_size.y)
+	if max_size <= 0.0:
+		max_size = maxf(texture.get_width(), texture.get_height())
+	return CATCH_DISPLAY_SIZE / max_size
+
+func _visible_texture_size(texture: Texture2D) -> Vector2:
+	if texture is AtlasTexture:
+		return texture.get_size()
+	var image := texture.get_image()
+	if image == null:
+		return texture.get_size()
+	var rect := image.get_used_rect()
+	if rect.size.x <= 0 or rect.size.y <= 0:
+		return texture.get_size()
+	return Vector2(rect.size)
