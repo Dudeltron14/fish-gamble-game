@@ -99,9 +99,9 @@ func stop_fishing() -> void:
 	_update_bobber(false)
 	_send_state()
 
-func set_menu_hidden(hidden: bool) -> void:
-	_is_hidden_for_menu = hidden
-	visible = not hidden
+func set_menu_hidden(menu_hidden: bool) -> void:
+	_is_hidden_for_menu = menu_hidden
+	visible = not menu_hidden
 	_update_bobber(_is_fishing)
 	_send_state()
 
@@ -133,9 +133,9 @@ func show_catch(fish_id: String) -> void:
 		catch_sprite.texture = null
 	)
 
-func apply_remote_state(pos: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = -1.0) -> void:
+func apply_remote_state(pos: Vector2, animation: String, flip_h: bool, menu_hidden: bool, bobber_cast_quality: float = -1.0) -> void:
 	_remote_target_position = pos
-	visible = not hidden
+	visible = not menu_hidden
 	if sprite.sprite_frames and sprite.animation != animation:
 		sprite.play(animation)
 	sprite.flip_h = flip_h
@@ -162,7 +162,11 @@ func _update_bobber(force_visible: bool) -> void:
 		var show_bobber := force_visible and not _is_hidden_for_menu and _bobber_cast_quality >= 0.0
 		bobber_visual.set_cast_visible(show_bobber, sprite.flip_h, maxf(_bobber_cast_quality, 0.0))
 
-func _catch_texture_for(fish: FishData) -> AtlasTexture:
+func _catch_texture_for(fish: FishData) -> Texture2D:
+	if fish.icon:
+		return fish.icon
+	if fish.sprite_frame < 0:
+		return null
 	var atlas := AtlasTexture.new()
 	if JUNK_REGIONS.has(fish.id):
 		atlas.atlas = JUNK_SHEET
@@ -170,7 +174,7 @@ func _catch_texture_for(fish: FishData) -> AtlasTexture:
 	else:
 		var frame := maxi(fish.sprite_frame, 0)
 		var column := frame % FISH_SHEET_COLUMNS
-		var row := frame / FISH_SHEET_COLUMNS
+		var row := floori(float(frame) / float(FISH_SHEET_COLUMNS))
 		atlas.atlas = FISH_SHEET
 		atlas.region = Rect2(
 			Vector2(column * FISH_FRAME_SIZE.x, row * FISH_FRAME_SIZE.y),

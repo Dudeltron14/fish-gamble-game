@@ -4,12 +4,12 @@
 
 [resource]
 script = ExtResource("1")
-id = "legendary_key"
-display_name = "Ancient Key"
-description = "Glows faintly. Nobody knows what it opens. Yet."
+id = "uncommon_silver_shad"
+display_name = "Silver Shad"
+description = "Quick, bright, and slippery enough to make you earn it."
 buy_price = 0
 sell_price = 0
-rarity = "legendary"
-base_coin_value = 150
-catch_difficulty = 2.5
-sprite_frame = -1
+rarity = "uncommon"
+base_coin_value = 20
+catch_difficulty = 1.1
+sprite_frame = 8

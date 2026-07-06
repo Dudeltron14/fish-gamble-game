@@ -4,12 +4,12 @@
 
 [resource]
 script = ExtResource("1")
-id = "legendary_key"
-display_name = "Ancient Key"
-description = "Glows faintly. Nobody knows what it opens. Yet."
+id = "common_freshwater_snail"
+display_name = "Freshwater Snail"
+description = "Slow, shiny, and somehow still faster than your bobber."
 buy_price = 0
 sell_price = 0
-rarity = "legendary"
-base_coin_value = 150
-catch_difficulty = 2.5
-sprite_frame = -1
+rarity = "common"
+base_coin_value = 8
+catch_difficulty = 0.4
+sprite_frame = 2

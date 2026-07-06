@@ -4,12 +4,12 @@
 
 [resource]
 script = ExtResource("1")
-id = "legendary_key"
-display_name = "Ancient Key"
-description = "Glows faintly. Nobody knows what it opens. Yet."
+id = "common_mossback_bass"
+display_name = "Mossback Bass"
+description = "A green-striped pond regular with a stubborn streak."
 buy_price = 0
 sell_price = 0
-rarity = "legendary"
-base_coin_value = 150
-catch_difficulty = 2.5
-sprite_frame = -1
+rarity = "common"
+base_coin_value = 15
+catch_difficulty = 0.8
+sprite_frame = 7

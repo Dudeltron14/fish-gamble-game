@@ -4,12 +4,12 @@
 
 [resource]
 script = ExtResource("1")
-id = "legendary_key"
-display_name = "Ancient Key"
-description = "Glows faintly. Nobody knows what it opens. Yet."
+id = "uncommon_red_dock_crab"
+display_name = "Red Dock Crab"
+description = "Pinchy, proud, and worth more than it has any right to be."
 buy_price = 0
 sell_price = 0
-rarity = "legendary"
-base_coin_value = 150
-catch_difficulty = 2.5
-sprite_frame = -1
+rarity = "uncommon"
+base_coin_value = 20
+catch_difficulty = 1.0
+sprite_frame = 5

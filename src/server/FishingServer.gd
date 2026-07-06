@@ -152,13 +152,23 @@ func _pick_worm_fish() -> FishData:
 		if not junk.is_empty():
 			return junk[randi() % junk.size()]
 	if roll < 0.78:
-		var perch := ItemRegistry.get_item("common_perch") as FishData
-		if perch:
-			return perch
-	var bass := ItemRegistry.get_item("uncommon_bass") as FishData
-	if bass:
-		return bass
-	var fallback := _fish_candidates(["common_perch", "uncommon_bass"])
+		var common := _fish_candidates([
+			"common_perch",
+			"common_tropical_bluegill",
+			"common_freshwater_snail",
+			"common_mossback_bass",
+		])
+		if not common.is_empty():
+			return common[randi() % common.size()]
+	var uncommon := _fish_candidates([
+		"uncommon_bass",
+		"uncommon_silver_shad",
+		"uncommon_red_dock_crab",
+		"uncommon_sunset_conch",
+	])
+	if not uncommon.is_empty():
+		return uncommon[randi() % uncommon.size()]
+	var fallback := _fish_candidates(["common_perch", "common_mossback_bass", "uncommon_bass", "uncommon_silver_shad"])
 	return fallback[randi() % fallback.size()] if not fallback.is_empty() else null
 
 func _pick_lure_fish() -> FishData:
@@ -168,21 +178,31 @@ func _pick_lure_fish() -> FishData:
 		if not junk.is_empty():
 			return junk[randi() % junk.size()]
 	if roll < 0.50:
-		var perch := ItemRegistry.get_item("common_perch") as FishData
-		if perch:
-			return perch
+		var common := _fish_candidates([
+			"common_perch",
+			"common_tropical_bluegill",
+			"common_freshwater_snail",
+			"common_mossback_bass",
+		])
+		if not common.is_empty():
+			return common[randi() % common.size()]
 	if roll < 0.85:
-		var bass := ItemRegistry.get_item("uncommon_bass") as FishData
-		if bass:
-			return bass
+		var uncommon := _fish_candidates([
+			"uncommon_bass",
+			"uncommon_silver_shad",
+			"uncommon_red_dock_crab",
+			"uncommon_sunset_conch",
+		])
+		if not uncommon.is_empty():
+			return uncommon[randi() % uncommon.size()]
 	if roll < 0.99:
-		var rare := _fish_candidates(["rare_trout", "rare_pike"])
+		var rare := _fish_candidates(["rare_trout", "rare_pike", "rare_pearl_clam"])
 		if not rare.is_empty():
 			return rare[randi() % rare.size()]
 	var legendary := _fish_candidates(["legendary_kraken", "legendary_key"])
 	if not legendary.is_empty():
 		return legendary[randi() % legendary.size()]
-	var fallback := _fish_candidates(["common_perch", "uncommon_bass", "rare_trout", "rare_pike"])
+	var fallback := _fish_candidates(["common_perch", "common_mossback_bass", "uncommon_bass", "uncommon_silver_shad", "rare_trout", "rare_pike"])
 	return fallback[randi() % fallback.size()] if not fallback.is_empty() else null
 
 func _fish_candidates(ids: Array[String]) -> Array[FishData]:
