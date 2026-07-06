@@ -10,7 +10,6 @@ Living task list. The stricter release gate lives in `docs/SHIP_CHECKLIST.md`.
 - [ ] Confirm Docker SQLite persistence through restart/update.
 - [ ] Playtest expanded 17-catch roster, payouts, and Baby Kraken difficulty after the latest art/content pass.
 - [ ] Verify new blackjack backdrop and flip animations in an exported Web build.
-- [ ] Wire the pending fish shop interior backdrop once the final asset is accepted.
 
 ---
 
@@ -62,6 +61,7 @@ Living task list. The stricter release gate lives in `docs/SHIP_CHECKLIST.md`.
 - [x] Blackjack cards flip horizontally on reveal.
 - [x] Blackjack deal is blocked at 0 coins client-side and validated server-side.
 - [x] Baby Kraken catch difficulty eased from 2.8 to 2.5.
+- [x] Fish shop interior backdrop added behind the shop overlay.
 
 ---
 

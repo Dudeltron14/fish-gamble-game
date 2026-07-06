@@ -33,7 +33,7 @@ This is the current shipping bar for `fishing-tuning`. It intentionally uses the
 - [ ] Finish water animation setup.
 - [ ] Confirm tilemap/building/water collision in a real play session.
 - [ ] Final spawn point pass.
-- [ ] Add final fish shop interior backdrop.
+- [x] Add final fish shop interior backdrop.
 - [ ] Assign remaining non-catch item icons on `.tres` resources if item display surfaces use them.
 
 ## Release / Deployment
@@ -49,5 +49,5 @@ This is the current shipping bar for `fishing-tuning`. It intentionally uses the
 ## Documentation
 
 - [x] Update `README.md`, `TODO.md`, `FRAMEWORKS.md`, and `FISHING.md` for the July 2026 gameplay/art/deploy pass.
-- [ ] Keep docs aligned after the shop interior, exported blackjack validation, and final world pass.
+- [ ] Keep docs aligned after exported blackjack validation and the final world pass.
 - [ ] After playtest signoff, move completed items from this checklist into a release note or done section.
