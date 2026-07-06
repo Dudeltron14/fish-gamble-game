@@ -19,15 +19,20 @@ Since the original handoff, these items have been completed and verified in play
 - The catch roster has expanded to 17 entries, including fish, junk, crab/shells/snail, Sunken Chest, and Ancient Key.
 - Casino exterior art, blackjack backdrop, blackjack card flip animation, and zero-coin deal validation have been added.
 - Baby Kraken difficulty was eased from `2.8` to `2.5`.
+- Fish shop interior backdrop is wired behind the shop overlay.
+- Distinct gear icons are assigned for rods, bait, and hooks and displayed in shop rows.
+- `WaterTiles-6frames.png` is configured as animated water in the world TileSet.
+- Animated water has been extended to cover a 1080p viewport around spawn.
 
 Still open at this point:
 
 - Validate blackjack cards/backdrop/flip animation in an exported Web build.
 - Confirm Docker SQLite persistence through restart/update.
-- Wire the final fish shop interior backdrop.
-- Finish final world-art tasks: zone placement, animated water, tile/building/water collision pass, and spawn pass.
-- Add Windows export preset only if desktop local builds remain part of ship.
+- Playtest the expanded 17-catch roster, payouts, and Baby Kraken 2.5 difficulty.
+- Finish final world-art tasks: zone placement, tile/building/water collision pass, and spawn pass.
 - Capture README screenshots.
+- Confirm GHCR package visibility and run/confirm Linux server + Web exports from CI or local Godot.
+- Windows Desktop export is out of scope for this ship path unless desktop clients become a release target.
 
 ## Current Operating Context
 
@@ -40,7 +45,7 @@ C:\Users\Noah\Documents\fish-game
 Active branch:
 
 ```text
-fishing-tuning
+master
 ```
 
 Use the stricter shipping bar from `docs/SHIP_CHECKLIST.md` as the source of truth. Do not downgrade the goal to the softer Claude memory framing. The current intent is to ship a friends-scale multiplayer Godot fishing/casino game, but still address the important validation, persistence, deployment, playtest, and polish items before release.
@@ -57,8 +62,8 @@ The user explicitly wants the original code-review checklist addressed:
 6. Verify 2-player fishing sync, gear consumption, HUD and GearStatsPanel live refresh.
 7. Implement bobber visual with multiplayer sync.
 8. Render caught fish/key/chest/junk sprites in result UI using `sprite_frame`.
-9. Finish world art tasks: reposition zones, water animation, tilemap collision, final spawn/zone pass.
-10. Add Windows export preset if desktop local builds are part of ship.
+9. Finish world art tasks: reposition zones, tilemap collision, final spawn/zone pass.
+10. Keep Windows Desktop export out of scope unless desktop clients become a release target.
 11. Validate blackjack card rendering in an exported build.
 12. Confirm GHCR image visibility, deployed WSS routing, and Docker persistence.
 13. Update stale docs so `TODO.md`, `FRAMEWORKS.md`, `README.md`, and `FISHING.md` agree.
@@ -105,6 +110,10 @@ Docs changes:
 - Updated `docs/FRAMEWORKS.md` bait weights and summary.
 - Updated `docs/FISHING.md` for Worm's new intended behavior.
 - Added `docs/SHIP_CHECKLIST.md` to the README documentation index.
+- Added distinct generated gear icons and Godot import sidecars for rods, bait, and hooks.
+- Added fish shop interior art and casino/backdrop art updates.
+- Extended animated water coverage to 1080p around spawn.
+- Marked Windows Desktop export out of scope for the Web-client/Linux-Docker ship path.
 
 ## Current Playtest Feedback
 
@@ -181,8 +190,8 @@ Historical note only. For the current state, use `docs/SHIP_CHECKLIST.md`.
   - Worm: changed, needs retest.
   - Shiny Lure: changed, needs retest.
   - Magic Bait: changed, needs retest.
-- Finish art/manual world tasks: zones, water animation, collision confirmation, spawn pass.
-- Add Windows export preset if wanted.
+- Finish art/manual world tasks: zones, collision confirmation, spawn pass.
+- Windows Desktop export remains optional/out of scope unless explicitly revived.
 - Validate blackjack card rendering in exported build.
 - Confirm GHCR visibility and Docker persistence.
 - Rerun Godot validation after current changes.
