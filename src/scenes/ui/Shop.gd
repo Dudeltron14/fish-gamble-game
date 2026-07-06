@@ -33,6 +33,15 @@ func _make_row(item: ItemData) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 
+	if item.icon:
+		var icon := TextureRect.new()
+		icon.texture = item.icon
+		icon.custom_minimum_size = Vector2(24, 24)
+		icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(icon)
+
 	var info := VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 

@@ -1,12 +1,14 @@
-[gd_resource type="Resource" script_class="BaitData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BaitData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/resources/items/BaitData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui_icons/icon_bait.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1")
 id = "worm"
 display_name = "Worm"
 description = "A basic bait. Mostly catches starter fish, with only rare junk."
+icon = ExtResource("2_icon")
 buy_price = 5
 sell_price = 1
 rarity_weights = {"common": 0.85, "uncommon": 0.15, "rare": 0.00, "legendary": 0.00}

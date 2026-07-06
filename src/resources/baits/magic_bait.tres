@@ -1,12 +1,14 @@
-[gd_resource type="Resource" script_class="BaitData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BaitData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/resources/items/BaitData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui_icons/icon_bait.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1")
 id = "magic_bait"
 display_name = "Magic Bait"
 description = "Common fish won't touch it. Legendary fish can't resist."
+icon = ExtResource("2_icon")
 buy_price = 60
 sell_price = 20
 rarity_weights = {"common": 0.025, "uncommon": 0.425, "rare": 0.40, "legendary": 0.15}

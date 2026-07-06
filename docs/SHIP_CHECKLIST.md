@@ -34,7 +34,7 @@ This is the current shipping bar for `fishing-tuning`. It intentionally uses the
 - [ ] Confirm tilemap/building/water collision in a real play session.
 - [ ] Final spawn point pass.
 - [x] Add final fish shop interior backdrop.
-- [ ] Assign remaining non-catch item icons on `.tres` resources if item display surfaces use them.
+- [x] Assign remaining non-catch item icons on `.tres` resources and show them in shop rows.
 
 ## Release / Deployment
 
