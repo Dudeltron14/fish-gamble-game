@@ -25,6 +25,33 @@ git lfs pull                        # downloads all PNG/audio assets
 
 ---
 
+## Local Export Checks
+
+GitHub Actions exports with the Linux Godot CI image, which includes export templates. Local exports need matching templates installed for the local Godot version first.
+
+Godot's command-line export form is:
+
+```bash
+godot --path /path/to/project --export-release "Preset Name" output/path
+```
+
+On Windows, prefer the console executable so export errors are visible:
+
+```powershell
+& "C:/Users/Noah/Downloads/Godot_v4.6.3-stable_win64.exe/Godot_v4.6.3-stable_win64_console.exe" --headless --path . --export-release "Linux" export/server/FishGambleGame.x86_64
+& "C:/Users/Noah/Downloads/Godot_v4.6.3-stable_win64.exe/Godot_v4.6.3-stable_win64_console.exe" --headless --path . --export-release "Web" export/web/index.html
+```
+
+If this fails with missing files under `AppData/Roaming/Godot/export_templates/<version>.stable`, install export templates in Godot via:
+
+```text
+Editor -> Manage Export Templates -> Download and Install
+```
+
+The target directory must exist before export. Output paths are resolved relative to the folder containing `project.godot`, not necessarily the shell's current directory.
+
+---
+
 ## Docker Deployment (Linux VPS)
 
 **Prerequisites:** Docker + Docker Compose installed on the server.
