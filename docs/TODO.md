@@ -38,7 +38,6 @@ Living task list. The stricter release gate lives in `docs/SHIP_CHECKLIST.md`.
 - [x] Player animations: idle, walk_right, fishing, hook.
 - [x] Host & Play local testing flow.
 - [x] Linux dedicated server + Web export presets.
-- [x] Windows Desktop export preset for local desktop builds.
 - [x] Music playlists and SFX wiring.
 - [x] Bait uses-per-stack purchasing and per-bite decrement.
 - [x] Rod line_strength affects reel fill and escape timer refill.
@@ -71,3 +70,4 @@ Living task list. The stricter release gate lives in `docs/SHIP_CHECKLIST.md`.
 - [ ] Chat box.
 - [ ] VFX on catch.
 - [ ] Stronger anti-cheat: server-authoritative movement and server-validated fishing reel simulation.
+- [ ] Optional Windows Desktop export preset, only if desktop clients become a release target.

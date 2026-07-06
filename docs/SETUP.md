@@ -40,7 +40,6 @@ On Windows, prefer the console executable so export errors are visible:
 ```powershell
 & "C:/Users/Noah/Downloads/Godot_v4.6.3-stable_win64.exe/Godot_v4.6.3-stable_win64_console.exe" --headless --path . --export-release "Linux" export/server/FishGambleGame.x86_64
 & "C:/Users/Noah/Downloads/Godot_v4.6.3-stable_win64.exe/Godot_v4.6.3-stable_win64_console.exe" --headless --path . --export-release "Web" export/web/index.html
-& "C:/Users/Noah/Downloads/Godot_v4.6.3-stable_win64.exe/Godot_v4.6.3-stable_win64_console.exe" --headless --path . --export-release "Windows Desktop" export/windows/FishGambleGame.exe
 ```
 
 If this fails with missing files under `AppData/Roaming/Godot/export_templates/<version>.stable`, install export templates in Godot via:
@@ -280,6 +279,5 @@ In Godot editor, create these export presets via **Project → Export**:
 |---|---|---|
 | `Linux/X11` | Linux | Enable **Dedicated Server** mode |
 | `Web` | Web | Leave defaults |
-| `Windows Desktop` | Windows Desktop | Local desktop client build |
 
 Save — this creates `export_presets.cfg` in the project root. Commit it.
