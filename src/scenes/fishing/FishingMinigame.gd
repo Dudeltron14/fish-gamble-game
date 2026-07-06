@@ -14,15 +14,6 @@ const FISH_SPEED_LERP := 2.5   # how fast speed transitions (higher = snappier c
 const PROGRESS_RATE := 0.35    # base fill rate; multiplied by rod line_strength
 const DRAIN_RATE := 0.35       # base drain rate; multiplied by fish difficulty
 const ESCAPE_TIME_MAX := 3.0   # starting escape timer (seconds before fish gets away)
-const FISH_SHEET := preload("res://assets/free fish/free fish.png")
-const FISH_FRAME_SIZE := Vector2i(16, 16)
-const FISH_SHEET_COLUMNS := 3
-const JUNK_SHEET := preload("res://assets/free fish/junk.png")
-const JUNK_REGIONS := {
-	"junk_boot": Rect2(222, 368, 257, 238),
-	"junk_can": Rect2(613, 361, 197, 245),
-	"junk_seaweed": Rect2(963, 368, 219, 238),
-}
 
 var _stage := Stage.CAST
 var _cast_power := 0.0
@@ -57,7 +48,6 @@ var _escape_timer := ESCAPE_TIME_MAX  # drains when off fish, fills when on — 
 @onready var catch_zone: ColorRect = %CatchZone
 @onready var cursor_rect: ColorRect = %Cursor
 @onready var reel_label: Label = %ReelLabel
-@onready var result_sprite: TextureRect = %ResultSprite
 @onready var result_label: Label = %ResultLabel
 
 func _ready() -> void:
@@ -328,14 +318,14 @@ func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance:
 		GameManager.set_coins(new_balance)
 		AudioManager.sfx("sfx_catch")
 		AudioManager.sfx("sfx_coins")
-		_show_result(true, "Caught %s! +%d coins" % [fish_name, earned], fish)
+		_show_result(true, "Caught %s! +%d coins" % [fish_name, earned])
 	else:
 		AudioManager.sfx("sfx_miss")
 		_show_result(false, "The %s escaped…" % fish_name)
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-func _show_result(success: bool, msg: String, fish: FishData = null) -> void:
+func _show_result(success: bool, msg: String) -> void:
 	_stage = Stage.RESULT
 	_result_shown = true
 	reel_container.visible = false
@@ -346,7 +336,8 @@ func _show_result(success: bool, msg: String, fish: FishData = null) -> void:
 	title.visible = false
 	bg.visible = false
 	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	_set_result_sprite(success, fish)
+	panel.set_as_top_level(true)
+	panel.global_position += Vector2(0, 143)
 	result_label.text = msg
 	result_label.modulate = Color(0.3, 1.0, 0.4) if success else Color(1.0, 0.4, 0.4)
 	result_label.visible = true
@@ -355,27 +346,6 @@ func _show_result(success: bool, msg: String, fish: FishData = null) -> void:
 	tween.tween_property(result_label, "scale", Vector2.ONE, 0.35)
 	await get_tree().create_timer(2.5).timeout
 	_close()
-
-func _set_result_sprite(success: bool, fish: FishData) -> void:
-	result_sprite.visible = false
-	result_sprite.texture = null
-	if not success or fish == null:
-		return
-	var atlas := AtlasTexture.new()
-	if JUNK_REGIONS.has(fish.id):
-		atlas.atlas = JUNK_SHEET
-		atlas.region = JUNK_REGIONS[fish.id]
-	else:
-		var frame := maxi(fish.sprite_frame, 0)
-		var column := frame % FISH_SHEET_COLUMNS
-		var row := frame / FISH_SHEET_COLUMNS
-		atlas.atlas = FISH_SHEET
-		atlas.region = Rect2(
-			Vector2(column * FISH_FRAME_SIZE.x, row * FISH_FRAME_SIZE.y),
-			FISH_FRAME_SIZE
-		)
-	result_sprite.texture = atlas
-	result_sprite.visible = true
 
 func _close() -> void:
 	AudioManager.set_music_context("world")

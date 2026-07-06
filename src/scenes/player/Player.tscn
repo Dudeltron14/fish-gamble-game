@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://fh602gok0f8v" path="res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_hook.png" id="3_12jx5"]
 [ext_resource type="Texture2D" uid="uid://1nrj76tdce3r" path="res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_walk.png" id="3_xxciv"]
 [ext_resource type="Script" path="res://src/scenes/player/BobberVisual.gd" id="5_bobber"]
+[ext_resource type="FontFile" uid="uid://cmv6od8e8mh1p" path="res://assets/fonts/m5x7.ttf" id="6_namefont"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_bg11c"]
 atlas = ExtResource("2_5pe5e")
@@ -213,12 +214,18 @@ position = Vector2(8, -41)
 texture_filter = 1
 
 [node name="NameLabel" type="Label" parent="." unique_id=135989000]
-offset_left = -40.0
-offset_top = -28.0
-offset_right = 40.0
-offset_bottom = -14.0
+texture_filter = 1
+offset_left = -48.0
+offset_top = -33.0
+offset_right = 48.0
+offset_bottom = -11.0
 horizontal_alignment = 1
 vertical_alignment = 1
+theme_override_fonts/font = ExtResource("6_namefont")
+theme_override_colors/font_color = Color(1, 0.91, 0.72, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.06, 0.11, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_constants/outline_size = 2
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=888123456]
 enabled = false
