@@ -1,10 +1,35 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://src/scenes/ui/Shop.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/User_Gen_ChatGPT/Fish_shop_backdrop.png" id="2_backdrop"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop_panel"]
+bg_color = Color(0.0470588, 0.0862745, 0.0705882, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.54902, 0.407843, 0.227451, 0.85)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="Shop" type="CanvasLayer"]
 layer = 10
 script = ExtResource("1")
+
+[node name="Backdrop" type="TextureRect" parent="."]
+texture_filter = 2
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_backdrop")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="BG" type="ColorRect" parent="."]
 layout_mode = 3
@@ -13,7 +38,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.55)
+color = Color(0, 0, 0, 0.18)
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 3
@@ -24,6 +49,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
+theme_override_styles/panel = SubResource("StyleBoxFlat_shop_panel")
 
 [node name="Margin" type="MarginContainer" parent="Center/Panel"]
 theme_override_constants/margin_left = 24
