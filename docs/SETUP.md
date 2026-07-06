@@ -44,6 +44,122 @@ The SQLite database is persisted in `./data/` on the host — it survives contai
 
 ---
 
+## Server Operations Runbook
+
+Run these from the directory that contains `docker-compose.yml`, usually:
+
+```bash
+cd ~/fish-game
+```
+
+Use `sudo docker ...` if your user is not in the Docker group.
+
+### Check Server Health
+
+```bash
+docker compose ps
+docker compose images
+docker compose logs --tail=100 game-server
+docker compose logs --tail=100 watchtower
+```
+
+Expected:
+
+- `game-server` is `Up` and publishes `0.0.0.0:7070->7070/tcp`.
+- `watchtower` is `Up` / healthy.
+- `game-server` image is `ghcr.io/dudeltron14/fish-gamble-game:latest`.
+
+### Follow Live Logs
+
+```bash
+docker compose logs -f game-server
+```
+
+Useful when testing login, register, world spawn, and fishing. Server-side warnings such as login success, world-ready, and spawn messages should appear when clients connect.
+
+### Manual Update
+
+Watchtower should update automatically, but this forces an update immediately:
+
+```bash
+docker compose pull game-server
+docker compose up -d --force-recreate game-server
+docker compose ps
+docker compose logs --tail=100 game-server
+```
+
+### Backup Player Database
+
+Back up `data/players.db` before risky deploys or schema changes:
+
+```bash
+mkdir -p backups
+cp data/players.db "backups/players-$(date +%Y%m%d-%H%M%S).db"
+ls -lh backups
+```
+
+If the database file is owned by root because Docker created it, use:
+
+```bash
+sudo cp data/players.db "backups/players-$(date +%Y%m%d-%H%M%S).db"
+sudo chown "$USER:$USER" backups/*.db
+```
+
+### Restore Player Database
+
+Stop the game server before restoring:
+
+```bash
+docker compose stop game-server
+cp backups/players-YYYYMMDD-HHMMSS.db data/players.db
+docker compose up -d game-server
+docker compose logs --tail=100 game-server
+```
+
+Use `sudo` for the copy if `data/players.db` is root-owned.
+
+### Pin Or Roll Back The Server Image
+
+Tagged releases are pushed as both `latest` and the tag name, for example `v1.0.0`.
+
+To pin the server to a known tag, edit `docker-compose.yml`:
+
+```yaml
+image: ghcr.io/dudeltron14/fish-gamble-game:v1.0.0
+```
+
+Then apply it:
+
+```bash
+docker compose pull game-server
+docker compose up -d --force-recreate game-server
+docker compose ps
+```
+
+Switch back to automatic latest updates by changing the image back to:
+
+```yaml
+image: ghcr.io/dudeltron14/fish-gamble-game:latest
+```
+
+### Cloudflare Tunnel Checks
+
+The current tunnel route should point:
+
+```text
+fishserver.dudeltron14.win -> http://172.17.0.1:7070
+```
+
+Check the tunnel container logs:
+
+```bash
+docker logs <cloudflared-container-name> --tail=100
+```
+
+If Cloudflare logs say it cannot resolve `game-server`, the tunnel container is not on the Compose network that provides that DNS name. Use `http://172.17.0.1:7070` unless the tunnel is intentionally moved into the same Compose network as `game-server`.
+
+---
+
 ## Cloudflare Tunnel WSS Route
 
 The current deployed game route is:
