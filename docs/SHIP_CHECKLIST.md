@@ -30,7 +30,7 @@ This is the current shipping bar for `fishing-tuning`. It intentionally uses the
 - [x] Replace casino exterior with transparent style-matched art.
 - [x] Add blackjack casino backdrop.
 - [ ] Reposition zones after final building placement.
-- [ ] Finish water animation setup.
+- [x] Finish water animation setup.
 - [ ] Confirm tilemap/building/water collision in a real play session.
 - [ ] Final spawn point pass.
 - [x] Add final fish shop interior backdrop.

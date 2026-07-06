@@ -16,7 +16,6 @@ Living task list. The stricter release gate lives in `docs/SHIP_CHECKLIST.md`.
 ## Phase 11 - Art / Manual
 
 - [ ] Reposition zones to match final building positions.
-- [ ] Set up `WaterTiles-6frames.png` as animated water in the TileSet.
 - [ ] Confirm tilemap physics collision on water/buildings in a real play session.
 - [ ] Final SpawnPoint pass.
 - [ ] Capture gameplay screenshots for README.
@@ -61,6 +60,7 @@ Living task list. The stricter release gate lives in `docs/SHIP_CHECKLIST.md`.
 - [x] Blackjack deal is blocked at 0 coins client-side and validated server-side.
 - [x] Baby Kraken catch difficulty eased from 2.8 to 2.5.
 - [x] Fish shop interior backdrop added behind the shop overlay.
+- [x] `WaterTiles-6frames.png` is set up as animated water in the world TileSet.
 
 ---
 
