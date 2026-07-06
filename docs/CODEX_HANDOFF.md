@@ -1,6 +1,33 @@
 # Codex Handoff
 
-Last updated: 2026-07-02
+Last updated: 2026-07-06
+
+## 2026-07-06 Current Status Addendum
+
+The sections below preserve the original handoff context from the earlier checklist push. The live source of truth is now `docs/SHIP_CHECKLIST.md`.
+
+Since the original handoff, these items have been completed and verified in playtest:
+
+- Deployed clients default to `wss://fishserver.dudeltron14.win`, with a custom server option.
+- Cloudflare Tunnel is the active WSS route to the Docker game server.
+- Registration/login works against the Docker server.
+- Starter inventory and equipped gear are granted on registration and repaired for existing database accounts.
+- Gear consumption works across bait, hook durability, break/re-equip, HUD refresh, and GearStatsPanel refresh.
+- Two-player movement, animations, fishing result sync, and player collision behavior have been playtested.
+- Bobber visual, cast-distance scaling, multiplayer sync, and bobber spawn splash are implemented.
+- Catch sprites now render as normalized world fade-outs using `FishData.icon` first and `sprite_frame` fallback.
+- The catch roster has expanded to 17 entries, including fish, junk, crab/shells/snail, Sunken Chest, and Ancient Key.
+- Casino exterior art, blackjack backdrop, blackjack card flip animation, and zero-coin deal validation have been added.
+- Baby Kraken difficulty was eased from `2.8` to `2.5`.
+
+Still open at this point:
+
+- Validate blackjack cards/backdrop/flip animation in an exported Web build.
+- Confirm Docker SQLite persistence through restart/update.
+- Wire the final fish shop interior backdrop.
+- Finish final world-art tasks: zone placement, animated water, tile/building/water collision pass, and spawn pass.
+- Add Windows export preset only if desktop local builds remain part of ship.
+- Capture README screenshots.
 
 ## Current Operating Context
 
@@ -23,7 +50,7 @@ Use the stricter shipping bar from `docs/SHIP_CHECKLIST.md` as the source of tru
 The user explicitly wants the original code-review checklist addressed:
 
 1. Fix authoritative validation: server-side zone validation and fishing result validation or anti-cheat constraints.
-2. Add `wss://.../ws` connection support for deployed web clients.
+2. Add `wss://...` connection support for deployed web clients.
 3. Fix fishing failure RPC arity.
 4. Persist equipped rod/bait/hook and hook durability.
 5. Playtest and sign off bait rarity/no-bait junk economy.
@@ -33,7 +60,7 @@ The user explicitly wants the original code-review checklist addressed:
 9. Finish world art tasks: reposition zones, water animation, tilemap collision, final spawn/zone pass.
 10. Add Windows export preset if desktop local builds are part of ship.
 11. Validate blackjack card rendering in an exported build.
-12. Confirm GHCR image visibility, VPS TLS, Nginx WSS proxy, and Docker persistence.
+12. Confirm GHCR image visibility, deployed WSS routing, and Docker persistence.
 13. Update stale docs so `TODO.md`, `FRAMEWORKS.md`, `README.md`, and `FISHING.md` agree.
 
 When playtesting, ask the user one checklist/tuning question at a time and wait for feedback.
@@ -43,7 +70,7 @@ When playtesting, ask the user one checklist/tuning question at a time and wait 
 Code changes:
 
 - `src/autoloads/NetworkManager.gd`
-  - Added `connect_to_url(url)` for full `ws://` and `wss://.../ws` endpoints.
+  - Added `connect_to_url(url)` for full `ws://` and `wss://` endpoints.
   - `connect_to_server(host, port)` now delegates to `connect_to_url`.
 - `src/scenes/ui/LoginScreen.gd`
   - Server field now accepts either `host[:port]` or a full URL such as `wss://example.com/ws`.
@@ -93,18 +120,19 @@ Worm:
 - Direction: nerf it to basic-level fish and rare junk only.
 - Implemented current Worm behavior:
   - 8% junk
-  - 70% Perch
-  - 22% Bass
+  - 70% common starter fish
+  - 22% uncommon starter fish
   - No normal Rare/Legendary pool from Worm.
 - Important caveat: the global 1% Sunken Chest pre-roll still happens before bait selection. Ask the user later whether Worm/no-bait should be excluded from the global chest roll.
 
 Shiny Lure:
 
 - User direction: Rare fish should appear inconsistently.
-- Implemented current Shiny Lure weights:
-  - 55% Common
-  - 34% Uncommon
-  - 10% Rare
+- Implemented current Shiny Lure behavior:
+  - 5% junk
+  - 45% common starter fish
+  - 35% uncommon starter fish
+  - 14% Rare
   - 1% Legendary
 
 Magic Bait:
@@ -117,12 +145,12 @@ Magic Bait:
   - 40% Rare
   - 15% Legendary
 
-## Exact Next Question
+## Previous Exact Next Question
 
-Ask this next:
+Historical note only; this bait retest has since been completed.
 
 ```text
-Next item: bait retest.
+Previous item: bait retest.
 
 After the bait changes, please retest Worm, Shiny Lure, and Magic Bait. Do the new rarity mixes feel right enough to sign off, or does one still need adjustment?
 ```
@@ -144,23 +172,19 @@ After Worm tuning:
 - `git diff --check` passed.
 - Godot runtime/project validation has not yet been rerun after the Worm-specific code change.
 
-## Current Remaining Ship Items
+## Previous Remaining Ship Items
 
-Still open from `docs/SHIP_CHECKLIST.md`:
+Historical note only. For the current state, use `docs/SHIP_CHECKLIST.md`.
 
 - Playtest/sign off bait economy:
   - No bait: accepted.
   - Worm: changed, needs retest.
   - Shiny Lure: changed, needs retest.
   - Magic Bait: changed, needs retest.
-- Verify 2-player fishing sync.
-- Verify gear consumption, HUD refresh, GearStatsPanel refresh.
-- Implement bobber visual with multiplayer sync.
-- Render caught fish/key/chest/junk sprites in result UI using `FishData.sprite_frame`.
 - Finish art/manual world tasks: zones, water animation, collision confirmation, spawn pass.
 - Add Windows export preset if wanted.
 - Validate blackjack card rendering in exported build.
-- Confirm GHCR visibility, VPS TLS, Nginx WSS proxy, and Docker persistence.
+- Confirm GHCR visibility and Docker persistence.
 - Rerun Godot validation after current changes.
 
 ## Notes For The Next Agent

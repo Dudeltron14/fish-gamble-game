@@ -15,32 +15,39 @@ This is the current shipping bar for `fishing-tuning`. It intentionally uses the
 
 ## Gameplay Verification
 
-- [ ] Playtest bait rarity/no-bait junk economy and sign off weights.
-- [ ] Verify 2-player fishing sync: cast, reel, result, animation, and no cross-player UI bleed.
-- [ ] Verify gear consumption in 2-player sessions: bait decrement, hook durability, break/re-equip, reconnect state.
-- [ ] Verify HUD and GearStatsPanel live refresh after bait/hook depletion.
-- [ ] Validate blackjack card rendering in an exported build.
+- [x] Playtest bait rarity/no-bait junk economy and sign off initial weights.
+- [x] Verify 2-player fishing sync: cast, reel, result, animation, and no cross-player UI bleed.
+- [x] Verify gear consumption in 2-player sessions: bait decrement, hook durability, break/re-equip, reconnect state.
+- [x] Verify HUD and GearStatsPanel live refresh after bait/hook depletion.
+- [ ] Validate blackjack card rendering, backdrop, and flip animations in an exported build.
+- [ ] Playtest expanded 17-catch roster, payouts, and Baby Kraken 2.5 difficulty.
 
 ## Visual / Content
 
-- [ ] Implement bobber visual with multiplayer sync.
-- [ ] Render caught fish/key/chest/junk sprites in the result UI using `FishData.sprite_frame`.
+- [x] Implement bobber visual with multiplayer sync.
+- [x] Render caught fish/key/chest/junk sprites as normalized world catch popups using `FishData.icon` or `sprite_frame`.
+- [x] Add bobber spawn splash animation.
+- [x] Replace casino exterior with transparent style-matched art.
+- [x] Add blackjack casino backdrop.
 - [ ] Reposition zones after final building placement.
 - [ ] Finish water animation setup.
 - [ ] Confirm tilemap/building/water collision in a real play session.
 - [ ] Final spawn point pass.
-- [ ] Assign item icons on `.tres` resources if item display surfaces use them.
+- [ ] Add final fish shop interior backdrop.
+- [ ] Assign remaining non-catch item icons on `.tres` resources if item display surfaces use them.
 
 ## Release / Deployment
 
 - [ ] Add Windows export preset if desktop local builds are part of ship.
 - [ ] Confirm GHCR package visibility.
-- [ ] Confirm VPS TLS and Nginx WSS proxy (`/ws`) configuration.
+- [x] Confirm deployed clients can connect through `wss://fishserver.dudeltron14.win`.
+- [x] Confirm Cloudflare Tunnel origin routing to the Docker game server.
 - [ ] Confirm Docker SQLite persistence through container restart/update.
 - [ ] Run Linux server export and Web export from CI or local Godot.
 - [ ] Update screenshots in `docs/screenshots/` for README.
 
 ## Documentation
 
-- [ ] Keep `README.md`, `TODO.md`, `FRAMEWORKS.md`, and `FISHING.md` aligned with live values.
+- [x] Update `README.md`, `TODO.md`, `FRAMEWORKS.md`, and `FISHING.md` for the July 2026 gameplay/art/deploy pass.
+- [ ] Keep docs aligned after the shop interior, exported blackjack validation, and final world pass.
 - [ ] After playtest signoff, move completed items from this checklist into a release note or done section.

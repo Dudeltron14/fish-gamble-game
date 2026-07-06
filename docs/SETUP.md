@@ -8,7 +8,7 @@ cd fish-gamble-game
 git lfs pull                        # downloads all PNG/audio assets
 ```
 1. Open Godot 4, import `project.godot`
-2. Hit **Run** — game starts in client mode, connect to server at `localhost:7070`
+2. Hit **Run** — game starts in client mode. Use **Host & Play** for a local server, or the default `fishserver.dudeltron14.win` option for the deployed server.
 
 ---
 
@@ -44,7 +44,37 @@ The SQLite database is persisted in `./data/` on the host — it survives contai
 
 ---
 
-## Nginx Config (WSS proxy + web client hosting)
+## Cloudflare Tunnel WSS Route
+
+The current deployed game route is:
+
+```text
+wss://fishserver.dudeltron14.win
+```
+
+Cloudflare Tunnel should route that hostname to the Docker-published game server:
+
+```text
+http://172.17.0.1:7070
+```
+
+Use the host bridge address above when `cloudflared` is running in its own Docker container. Using `http://game-server:7070` only works if the tunnel container shares the same Docker Compose network and service DNS.
+
+Quick checks:
+
+```bash
+docker compose ps
+docker compose logs -f game-server
+docker logs <cloudflared-container-name> --tail=100
+```
+
+From a client machine, a successful WebSocket test to `wss://fishserver.dudeltron14.win` confirms Cloudflare can reach the origin and the Godot server accepts WebSocket traffic.
+
+---
+
+## Optional Nginx Config (WSS proxy + web client hosting)
+
+Cloudflare Tunnel is the active deployment path. Keep this Nginx example only if we later host the Web client and `/ws` proxy directly on the VPS.
 
 Add this to your Nginx server block. Replace `yourdomain.com`:
 

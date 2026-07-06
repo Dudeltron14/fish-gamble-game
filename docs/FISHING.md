@@ -1,13 +1,15 @@
 # Fishing System — Complete Reference
 
-Last updated: 2026-05-30
+Last updated: 2026-07-06
 All values sourced directly from live code and .tres resource files.
 
 ---
 
 ## Overview
 
-Fishing is triggered by pressing **E** inside the **DockZone**. The server validates the zone, picks a fish, and deducts gear before the player sees the reel. The minigame runs client-side; the server only validates the final result.
+Fishing is triggered by pressing **E** inside the **DockZone**. The server refreshes the player's world zone before gated actions, picks the catch, and deducts gear before the player sees the reel. The minigame runs client-side with server-side timing/result guardrails.
+
+The bobber is multiplayer-synced. It appears only after the cast minigame completes, plays a splash animation on spawn, and lands farther from the player on better casts.
 
 ---
 
@@ -68,7 +70,7 @@ Bite prompt appears. Player must press **E** within the window.
 | Bass (1.0) | 1.20s | 1.50s | 0.60s |
 | Trout (1.6) | 0.99s | 1.24s | 0.50s |
 | Pike (2.1) | 0.87s | 1.09s | 0.44s |
-| Kraken (2.8) | 0.74s | 0.92s | 0.37s |
+| Baby Kraken (2.5) | 0.79s | 0.98s | 0.39s |
 
 ---
 
@@ -90,7 +92,7 @@ Fish speed **slides** randomly between a minimum and maximum, lerping smoothly t
 | Bass (1.0) | 46–92 px/s | ~69 px/s |
 | Trout (1.6) | 74–148 px/s | ~111 px/s |
 | Pike (2.1) | 97–150 px/s | ~124 px/s |
-| Kraken (2.8) | 52–150 px/s | ~101 px/s |
+| Baby Kraken (2.5) | 52–150 px/s | ~101 px/s |
 
 **Cursor speed:** 150 px/s — matches the maximum possible fish speed.
 
@@ -102,7 +104,7 @@ Fish speed **slides** randomly between a minimum and maximum, lerping smoothly t
 | Bass (1.0) | 21–40% |
 | Trout (1.6) | 16–35% |
 | Pike (2.1) | 12–30% |
-| Kraken (2.8) | 7–23% |
+| Baby Kraken (2.5) | 9–25% |
 
 #### Fish Behaviour System
 
@@ -132,7 +134,7 @@ When the direction timer fires (every 0.6–1.6s), the fish picks a behaviour we
 | Bass (1.0) | 76px | 18% |
 | Trout (1.6) | 47px | 11% |
 | Pike (2.1) | 36px | 9% |
-| Kraken (2.8) | 27px | 6.4% |
+| Baby Kraken (2.5) | 30px | 7.2% |
 
 #### Catch Meter
 
@@ -153,7 +155,7 @@ When the direction timer fires (every 0.6–1.6s), the fish picks a behaviour we
 | Bass | 0.35/s | 2.86s |
 | Trout | 0.56/s | 1.79s |
 | Pike | 0.74/s | 1.35s |
-| Kraken | 0.98/s | 1.02s |
+| Baby Kraken | 0.88/s | 1.14s |
 
 #### Escape Timer
 
@@ -173,11 +175,13 @@ Bar colour: green when filling, orange→red when draining.
 
 Message appears with outcome. Player character plays **hook** animation on successful catch (plays once, pauses on last frame). Overlay closes after 2.5s.
 
+Successful catches also show a normalized catch sprite fade-out in the world using `FishData.icon` first, then `FishData.sprite_frame` as the atlas fallback. The local reward overlay remains text-first for readability.
+
 ---
 
 ## Fish Catalogue
 
-All fish are `.tres` files in `src/resources/fish/`. Adding new fish requires only creating a file — no code changes.
+All catchables are `.tres` files in `src/resources/fish/`. Most new fish only require creating a file. Worm and Shiny Lure use curated starter pools in `FishingServer.gd`, so add new fish there too if they should appear with those baits.
 
 **Payout formula:** `earned = floor(base_coin_value × catch_difficulty × hook.coin_multiplier)`
 
@@ -185,17 +189,24 @@ All fish are `.tres` files in `src/resources/fish/`. Adding new fish requires on
 
 | Fish | Rarity | Difficulty | Base value | Payout | + Golden Hook |
 |---|---|---|---|---|---|
+| Freshwater Snail | common | 0.4 | 8c | **3c** | 4c |
 | Perch | common | 0.6 | 15c | **9c** | 11c |
+| Tropical Bluegill | common | 0.7 | 15c | **10c** | 13c |
+| Mossback Bass | common | 0.8 | 15c | **12c** | 15c |
 | Largemouth Bass | uncommon | 1.0 | 20c | **20c** | 26c |
+| Red Dock Crab | uncommon | 1.0 | 20c | **20c** | 26c |
+| Sunset Conch | uncommon | 0.9 | 20c | **18c** | 23c |
+| Silver Shad | uncommon | 1.1 | 20c | **22c** | 28c |
+| Pearl Clam | rare | 1.4 | 35c | **49c** | 63c |
 | Golden Trout | rare | 1.6 | 35c | **56c** | 72c |
 | Northern Pike | rare | 2.1 | 35c | **73c** | 95c |
-| Baby Kraken | legendary | 2.8 | 100c | **280c** | 364c |
+| Baby Kraken | legendary | 2.5 | 100c | **250c** | 325c |
 | Sunken Chest | legendary | 2.2 | 150c | **330c** | 429c |
 | Ancient Key | legendary | 2.5 | 150c | **375c** | 487c |
 
 ### Junk (Common Rarity — 0 Coins)
 
-Junk appears in the common rarity pool. Without bait (95% common), fishing yields junk very frequently. Use bait to reduce common odds and stop pulling up trash.
+Junk appears in the common rarity pool. Without bait (95% common), fishing rarely catches anything valuable; this is intentional so new players learn to buy worms and gambling everything away has teeth.
 
 | Item | Rarity | Payout | Note |
 |---|---|---|---|
@@ -207,7 +218,7 @@ Junk appears in the common rarity pool. Without bait (95% common), fishing yield
 
 ## Rarity Selection (Server-Side)
 
-The server selects a rarity tier, then picks a random fish of that rarity.
+The server selects a rarity tier, then picks a random catch of that rarity. A fixed 1% Sunken Chest chance is checked before the normal bait/rod/cast selection.
 
 **Selection order:**
 1. Start with bait `rarity_weights` (or default if no bait)
@@ -220,7 +231,7 @@ The server selects a rarity tier, then picks a random fish of that rarity.
 
 | Rarity | Probability |
 |---|---|
-| Common | **95%** — mostly junk + Perch |
+| Common | **95%** — mostly junk plus common fish |
 | Uncommon | 5% |
 | Rare | 0% |
 | Legendary | 0% |
@@ -249,8 +260,13 @@ weights["legendary"] += rarity_bonus × 0.3
 | Angler's Rod | 0.05 | Common −5%, Rare +3.5%, Legendary +1.5% |
 | Master Rod | 0.12 | Common −12%, Rare +8.4%, Legendary +3.6% |
 
-Worm is intentionally capped to starter catches: 8% junk, 70% Perch, 22% Bass. It does not use rod/cast rarity bonuses to enter the normal Rare/Legendary pool.
-Shiny Lure is tuned as the first stable money-maker: 5% junk, 45% Perch, 35% Bass, 14% Rare, 1% Legendary.
+Worm and Shiny Lure intentionally use curated starter pools instead of the full dynamic rarity picker.
+
+**Worm:** 8% junk, 70% common starter fish, 22% uncommon starter fish. It does not use rod/cast rarity bonuses to enter the normal Rare/Legendary pool.
+
+**Shiny Lure:** 5% junk, 45% common starter fish, 35% uncommon starter fish, 14% rare fish, 1% legendary fish.
+
+**Magic Bait:** Uses the normal dynamic rarity picker, so any registered fish in the selected rarity can appear.
 
 ---
 
@@ -289,8 +305,10 @@ When durability hits 0: one hook consumed from inventory, next auto-equips at fu
 
 New players receive on registration:
 - Starter Rod (equipped)
-- Worm ×1 (equipped)
+- Worm ×10 uses (equipped)
 - Basic Hook, 10 durability (equipped)
+
+Existing database accounts are repaired on login if they are missing starter inventory or starter equipment.
 
 ---
 
@@ -306,8 +324,9 @@ Press **Tab** in-game for the full Gear Modifiers panel showing exact multiplier
 
 ## Adding New Content
 
-All item types are data-driven — no code changes needed. See `docs/FRAMEWORKS.md` for field-by-field guides and templates.
+All item types are data-driven. See `docs/FRAMEWORKS.md` for field-by-field guides and templates.
 
 **Fish:** `src/resources/fish/_template.tres`
 **Junk:** Same as fish — set `base_coin_value = 0` and `rarity = "common"`
 **Chest/Key:** Same as fish — set `rarity = "legendary"` and high `base_coin_value`
+**Sprites:** Prefer a transparent 64×64 `icon` texture. `sprite_frame` remains available for the old atlas fallback.

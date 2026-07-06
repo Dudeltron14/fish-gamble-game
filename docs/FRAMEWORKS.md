@@ -1,7 +1,7 @@
 # Frameworks — How to Add Content
 
 All game content is data-driven via Godot `.tres` Resource files.
-**Adding any item type requires only creating or duplicating a `.tres` file — zero code changes.**
+Most item changes require only creating or duplicating a `.tres` file. Worm and Shiny Lure use curated fish pools in `FishingServer.gd`, so add code entries there if a new fish should appear through those baits.
 
 `ItemRegistry` scans the resource folders at startup and registers everything automatically.
 The shop, fishing system, and HUD all respond to whatever is registered.
@@ -65,7 +65,8 @@ earned = floor(base_coin_value × catch_difficulty × hook.coin_multiplier)
 | `rarity` | String | `"common"` `"uncommon"` `"rare"` `"legendary"` — determines draw pool. |
 | `base_coin_value` | int | Rarity tier base (see table above). **NOT the final payout** — multiplied by difficulty. |
 | `catch_difficulty` | float | Controls zone size, fish speed, drain rate, react window, AND payout. See guide below. |
-| `sprite_frame` | int | Frame index in `assets/free fish/free fish.png`. |
+| `icon` | Texture2D | Preferred standalone transparent catch sprite. Use 64×64 PNGs for generated fish/key/chest art. |
+| `sprite_frame` | int | Fallback frame index in `assets/free fish/free fish.png`. Set `-1` when only `icon` should be used. |
 
 ### Difficulty Reference
 
@@ -75,10 +76,12 @@ earned = floor(base_coin_value × catch_difficulty × hook.coin_multiplier)
 | 1.0 | 76px (18%) | 46–92 px/s | 0.35/s | 1.20s | 35c |
 | 1.6 | 47px (11%) | 74–134 px/s | 0.56/s | 0.99s | 56c |
 | 2.1 | 36px (9%) | 83–150 px/s | 0.74/s | 0.87s | 73c |
-| 2.8 | 27px (6.4%) | 83–150 px/s | 0.98/s | 0.74s | 98c |
+| 2.5 | 30px (7.2%) | 83–150 px/s | 0.88/s | 0.79s | 87c |
 
 > Speed caps at 150px/s (cursor speed) regardless of difficulty.
 > React window is further modified by the equipped hook's `escape_reduction`.
+
+Catch sprites shown above the player are normalized by visible alpha bounds, so transparent padding in generated art will not make the reward appear tiny. Clean generated catch art should still be transparent 64×64 PNGs.
 
 ---
 
@@ -152,10 +155,12 @@ The full wait time = `randf_range(cast_min, cast_max) × wait_modifier`
 
 ```
 Default (no bait): {common:0.95, uncommon:0.05, rare:0.00, legendary:0.00}
-Worm:              {common:0.85, uncommon:0.15, rare:0.00, legendary:0.00}
-Shiny Lure:        {common:0.50, uncommon:0.35, rare:0.14, legendary:0.01}
+Worm data:         {common:0.85, uncommon:0.15, rare:0.00, legendary:0.00}
+Shiny Lure data:   {common:0.50, uncommon:0.35, rare:0.14, legendary:0.01}
 Magic Bait:        {common:0.025, uncommon:0.425, rare:0.40, legendary:0.15}
 ```
+
+Runtime note: Worm and Shiny Lure currently use curated server-side pools instead of the dynamic rarity picker. Worm is capped to junk/common/uncommon starter catches; Shiny Lure is the first stable money-maker with rare and tiny legendary access. Magic Bait uses the normal dynamic picker.
 
 ---
 
@@ -184,20 +189,20 @@ earned = floor(fish.base_coin_value × fish.difficulty × coin_multiplier)
 ```
 | `coin_multiplier` | Kraken payout | Perch payout |
 |---|---|---|
-| 1.0 | 280c (Basic Hook) | 9c |
-| 1.3 | 364c (Golden Hook) | 11c |
-| 1.5 | 420c | 13c |
-| 2.0 | 560c | 18c |
+| 1.0 | 250c (Basic Hook) | 9c |
+| 1.3 | 325c (Golden Hook) | 11c |
+| 1.5 | 375c | 13c |
+| 2.0 | 500c | 18c |
 
 ### Escape Reduction Reference
 React window = `1.2 / (1 + max(0, difficulty−1) × 0.35) × (1 + escape_reduction)`
 
 | `escape_reduction` | Kraken window (no cast penalty) |
 |---|---|
-| 0.00 | 0.74s |
-| 0.10 | 0.81s (Basic Hook) |
-| 0.25 | 0.92s (Golden Hook) |
-| 0.50 | 1.11s |
+| 0.00 | 0.79s |
+| 0.10 | 0.87s (Basic Hook) |
+| 0.25 | 0.98s (Golden Hook) |
+| 0.50 | 1.18s |
 
 ---
 
@@ -215,10 +220,10 @@ New players receive on registration:
 | Item | Qty |
 |---|---|
 | `starter_rod` | 1 (auto-equipped) |
-| `worm` | 1 use (auto-equipped) |
+| `worm` | 10 uses / one stack (auto-equipped) |
 | `basic_hook` | 1 hook at full durability (auto-equipped) |
 
-To change starter items: edit `AuthServer._give_starter_items()` in `src/server/AuthServer.gd`.
+To change starter items: edit the constants and helpers in `src/autoloads/GameServer.gd`; `AuthServer._ensure_starter_items()` grants or repairs them for database accounts.
 
 ---
 
@@ -226,7 +231,7 @@ To change starter items: edit `AuthServer._give_starter_items()` in `src/server/
 
 | Action | Requires code? |
 |---|---|
-| Add new fish | No - duplicate `_template.tres` |
+| Add new fish | Usually no - duplicate `_template.tres`; add to curated worm/lure pools in code only if desired |
 | Add new rod | No - duplicate `_template.tres` |
 | Add new bait | No - duplicate `_template.tres` |
 | Add new hook | No - duplicate `_template.tres` |

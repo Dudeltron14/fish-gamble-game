@@ -17,11 +17,11 @@ All game logic is server-authoritative — no cheating, just vibes.
 
 | System | Details |
 |---|---|
-| 🐟 **Fishing** | 4-stage minigame (Cast → Wait → React → Reel). Fish difficulty, rarity, and coin value scale with gear. |
-| 🎰 **Blackjack** | Full server-side state machine. Hit, Stand, Double Down. Dealer follows standard rules (hit <17). Real card sprites. |
+| 🐟 **Fishing** | 4-stage minigame (Cast → Wait → React → Reel). 17 catchables, synced bobbers, splash VFX, and visible catch popups. |
+| 🎰 **Blackjack** | Full server-side state machine. Hit, Stand, Double Down. Dealer follows standard rules (hit <17). Real card sprites with flip reveals. |
 | 🏪 **Shop** | Buy and equip rods, bait, and hooks. Live owned count, durability tracking, gear consumption per cast. |
 | 🌍 **World** | Pixel-art island. Walk to the Dock, Shop, or Casino — press E to interact. |
-| 👤 **Multiplayer** | WebSocket-based. Server-authoritative. 2–8 players. See other players move around in real time. |
+| 👤 **Multiplayer** | WebSocket-based. Dedicated clients default to `wss://fishserver.dudeltron14.win`, with custom server support. |
 | 🔐 **Auth** | Username + password (double-hashed with per-user salt). SQLite persistence. 50 coin starting balance. |
 | 🚀 **Auto-deploy** | Push a `v*.*.*` tag → GitHub Actions exports + builds Docker image → Watchtower auto-pulls on VPS. |
 
@@ -45,7 +45,7 @@ Save to `docs/screenshots/` and they'll appear here automatically once added.
 
 ## Gear & Progression
 
-Players start with a **Starter Rod**, **1 Worm**, and **1 Basic Hook** (10 uses).
+Players start with a **Starter Rod**, **10 Worm uses**, and **1 Basic Hook** (10 durability).
 
 ### Rods
 | Rod | Cost | Effect |
@@ -68,13 +68,24 @@ Players start with a **Starter Rod**, **1 Worm**, and **1 Basic Hook** (10 uses)
 | Golden Hook | 120c | 20 uses | ×1.3 |
 
 ### Fish
-| Fish | Rarity | Coins |
+| Catch | Rarity | Coins |
 |---|---|---|
-| Perch | Common | 8c |
+| Freshwater Snail | Common | 3c |
+| Perch | Common | 9c |
+| Tropical Bluegill | Common | 10c |
+| Mossback Bass | Common | 12c |
 | Largemouth Bass | Uncommon | 20c |
-| Golden Trout | Rare | 55c |
-| Northern Pike | Rare | 70c |
-| Baby Kraken | Legendary | 300c (390c with Golden Hook) |
+| Red Dock Crab | Uncommon | 20c |
+| Silver Shad | Uncommon | 22c |
+| Sunset Conch | Uncommon | 18c |
+| Pearl Clam | Rare | 49c |
+| Golden Trout | Rare | 56c |
+| Northern Pike | Rare | 73c |
+| Baby Kraken | Legendary | 250c (325c with Golden Hook) |
+| Sunken Chest | Legendary | 330c |
+| Ancient Key | Legendary | 375c |
+
+Junk catches currently include Old Boot, Tin Can, and Clump of Seaweed for 0c.
 
 ---
 
@@ -87,7 +98,8 @@ git lfs pull
 
 1. Open **Godot 4.6.x**, import `project.godot`
 2. Press **Play** → click **Host & Play** to start a local server + join instantly
-3. To invite a friend on the same network, give them your IP — they enter it in the Server field and click Login (register first)
+3. To join the deployed server, use the default `fishserver.dudeltron14.win` server button, then register or log in
+4. To invite a friend on the same network, use **Add Other Server** and enter your LAN IP
 
 ---
 
@@ -113,7 +125,7 @@ docker compose up -d
 SQLite database persists in `./data/` on the host.
 Watchtower checks for new images every 5 minutes and updates automatically.
 
-See [docs/SETUP.md](docs/SETUP.md) for the full guide including Nginx WSS proxy config.
+The current public route is `wss://fishserver.dudeltron14.win` through Cloudflare Tunnel. See [docs/SETUP.md](docs/SETUP.md) for the full deployment guide.
 
 ---
 
