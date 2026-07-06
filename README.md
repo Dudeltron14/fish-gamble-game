@@ -91,8 +91,16 @@ Junk catches currently include Old Boot, Tin Can, and Clump of Seaweed for 0c.
 
 ## Quick Start (Playing)
 
+> **Requires [Git LFS](https://git-lfs.com)** — large assets such as PNGs, audio, and native binaries are stored in LFS.
+> Install it once, then run `git lfs install`:
+> - macOS: `brew install git-lfs`
+> - Arch Linux: `pacman -S git-lfs`
+> - Windows: `winget install GitHub.GitLFS` or install [Git for Windows](https://gitforwindows.org)
+> - Others: see [git-lfs.com](https://git-lfs.com)
+
 ```bash
 git clone https://github.com/Dudeltron14/fish-gamble-game.git
+cd fish-gamble-game
 git lfs pull
 ```
 
