@@ -17,7 +17,7 @@ var _overlay_scene: PackedScene = null
 
 func _ready() -> void:
 	add_to_group("world")
-	push_warning("World: ready is_server=%s unique_id=%d hosting=%s" % [str(multiplayer.is_server()), multiplayer.get_unique_id(), str(GameManager.is_hosting)])
+	print("World: ready is_server=%s unique_id=%d hosting=%s" % [str(multiplayer.is_server()), multiplayer.get_unique_id(), str(GameManager.is_hosting)])
 	AudioManager.set_music_context("world")
 	for zone in $Zones.get_children():
 		if zone is Area2D:
