@@ -79,7 +79,8 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 		session.coins = int(row.coins)
 		_load_equipped(session, int(row.id))
 
-	_send_login_success(peer_id, username, int(row.coins), 1)
+	NetAPI.rpc_id(peer_id, "notify_login", true, "", int(row.coins))
+	push_warning("AuthServer: notify_login sent peer=%d username=%s" % [peer_id, username])
 
 	# Send full inventory after login confirmation so client scene entry is never
 	# blocked behind inventory/equipment sync payloads.
@@ -102,7 +103,6 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 			NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, session.hook_durability, 0)
 	elif session:
 		NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, 0, 0)
-	call_deferred("_retry_login_success", peer_id, username, int(row.coins))
 	push_warning("AuthServer: login ok peer=%d username=%s owned=%s equipped=[%s,%s,%s] hook=%d registry_items=%d" % [
 		peer_id,
 		username,
@@ -113,20 +113,6 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 		session.hook_durability if session else 0,
 		ItemRegistry.items.size(),
 	])
-
-func _send_login_success(peer_id: int, username: String, coins: int, attempt: int) -> void:
-	NetAPI.rpc_id(peer_id, "notify_login", true, "", coins)
-	push_warning("AuthServer: notify_login sent peer=%d username=%s attempt=%d" % [peer_id, username, attempt])
-
-func _retry_login_success(peer_id: int, username: String, coins: int) -> void:
-	await get_tree().create_timer(0.5).timeout
-	if GameServer.get_authenticated_session(peer_id) == null:
-		return
-	_send_login_success(peer_id, username, coins, 2)
-	await get_tree().create_timer(1.0).timeout
-	if GameServer.get_authenticated_session(peer_id) == null:
-		return
-	_send_login_success(peer_id, username, coins, 3)
 
 func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 	push_warning("AuthServer: register attempt peer=%d username=%s" % [peer_id, username])

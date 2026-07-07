@@ -45,16 +45,6 @@ func _change_scene_deferred(path: String) -> void:
 		push_error("GameManager: failed to change scene to %s: %s" % [path, error_string(err)])
 	else:
 		print("GameManager: changed scene to %s" % path)
-		if path == "res://src/scenes/world/World.tscn" and not multiplayer.is_server():
-			call_deferred("_notify_server_world_ready")
-
-func _notify_server_world_ready() -> void:
-	await get_tree().process_frame
-	await get_tree().process_frame
-	if multiplayer.multiplayer_peer == null or multiplayer.is_server():
-		return
-	print("GameManager: fallback c2s_world_ready")
-	NetAPI.rpc_id(1, "c2s_world_ready")
 
 func set_player_data(player_name: String, coins: int) -> void:
 	current_player_name = player_name
