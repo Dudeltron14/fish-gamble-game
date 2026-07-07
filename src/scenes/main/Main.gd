@@ -1,7 +1,6 @@
 extends Node2D
 
 const DEFAULT_PORT := 7070
-const WORLD_SCENE := preload("res://src/scenes/world/World.tscn")
 
 func _ready() -> void:
 	if "--server" in OS.get_cmdline_args():
@@ -23,12 +22,4 @@ func _start_server() -> void:
 		get_tree().quit(1)
 		return
 	GameServer.init_server()
-	call_deferred("_load_server_world")
-
-func _load_server_world() -> void:
-	if not get_tree().get_nodes_in_group("world").is_empty():
-		return
-	var world := WORLD_SCENE.instantiate()
-	world.name = "ServerWorld"
-	get_tree().root.add_child(world)
-	push_warning("Main: server world instantiated")
+	get_tree().change_scene_to_file.call_deferred("res://src/scenes/world/World.tscn")
