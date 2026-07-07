@@ -302,9 +302,14 @@ func _get_world_for_spawn(peer_id: int) -> Node:
 		return null
 	var world_node := world_scene.instantiate()
 	world_node.name = "ServerWorld"
+	world_node.add_to_group("world")
 	get_tree().root.add_child(world_node)
-	push_warning("NetAPI: server world instantiated for peer %d" % peer_id)
+	push_warning("NetAPI: server world instantiated for peer %d has_spawn=%s groups=%s" % [peer_id, str(world_node.has_method("spawn_player")), str(world_node.get_groups())])
+	await get_tree().process_frame
 	world = await _wait_for_world(peer_id, 12)
+	if world == null and world_node.has_method("spawn_player"):
+		push_warning("NetAPI: using direct server world fallback for peer %d" % peer_id)
+		return world_node
 	if world == null:
 		push_warning("NetAPI: world_ready failed; no world node available for peer %d" % peer_id)
 	return world

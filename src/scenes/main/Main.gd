@@ -30,5 +30,6 @@ func _load_server_world() -> void:
 		return
 	var world := WORLD_SCENE.instantiate()
 	world.name = "ServerWorld"
+	world.add_to_group("world")
 	get_tree().root.add_child(world)
-	push_warning("Main: server world instantiated")
+	push_warning("Main: server world instantiated has_spawn=%s groups=%s" % [str(world.has_method("spawn_player")), str(world.get_groups())])
