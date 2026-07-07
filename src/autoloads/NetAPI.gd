@@ -55,10 +55,8 @@ func c2s_world_ready() -> void:
 	if session == null:
 		push_warning("NetAPI: world_ready ignored; peer %d is not authenticated" % peer_id)
 		return
-	var world := await _get_world_for_spawn(peer_id)
-	if world == null:
-		return
-	world.spawn_player(peer_id, session.username)
+	for world in get_tree().get_nodes_in_group("world"):
+		world.spawn_player(peer_id, session.username)
 
 @rpc("any_peer", "call_local", "unreliable")
 func c2s_player_state(pos: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = -1.0) -> void:
@@ -290,32 +288,6 @@ func _refresh_peer_zone(peer_id: int, fallback_zone: String = "") -> void:
 			session.current_zone = world.get_zone_for_peer(peer_id)
 			return
 	session.current_zone = fallback_zone
-
-func _get_world_for_spawn(peer_id: int) -> Node:
-	var world := await _wait_for_world(peer_id, 12)
-	if world != null:
-		return world
-	push_warning("NetAPI: no server world loaded; attempting to load World.tscn for peer %d" % peer_id)
-	var err := get_tree().change_scene_to_file("res://src/scenes/world/World.tscn")
-	if err != OK:
-		push_warning("NetAPI: failed to load server world for peer %d: %s" % [peer_id, error_string(err)])
-		return null
-	world = await _wait_for_world(peer_id, 12)
-	if world == null:
-		push_warning("NetAPI: world_ready failed; no world node available for peer %d" % peer_id)
-	return world
-
-func _wait_for_world(peer_id: int, attempts: int) -> Node:
-	for attempt in range(attempts):
-		var worlds := get_tree().get_nodes_in_group("world")
-		if not worlds.is_empty():
-			if attempt > 0:
-				push_warning("NetAPI: found world for peer %d after %d wait attempts" % [peer_id, attempt])
-			return worlds[0]
-		if attempt == 0:
-			push_warning("NetAPI: no world nodes available for peer %d; waiting before spawn" % peer_id)
-		await get_tree().create_timer(0.25).timeout
-	return null
 
 func _peer_id() -> int:
 	var id := multiplayer.get_remote_sender_id()
