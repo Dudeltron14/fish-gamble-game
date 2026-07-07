@@ -295,11 +295,15 @@ func _get_world_for_spawn(peer_id: int) -> Node:
 	var world := await _wait_for_world(peer_id, 12)
 	if world != null:
 		return world
-	push_warning("NetAPI: no server world loaded; attempting to load World.tscn for peer %d" % peer_id)
-	var err := get_tree().change_scene_to_file("res://src/scenes/world/World.tscn")
-	if err != OK:
-		push_warning("NetAPI: failed to load server world for peer %d: %s" % [peer_id, error_string(err)])
+	push_warning("NetAPI: no server world loaded; instantiating World.tscn for peer %d" % peer_id)
+	var world_scene := load("res://src/scenes/world/World.tscn") as PackedScene
+	if world_scene == null:
+		push_warning("NetAPI: failed to load World.tscn for peer %d" % peer_id)
 		return null
+	var world_node := world_scene.instantiate()
+	world_node.name = "ServerWorld"
+	get_tree().root.add_child(world_node)
+	push_warning("NetAPI: server world instantiated for peer %d" % peer_id)
 	world = await _wait_for_world(peer_id, 12)
 	if world == null:
 		push_warning("NetAPI: world_ready failed; no world node available for peer %d" % peer_id)
