@@ -17,6 +17,7 @@ var _overlay_scene: PackedScene = null
 
 func _ready() -> void:
 	add_to_group("world")
+	print("World: ready is_server=%s unique_id=%d hosting=%s" % [str(multiplayer.is_server()), multiplayer.get_unique_id(), str(GameManager.is_hosting)])
 	AudioManager.set_music_context("world")
 	for zone in $Zones.get_children():
 		if zone is Area2D:
@@ -130,10 +131,12 @@ func _notify_world_ready() -> void:
 	await get_tree().process_frame
 	for attempt in 10:
 		if _get_local_player() != null:
+			print("World: local player present; world_ready complete")
 			return
 		print("World: sending c2s_world_ready to server attempt=%d" % [attempt + 1])
 		NetAPI.rpc_id(1, "c2s_world_ready")
 		await get_tree().create_timer(0.5).timeout
+	push_warning("World: local player did not spawn after world_ready retries")
 
 func _despawn_player(peer_id: int) -> void:
 	_remove_player_node(peer_id)

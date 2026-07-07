@@ -36,8 +36,15 @@ func _on_quit_requested() -> void:
 	get_tree().quit()
 
 func go_to_scene(path: String) -> void:
-	get_tree().change_scene_to_file.call_deferred(path)
 	scene_changed.emit(path)
+	call_deferred("_change_scene_deferred", path)
+
+func _change_scene_deferred(path: String) -> void:
+	var err := get_tree().change_scene_to_file(path)
+	if err != OK:
+		push_error("GameManager: failed to change scene to %s: %s" % [path, error_string(err)])
+	else:
+		print("GameManager: changed scene to %s" % path)
 
 func set_player_data(player_name: String, coins: int) -> void:
 	current_player_name = player_name

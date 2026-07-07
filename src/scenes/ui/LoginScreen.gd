@@ -10,6 +10,7 @@ enum _Action { NONE, LOGIN, REGISTER }
 var _pending := _Action.NONE
 var _pending_username := ""
 var _pending_hash := ""
+var _last_auth_username := ""
 var _connect_attempt_id := 0
 var _auth_attempt_id := 0
 
@@ -60,6 +61,7 @@ func _on_login_pressed() -> void:
 		return
 	_pending = _Action.LOGIN
 	_pending_username = username_field.text.strip_edges()
+	_last_auth_username = _pending_username
 	_pending_hash = _hash_password(password_field.text)
 	_maybe_connect()
 
@@ -68,6 +70,7 @@ func _on_register_pressed() -> void:
 		return
 	_pending = _Action.REGISTER
 	_pending_username = username_field.text.strip_edges()
+	_last_auth_username = _pending_username
 	_pending_hash = _hash_password(password_field.text)
 	_maybe_connect()
 
@@ -132,8 +135,9 @@ func _on_network_connected() -> void:
 
 func _on_login_result(ok: bool, reason: String, coins: int) -> void:
 	_auth_attempt_id += 1
+	print("LoginScreen: login_result ok=%s coins=%d" % [str(ok), coins])
 	if ok:
-		GameManager.set_player_data(_pending_username, coins)
+		GameManager.set_player_data(_last_auth_username, coins)
 		GameManager.go_to_scene("res://src/scenes/world/World.tscn")
 	else:
 		set_status(reason)
