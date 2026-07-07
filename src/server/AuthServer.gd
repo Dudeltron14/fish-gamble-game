@@ -79,10 +79,7 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 		session.coins = int(row.coins)
 		_load_equipped(session, int(row.id))
 
-	NetAPI.rpc_id(peer_id, "notify_login", true, "", int(row.coins))
-
-	# Send full inventory after login confirmation so the client can enter the
-	# world even if follow-up inventory/equipment sync is delayed.
+	# Send full inventory before login confirmation
 	_db.query_with_bindings(
 		"SELECT item_id, quantity FROM inventory WHERE player_id = ?", [int(row.id)]
 	)
@@ -102,6 +99,7 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 			NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, session.hook_durability, 0)
 	elif session:
 		NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, 0, 0)
+	NetAPI.rpc_id(peer_id, "notify_login", true, "", int(row.coins))
 	push_warning("AuthServer: login ok peer=%d username=%s owned=%s equipped=[%s,%s,%s] hook=%d registry_items=%d" % [
 		peer_id,
 		username,
