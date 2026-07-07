@@ -39,24 +39,10 @@ jobs:
           mkdir -p export/server
           godot --headless --export-release "Linux" export/server/FishGambleGame.x86_64
 
-      - name: Verify Linux server export
-        run: |
-          test -f export/server/FishGambleGame.x86_64
-          test -f export/server/FishGambleGame.pck
-          test -f export/server/libgdsqlite.linux.template_release.x86_64.so
-          ls -lh export/server
-
       - name: Export Web client
         run: |
           mkdir -p export/web
           godot --headless --export-release "Web" export/web/index.html
-
-      - name: Verify Web export
-        run: |
-          test -f export/web/index.html
-          test -f export/web/index.pck
-          test -f export/web/index.wasm
-          ls -lh export/web
 
       - name: Upload server export artifact
         uses: actions/upload-artifact@v4

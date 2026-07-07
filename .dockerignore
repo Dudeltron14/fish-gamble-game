@@ -1,6 +1,0 @@
-*
-
-!Dockerfile
-!export/
-!export/server/
-!export/server/**
