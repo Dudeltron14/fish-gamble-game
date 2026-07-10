@@ -1,15 +1,17 @@
-[gd_resource type="Resource" script_class="FishData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="FishData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/resources/items/FishData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/User_Gen_ChatGPT/Fish/pearl_clam.png" id="2_clam"]
 
 [resource]
 script = ExtResource("1")
 id = "rare_pearl_clam"
 display_name = "Pearl Clam"
 description = "A shy little prize with a suspiciously lucky shimmer."
+icon = ExtResource("2_clam")
 buy_price = 0
 sell_price = 0
 rarity = "rare"
 base_coin_value = 35
 catch_difficulty = 1.4
-sprite_frame = 4
+sprite_frame = -1

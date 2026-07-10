@@ -1,15 +1,17 @@
-[gd_resource type="Resource" script_class="FishData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="FishData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/resources/items/FishData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/User_Gen_ChatGPT/Fish/sunset_conch.png" id="2_conch"]
 
 [resource]
 script = ExtResource("1")
 id = "uncommon_sunset_conch"
 display_name = "Sunset Conch"
 description = "A warm orange shell that catches the light like late afternoon."
+icon = ExtResource("2_conch")
 buy_price = 0
 sell_price = 0
 rarity = "uncommon"
 base_coin_value = 20
 catch_difficulty = 0.9
-sprite_frame = 6
+sprite_frame = -1

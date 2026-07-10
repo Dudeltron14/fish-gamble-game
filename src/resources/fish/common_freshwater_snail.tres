@@ -1,15 +1,17 @@
-[gd_resource type="Resource" script_class="FishData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="FishData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/resources/items/FishData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/User_Gen_ChatGPT/Fish/freshwater_snail.png" id="2_snail"]
 
 [resource]
 script = ExtResource("1")
 id = "common_freshwater_snail"
 display_name = "Freshwater Snail"
 description = "Slow, shiny, and somehow still faster than your bobber."
+icon = ExtResource("2_snail")
 buy_price = 0
 sell_price = 0
 rarity = "common"
 base_coin_value = 8
 catch_difficulty = 0.4
-sprite_frame = 2
+sprite_frame = -1
