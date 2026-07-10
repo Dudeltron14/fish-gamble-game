@@ -264,7 +264,7 @@ From a client machine, a successful WebSocket test to `wss://fishserver.dudeltro
 
 ---
 
-## Cloudflare Pages Web Client
+## Proxmox / Docker Web Client
 
 The intended public browser client is:
 
@@ -272,28 +272,74 @@ The intended public browser client is:
 https://fishgame.dudeltron14.win
 ```
 
-Use Cloudflare Pages for the static Godot Web export. The Linux Docker server remains separate at `wss://fishserver.dudeltron14.win`.
+Use the `web-client` Docker service for the static Godot Web export. The Linux Docker game server remains separate at `wss://fishserver.dudeltron14.win`.
 
-One-time Cloudflare setup:
-
-1. In Cloudflare, create a Pages project named `fish-game`.
-2. Add the custom domain `fishgame.dudeltron14.win` to that Pages project.
-3. Create a Cloudflare API token that can deploy to Pages for this account.
-4. Add these GitHub repository secrets:
+GitHub Actions publishes two GHCR images on every push to `master`:
 
 ```text
-CLOUDFLARE_API_TOKEN
-CLOUDFLARE_ACCOUNT_ID
+ghcr.io/dudeltron14/fish-gamble-game:latest
+ghcr.io/dudeltron14/fish-gamble-game-web:latest
 ```
 
-After those secrets exist, the `Release` GitHub Action deploys `export/web` to Cloudflare Pages on every push to `master`. The workflow also writes a Pages `_headers` file with the Godot Web cross-origin isolation headers:
+On the Proxmox Linux VM, update `docker-compose.yml` so it has both services:
+
+```yaml
+services:
+  game-server:
+    image: ghcr.io/dudeltron14/fish-gamble-game:latest
+    restart: unless-stopped
+    ports:
+      - "7070:7070"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - GODOT_HEADLESS=1
+
+  web-client:
+    image: ghcr.io/dudeltron14/fish-gamble-game-web:latest
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+
+  watchtower:
+    image: containrrr/watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 --cleanup
+```
+
+Pull and start:
+
+```bash
+cd ~/fish-game
+sudo docker compose pull
+sudo docker compose up -d
+sudo docker compose ps
+```
+
+Local VM checks:
+
+```bash
+curl -I http://localhost:8080
+curl -I http://localhost:8080/index.pck
+```
+
+Expected headers include:
 
 ```text
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 ```
 
-If the Cloudflare secrets are missing, the web deploy job skips cleanly and the server Docker image still builds and publishes.
+Cloudflare Tunnel public hostname routes:
+
+```text
+fishserver.dudeltron14.win -> http://172.17.0.1:7070
+fishgame.dudeltron14.win   -> http://172.17.0.1:8080
+```
+
+Use the host bridge address above when `cloudflared` is running in its own Docker container. If `cloudflared` is moved into the same Compose network, the web route can instead target `http://web-client:80`.
 
 Quick verification after a deploy:
 
@@ -303,6 +349,12 @@ wss://fishserver.dudeltron14.win
 ```
 
 Open the web client, select the default deployed server, then register or log in. The page should load the latest Web export and connect over WSS to the Docker game server.
+
+If the web page loads but networking fails, verify the game server separately with:
+
+```text
+wss://fishserver.dudeltron14.win
+```
 
 ---
 
@@ -356,10 +408,10 @@ git push origin v1.0.0
 
 GitHub Actions will automatically:
 1. Export Linux server binary + Web client (via `barichello/godot-ci:4.6.3`)
-2. Deploy the Web client to Cloudflare Pages when Cloudflare secrets are configured
-3. Build and push Docker image to `ghcr.io/dudeltron14/fish-gamble-game`
+2. Build and push Docker images to `ghcr.io/dudeltron14/fish-gamble-game` and `ghcr.io/dudeltron14/fish-gamble-game-web`
+3. Optionally deploy the Web client to Cloudflare Pages if Cloudflare secrets are configured
 4. Attach web export files to the GitHub Release for tagged releases
-5. Watchtower on your VPS pulls the new image within 5 minutes
+5. Watchtower on your VPS pulls the new images within 5 minutes
 
 ---
 

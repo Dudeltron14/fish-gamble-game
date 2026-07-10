@@ -9,6 +9,12 @@ services:
     environment:
       - GODOT_HEADLESS=1
 
+  web-client:
+    image: ghcr.io/dudeltron14/fish-gamble-game-web:latest
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+
   watchtower:
     image: containrrr/watchtower
     restart: unless-stopped

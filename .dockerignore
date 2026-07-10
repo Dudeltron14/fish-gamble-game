@@ -1,0 +1,11 @@
+*
+
+!Dockerfile
+!Dockerfile.web
+!docker/
+!docker/**
+!export/
+!export/server/
+!export/server/**
+!export/web/
+!export/web/**
