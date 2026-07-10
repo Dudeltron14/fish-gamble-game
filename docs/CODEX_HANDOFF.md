@@ -4,7 +4,7 @@ Last updated: 2026-07-06
 
 ## 2026-07-06 Current Status Addendum
 
-The sections below preserve the original handoff context from the earlier checklist push. The live source of truth is now `docs/SHIP_CHECKLIST.md`.
+The sections below preserve original handoff context from the earlier checklist push. This file is archival; do not use it as a checklist. The live source of truth is `docs/SHIP_CHECKLIST.md`.
 
 Since the original handoff, these items have been completed and verified in playtest:
 
@@ -18,21 +18,15 @@ Since the original handoff, these items have been completed and verified in play
 - Catch sprites now render as normalized world fade-outs using `FishData.icon` first and `sprite_frame` fallback.
 - The catch roster has expanded to 17 entries, including fish, junk, crab/shells/snail, Sunken Chest, and Ancient Key.
 - Casino exterior art, blackjack backdrop, blackjack card flip animation, and zero-coin deal validation have been added.
+- Blackjack card rendering, backdrop, flip animation, and deck-to-slot dealing animation have been validated in exported/Web playtest.
+- Docker SQLite persistence has been confirmed through restart/update.
 - Baby Kraken difficulty was eased from `2.8` to `2.5`.
 - Fish shop interior backdrop is wired behind the shop overlay.
 - Distinct gear icons are assigned for rods, bait, and hooks and displayed in shop rows.
 - `WaterTiles-6frames.png` is configured as animated water in the world TileSet.
 - Animated water has been extended to cover a 1080p viewport around spawn.
 
-Still open at this point:
-
-- Validate blackjack cards/backdrop/flip animation in an exported Web build.
-- Confirm Docker SQLite persistence through restart/update.
-- Playtest the expanded 17-catch roster, payouts, and Baby Kraken 2.5 difficulty.
-- Finish final world-art tasks: zone placement, tile/building/water collision pass, and spawn pass.
-- Capture README screenshots.
-- Confirm GHCR package visibility and run/confirm Linux server + Web exports from CI or local Godot.
-- Windows Desktop export is out of scope for this ship path unless desktop clients become a release target.
+Current open work is tracked only in `docs/SHIP_CHECKLIST.md`.
 
 ## Current Operating Context
 
@@ -48,7 +42,7 @@ Active branch:
 master
 ```
 
-Use the stricter shipping bar from `docs/SHIP_CHECKLIST.md` as the source of truth. Do not downgrade the goal to the softer Claude memory framing. The current intent is to ship a friends-scale multiplayer Godot fishing/casino game, but still address the important validation, persistence, deployment, playtest, and polish items before release.
+Use the stricter shipping bar from `docs/SHIP_CHECKLIST.md` as the source of truth. Do not update checklist status in this handoff file. The current intent is to ship a friends-scale multiplayer Godot fishing/casino game, but still address the important validation, persistence, deployment, playtest, and polish items before release.
 
 ## Current Prompt / Direction
 

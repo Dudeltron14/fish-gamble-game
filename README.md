@@ -175,7 +175,7 @@ See [docs/FRAMEWORKS.md](docs/FRAMEWORKS.md) for the full guide.
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Multiplayer flow, server authority model, RPC conventions, DB schema |
 | [FRAMEWORKS.md](docs/FRAMEWORKS.md) | How to add fish, rods, bait, tackle, and casino games |
 | [SETUP.md](docs/SETUP.md) | Collaborator quickstart, Docker deploy, Nginx config |
-| [TODO.md](docs/TODO.md) | Living task list |
+| [TODO.md](docs/TODO.md) | Non-release backlog and saved implementation notes |
 
 ---
 

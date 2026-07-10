@@ -1,6 +1,8 @@
 # Ship Checklist
 
-This is the current shipping bar for `fishing-tuning`. It intentionally uses the stricter review criteria: server-authoritative where it affects coins, deployable over WSS, verified with two clients, and documented from live code.
+This is the single source of truth for ship status. Other docs may describe systems, saved plans, or historical handoff context, but release checkboxes should live here only.
+
+The checklist intentionally uses the stricter review criteria: server-authoritative where it affects coins, deployable over WSS, verified with two clients, and documented from live code.
 
 ## Code / Security
 
@@ -19,7 +21,7 @@ This is the current shipping bar for `fishing-tuning`. It intentionally uses the
 - [x] Verify 2-player fishing sync: cast, reel, result, animation, and no cross-player UI bleed.
 - [x] Verify gear consumption in 2-player sessions: bait decrement, hook durability, break/re-equip, reconnect state.
 - [x] Verify HUD and GearStatsPanel live refresh after bait/hook depletion.
-- [ ] Validate blackjack card rendering, backdrop, and flip animations in an exported build, including visual signoff.
+- [x] Validate blackjack card rendering, backdrop, and flip animations in an exported build, including visual signoff.
 - [ ] Playtest expanded 17-catch roster, payouts, and Baby Kraken 2.5 difficulty.
 
 ## Visual / Content
@@ -29,6 +31,7 @@ This is the current shipping bar for `fishing-tuning`. It intentionally uses the
 - [x] Add bobber spawn splash animation.
 - [x] Replace casino exterior with transparent style-matched art.
 - [x] Add blackjack casino backdrop.
+- [ ] Add blackjack-only coin burst VFX on winning payouts.
 - [ ] Reposition zones after final building placement.
 - [x] Finish water animation setup.
 - [ ] Confirm tilemap/building/water collision in a real play session.
@@ -41,8 +44,8 @@ This is the current shipping bar for `fishing-tuning`. It intentionally uses the
 - [ ] Confirm GHCR package visibility.
 - [x] Confirm deployed clients can connect through `wss://fishserver.dudeltron14.win`.
 - [x] Confirm Cloudflare Tunnel origin routing to the Docker game server.
-- [ ] Confirm Docker SQLite persistence through container restart/update.
-- [ ] Run Linux server export and Web export from CI or local Godot.
+- [x] Confirm Docker SQLite persistence through container restart/update.
+- [x] Run Linux server export and Web export from CI or local Godot.
 - [ ] Update screenshots in `docs/screenshots/` for README.
 
 Out of scope for this ship path: Windows Desktop export. The intended client is the Web export, backed by the Linux Docker server.
