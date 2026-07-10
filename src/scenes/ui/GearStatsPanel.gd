@@ -40,9 +40,6 @@ extends CanvasLayer
 @onready var cast_hint_icon: TextureRect = %CastHintIcon
 @onready var cast_hint_lbl:  Label       = %CastHintLabel
 
-@export var panel_bg_color: Color = Color(0.12, 0.14, 0.18, 1.0)
-@export var panel_corner_radius: int = 4
-
 const SETTINGS_FILE := "user://settings.cfg"
 var _expanded := false
 var _music_vol := 80.0
@@ -50,14 +47,6 @@ var _sfx_vol   := 80.0
 var _vbox: VBoxContainer
 
 func _ready() -> void:
-	var style := StyleBoxFlat.new()
-	style.bg_color = panel_bg_color
-	style.corner_radius_top_left    = panel_corner_radius
-	style.corner_radius_top_right   = panel_corner_radius
-	style.corner_radius_bottom_left = panel_corner_radius
-	style.corner_radius_bottom_right = panel_corner_radius
-	$Panel.add_theme_stylebox_override("panel", style)
-
 	_vbox = $Panel/Margin/VBox
 	_build_volume_section()
 	_load_settings()
