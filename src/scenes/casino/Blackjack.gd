@@ -373,10 +373,10 @@ func _spawn_coin_bursts(payout: int) -> void:
 	var center := viewport_size * 0.5
 	var edge_inset := 24.0
 	var emitters := [
-		{"position": Vector2(center.x, edge_inset), "rotation": 0.0},
-		{"position": Vector2(viewport_size.x - edge_inset, center.y), "rotation": deg_to_rad(90.0)},
-		{"position": Vector2(center.x, viewport_size.y - edge_inset), "rotation": deg_to_rad(180.0)},
-		{"position": Vector2(edge_inset, center.y), "rotation": deg_to_rad(-90.0)},
+		{"position": Vector2(center.x, edge_inset), "rotation": deg_to_rad(90.0)},
+		{"position": Vector2(viewport_size.x - edge_inset, center.y), "rotation": 0.0},
+		{"position": Vector2(center.x, viewport_size.y - edge_inset), "rotation": deg_to_rad(90.0)},
+		{"position": Vector2(edge_inset, center.y), "rotation": 0.0},
 	]
 
 	var burst_index := 0

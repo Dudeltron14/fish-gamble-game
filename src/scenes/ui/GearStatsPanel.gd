@@ -134,6 +134,9 @@ func _set_expanded(expand: bool) -> void:
 	for i in range(1, _vbox.get_child_count()):
 		_vbox.get_child(i).visible = expand
 
+func is_expanded() -> bool:
+	return _expanded
+
 func _save_settings() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("audio", "music_volume", _music_vol)
