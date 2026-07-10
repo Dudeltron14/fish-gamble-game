@@ -369,23 +369,24 @@ func _spawn_coin_bursts(payout: int) -> void:
 
 	var viewport_size := get_viewport().get_visible_rect().size
 	var center := viewport_size * 0.5
-	var inset := Vector2(46.0, 46.0)
-	var corners := [
-		inset,
-		Vector2(viewport_size.x - inset.x, inset.y),
-		Vector2(inset.x, viewport_size.y - inset.y),
-		viewport_size - inset,
+	var edge_inset := 24.0
+	var emitters := [
+		Vector2(center.x, edge_inset),
+		Vector2(viewport_size.x - edge_inset, center.y),
+		Vector2(center.x, viewport_size.y - edge_inset),
+		Vector2(edge_inset, center.y),
 	]
 
 	var burst_index := 0
-	for corner: Vector2 in corners:
-		var direction := center - corner
+	for emitter: Vector2 in emitters:
+		var direction := center - emitter
 		for i in bursts_per_corner:
 			var burst := COIN_BURST_SCENE.instantiate() as Node2D
 			add_child(burst)
-			var jitter := Vector2(randf_range(-18.0, 18.0), randf_range(-18.0, 18.0))
-			burst.global_position = corner + jitter
+			var jitter := Vector2(randf_range(-42.0, 42.0), randf_range(-42.0, 42.0))
+			burst.global_position = emitter + jitter
 			burst.rotation = direction.angle()
+			burst.scale *= 3.0
 			if burst_index > 0:
 				burst.modulate.a = 0.0
 				var tween := create_tween()
