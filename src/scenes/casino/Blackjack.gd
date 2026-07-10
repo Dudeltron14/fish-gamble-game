@@ -70,7 +70,6 @@ func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance
 	_dealer_cards = [dealer_visible]
 	_dealer_hole_hidden = true
 	_update_dealer_info()
-	AudioManager.sfx("sfx_card_shuffle")
 	# Deal cards with staggered back-to-face flips; keep the dealer hole card face down.
 	var delay := 0.0
 	_deal_card_animated(dealer_hand, _card_widget(dealer_visible), delay, true); delay += 0.24
