@@ -132,6 +132,28 @@ sudo cp data/players.db "backups/players-$(date +%Y%m%d-%H%M%S).db"
 sudo chown "$USER:$USER" backups/*.db
 ```
 
+### Reset A Player Password
+
+This keeps the player's coins, inventory, equipped gear, and hook durability. It only updates the password hash and salt in `players.db`.
+
+Generate a temporary password:
+
+```bash
+cd ~/fish-game
+sudo docker compose run --rm --no-deps --entrypoint ./FishGambleGame.x86_64 game-server --headless --reset-password doodle
+```
+
+The command prints the temporary password once. Use it to log in, then reset again if needed.
+
+Set a specific password instead:
+
+```bash
+cd ~/fish-game
+sudo docker compose run --rm --no-deps --entrypoint ./FishGambleGame.x86_64 game-server --headless --reset-password doodle "new-password-here"
+```
+
+If the live server is running, this one-off admin container uses the same `./data:/app/data` volume and exits after updating the database.
+
 ### Restore Player Database
 
 Stop the game server before restoring:

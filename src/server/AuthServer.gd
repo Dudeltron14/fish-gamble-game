@@ -136,6 +136,30 @@ func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 		push_warning("AuthServer: register failed duplicate username=%s" % username)
 		NetAPI.rpc_id(peer_id, "notify_register", false, "Username already taken.")
 
+func reset_password(username: String, new_password: String) -> bool:
+	if _db == null:
+		push_error("AuthServer: cannot reset password; database unavailable")
+		return false
+	if username.strip_edges().is_empty() or new_password.is_empty():
+		push_error("AuthServer: reset password requires username and password")
+		return false
+
+	_db.query_with_bindings("SELECT id FROM players WHERE username = ?", [username])
+	if _db.query_result.is_empty():
+		push_error("AuthServer: reset password failed; user '%s' not found" % username)
+		return false
+
+	var salt := _generate_salt()
+	var ok: bool = _db.query_with_bindings(
+		"UPDATE players SET password_hash = ?, salt = ? WHERE username = ?",
+		[_hash_salted(_hash_plain_password(new_password), salt), salt, username]
+	)
+	if ok:
+		print("AuthServer: password reset for user '%s'" % username)
+	else:
+		push_error("AuthServer: reset password update failed for user '%s'" % username)
+	return ok
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 func _ensure_starter_items(username: String, player_id: int = -1, force_equipment: bool = false) -> void:
@@ -314,4 +338,10 @@ func _hash_salted(pw_hash: String, salt: String) -> String:
 	var ctx := HashingContext.new()
 	ctx.start(HashingContext.HASH_SHA256)
 	ctx.update((pw_hash + salt).to_utf8_buffer())
+	return ctx.finish().hex_encode()
+
+func _hash_plain_password(password: String) -> String:
+	var ctx := HashingContext.new()
+	ctx.start(HashingContext.HASH_SHA256)
+	ctx.update(password.to_utf8_buffer())
 	return ctx.finish().hex_encode()
