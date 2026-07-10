@@ -10,6 +10,7 @@ Living task list. The stricter release gate lives in `docs/SHIP_CHECKLIST.md`.
 - [ ] Confirm Docker SQLite persistence through restart/update.
 - [ ] Playtest expanded 17-catch roster, payouts, and Baby Kraken difficulty after the latest art/content pass.
 - [ ] Verify new blackjack backdrop and flip animations in an exported Web build when playtesting is available.
+- [ ] Add coin burst VFX using `assets/Super Pixel Effects Gigapack (Free Version)/spritesheet/Magic Bursts/directional_coin_burst_001/` for coin gains.
 
 ---
 

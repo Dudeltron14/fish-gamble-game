@@ -267,6 +267,7 @@ func _flip_card_in_place(hand: HBoxContainer, card_widget: Control, face_widget:
 	if card_widget is TextureRect and face_widget is TextureRect:
 		tween.tween_callback(func():
 			if is_instance_valid(card_widget):
+				AudioManager.sfx("sfx_card_flip")
 				(card_widget as TextureRect).texture = (face_widget as TextureRect).texture
 		)
 		tween.tween_property(card_widget, "scale:x", 1.0, CARD_FLIP_HALF_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
@@ -274,6 +275,7 @@ func _flip_card_in_place(hand: HBoxContainer, card_widget: Control, face_widget:
 		tween.tween_callback(func():
 			if not is_instance_valid(card_widget):
 				return
+			AudioManager.sfx("sfx_card_flip")
 			var index := card_widget.get_index()
 			card_widget.queue_free()
 			hand.add_child(face_widget)
