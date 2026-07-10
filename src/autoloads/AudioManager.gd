@@ -138,6 +138,9 @@ var _sfx_vol_linear: float        = 1.0
 var _music_tween: Tween = null
 
 func _ready() -> void:
+	_ensure_audio_bus(BUS_MUSIC)
+	_ensure_audio_bus(BUS_SFX)
+
 	_music_player = AudioStreamPlayer.new()
 	_music_player.bus = BUS_MUSIC
 	_music_player.finished.connect(_on_track_finished)
@@ -287,6 +290,14 @@ func set_volume(bus: String, volume_db: float) -> void:
 	var idx := AudioServer.get_bus_index(bus)
 	if idx >= 0:
 		AudioServer.set_bus_volume_db(idx, volume_db)
+
+func _ensure_audio_bus(bus_name: String) -> void:
+	if AudioServer.get_bus_index(bus_name) >= 0:
+		return
+	AudioServer.add_bus()
+	var bus_index := AudioServer.get_bus_count() - 1
+	AudioServer.set_bus_name(bus_index, bus_name)
+	AudioServer.set_bus_send(bus_index, BUS_MASTER)
 
 func _music_volume_db() -> float:
 	if _music_vol_linear <= 0.0:
