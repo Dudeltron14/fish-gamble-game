@@ -5,6 +5,7 @@ signal completed
 const RANKS := ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]
 const SUITS := ["♠","♥","♦","♣"]
 const CARD_SIZE := Vector2(48, 70)
+const CARD_DEAL_FLY_TIME := 0.22
 const CARD_FLIP_HALF_TIME := 0.14
 
 enum State { IDLE, PLAYER_TURN }
@@ -17,6 +18,7 @@ var _player_value := 0
 @onready var status_label: Label    = %StatusLabel
 @onready var player_hand: HBoxContainer = %PlayerHand
 @onready var player_value_label: Label = %PlayerValueLabel
+@onready var deck_stack: TextureRect = %DeckStack
 @onready var dealer_hand: HBoxContainer = %DealerHand
 @onready var dealer_info_label: Label = %DealerInfoLabel
 @onready var bet_spin: SpinBox      = %BetSpin
@@ -224,38 +226,63 @@ func _update_dealer_info(value: int = -1) -> void:
 func _deal_card_animated(hand: HBoxContainer, face_widget: Control, delay: float, reveal_face: bool = true) -> void:
 	var card_widget := _hidden_widget() if reveal_face else face_widget
 	card_widget.pivot_offset = CARD_SIZE * 0.5
-	card_widget.scale = Vector2(0.0, 1.0)
+	card_widget.visible = false
 	hand.add_child(card_widget)
 	var tween := create_tween()
 	if delay > 0.0:
 		tween.tween_interval(delay)
-	tween.tween_property(card_widget, "scale:x", 1.0, CARD_FLIP_HALF_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-	if reveal_face:
-		tween.tween_interval(0.06)
-		tween.tween_property(card_widget, "scale:x", 0.0, CARD_FLIP_HALF_TIME).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
-		if card_widget is TextureRect and face_widget is TextureRect:
-			tween.tween_callback(func():
-				if is_instance_valid(card_widget):
-					(card_widget as TextureRect).texture = (face_widget as TextureRect).texture
-			)
-			tween.tween_property(card_widget, "scale:x", 1.0, CARD_FLIP_HALF_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-		else:
-			tween.tween_callback(func():
-				if not is_instance_valid(card_widget):
-					return
-				var index := card_widget.get_index()
-				card_widget.queue_free()
-				hand.add_child(face_widget)
-				hand.move_child(face_widget, index)
-				face_widget.pivot_offset = CARD_SIZE * 0.5
-				face_widget.scale = Vector2(0.0, 1.0)
-				var fallback_tween := create_tween()
-				fallback_tween.tween_property(face_widget, "scale:x", 1.0, CARD_FLIP_HALF_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-			)
-	if delay == 0.0:
-		AudioManager.sfx("sfx_card_deal")
+	tween.tween_callback(func(): _start_card_deal(hand, card_widget, face_widget, reveal_face))
+
+func _start_card_deal(hand: HBoxContainer, card_widget: Control, face_widget: Control, reveal_face: bool) -> void:
+	await get_tree().process_frame
+	if not is_instance_valid(card_widget):
+		return
+	AudioManager.sfx("sfx_card_deal")
+	var flying_card := _hidden_widget()
+	add_child(flying_card)
+	flying_card.size = CARD_SIZE
+	flying_card.pivot_offset = CARD_SIZE * 0.5
+	flying_card.global_position = deck_stack.global_position
+	flying_card.rotation = deg_to_rad(-5.0)
+	var target_position := card_widget.global_position
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(flying_card, "global_position", target_position, CARD_DEAL_FLY_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(flying_card, "rotation", 0.0, CARD_DEAL_FLY_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	tween.finished.connect(func():
+		if is_instance_valid(flying_card):
+			flying_card.queue_free()
+		if not is_instance_valid(card_widget):
+			return
+		card_widget.visible = true
+		card_widget.scale = Vector2.ONE
+		_flip_card_in_place(hand, card_widget, face_widget, reveal_face)
+	)
+
+func _flip_card_in_place(hand: HBoxContainer, card_widget: Control, face_widget: Control, reveal_face: bool) -> void:
+	if not reveal_face:
+		return
+	card_widget.pivot_offset = CARD_SIZE * 0.5
+	var tween := create_tween()
+	tween.tween_property(card_widget, "scale:x", 0.0, CARD_FLIP_HALF_TIME).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
+	if card_widget is TextureRect and face_widget is TextureRect:
+		tween.tween_callback(func():
+			if is_instance_valid(card_widget):
+				(card_widget as TextureRect).texture = (face_widget as TextureRect).texture
+		)
+		tween.tween_property(card_widget, "scale:x", 1.0, CARD_FLIP_HALF_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	else:
-		get_tree().create_timer(delay).timeout.connect(func(): AudioManager.sfx("sfx_card_deal"))
+		tween.tween_callback(func():
+			if not is_instance_valid(card_widget):
+				return
+			var index := card_widget.get_index()
+			card_widget.queue_free()
+			hand.add_child(face_widget)
+			hand.move_child(face_widget, index)
+			face_widget.pivot_offset = CARD_SIZE * 0.5
+			face_widget.scale = Vector2(0.0, 1.0)
+			var fallback_tween := create_tween()
+			fallback_tween.tween_property(face_widget, "scale:x", 1.0, CARD_FLIP_HALF_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+		)
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 

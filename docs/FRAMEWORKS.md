@@ -154,13 +154,13 @@ The full wait time = `randf_range(cast_min, cast_max) × wait_modifier`
 ### Rarity Weights Reference
 
 ```
-Default (no bait): {common:0.95, uncommon:0.05, rare:0.00, legendary:0.00}
+Default (no bait): 50% junk, 50% starter common fish; no uncommon/rare/legendary pool
 Worm data:         {common:0.85, uncommon:0.15, rare:0.00, legendary:0.00}
 Shiny Lure data:   {common:0.50, uncommon:0.35, rare:0.14, legendary:0.01}
 Magic Bait:        {common:0.025, uncommon:0.425, rare:0.40, legendary:0.15}
 ```
 
-Runtime note: Worm and Shiny Lure currently use curated server-side pools instead of the dynamic rarity picker. Worm is capped to junk/common/uncommon starter catches; Shiny Lure is the first stable money-maker with rare and tiny legendary access. Magic Bait uses the normal dynamic picker.
+Runtime note: No bait, Worm, and Shiny Lure currently use curated server-side pools instead of the dynamic rarity picker. No bait is capped to junk/common starter catches. Worm is capped to junk/common/uncommon starter catches; Shiny Lure is the first stable money-maker with rare and tiny legendary access. Magic Bait uses the normal dynamic picker.
 
 ---
 

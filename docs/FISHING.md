@@ -206,7 +206,7 @@ All catchables are `.tres` files in `src/resources/fish/`. Most new fish only re
 
 ### Junk (Common Rarity — 0 Coins)
 
-Junk appears in the common rarity pool. Without bait (95% common), fishing rarely catches anything valuable; this is intentional so new players learn to buy worms and gambling everything away has teeth.
+Without bait, the server uses a curated starter pool: 50% junk and 50% common starter fish. This still nudges players toward buying worms, but is less punishing after gambling everything away.
 
 | Item | Rarity | Payout | Note |
 |---|---|---|---|
@@ -221,20 +221,21 @@ Junk appears in the common rarity pool. Without bait (95% common), fishing rarel
 The server selects a rarity tier, then picks a random catch of that rarity. A fixed 1% Sunken Chest chance is checked before the normal bait/rod/cast selection.
 
 **Selection order:**
-1. Start with bait `rarity_weights` (or default if no bait)
-2. Apply rod `rarity_bonus` shift
-3. Apply cast quality bonus/penalty
-4. Normalise weights to sum to 1.0
-5. Weighted random pick
+1. Check fixed 1% Sunken Chest chance
+2. Use curated no-bait, Worm, or Shiny Lure pools when applicable
+3. Otherwise start with bait `rarity_weights`
+4. Apply rod `rarity_bonus` shift
+5. Apply cast quality bonus/penalty
+6. Normalise weights to sum to 1.0
+7. Weighted random pick
 
-### Default Weights (No Bait)
+### Default Pool (No Bait)
 
-| Rarity | Probability |
+| Catch type | Probability |
 |---|---|
-| Common | **95%** — mostly junk plus common fish |
-| Uncommon | 5% |
-| Rare | 0% |
-| Legendary | 0% |
+| Junk | **50%** |
+| Common starter fish | **50%** |
+| Uncommon / Rare / Legendary | 0% |
 
 ### Bait Weights
 
@@ -260,7 +261,9 @@ weights["legendary"] += rarity_bonus × 0.3
 | Angler's Rod | 0.05 | Common −5%, Rare +3.5%, Legendary +1.5% |
 | Master Rod | 0.12 | Common −12%, Rare +8.4%, Legendary +3.6% |
 
-Worm and Shiny Lure intentionally use curated starter pools instead of the full dynamic rarity picker.
+No bait, Worm, and Shiny Lure intentionally use curated starter pools instead of the full dynamic rarity picker.
+
+**No bait:** 50% junk, 50% common starter fish. It does not use rod/cast rarity bonuses to enter higher rarity pools.
 
 **Worm:** 8% junk, 70% common starter fish, 22% uncommon starter fish. It does not use rod/cast rarity bonuses to enter the normal Rare/Legendary pool.
 

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://src/scenes/casino/Blackjack.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://d01b16f17u1lb" path="res://assets/User_Gen_ChatGPT/Casino Backdrop.png" id="2_backdrop"]
+[ext_resource type="Texture2D" uid="uid://cwe0mabngqay" path="res://assets/Playing Cards/card-back1.png" id="3_card_back"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_table_ui"]
 bg_color = Color(0, 0, 0, 0.22)
@@ -71,6 +72,13 @@ text = "Dealer"
 
 [node name="DealerRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
 theme_override_constants/separation = 12
+
+[node name="DeckStack" type="TextureRect" parent="Center/Panel/Margin/VBox/DealerRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 70)
+texture = ExtResource("3_card_back")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="DealerHand" type="HBoxContainer" parent="Center/Panel/Margin/VBox/DealerRow"]
 unique_name_in_owner = true

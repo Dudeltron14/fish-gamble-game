@@ -104,6 +104,8 @@ func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 		if bait.id == "lure":
 			return _pick_lure_fish()
 		weights = bait.rarity_weights.duplicate()
+	else:
+		return _pick_no_bait_fish()
 
 	# Apply rod rarity_bonus
 	var rod := ItemRegistry.get_item(session.equipped_rod_id) as RodData
@@ -144,6 +146,23 @@ func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 	if candidates.is_empty():
 		return null
 	return candidates[randi() % candidates.size()]
+
+func _pick_no_bait_fish() -> FishData:
+	var roll := randf()
+	if roll < 0.50:
+		var junk := _fish_candidates(["junk_boot", "junk_can", "junk_seaweed"])
+		if not junk.is_empty():
+			return junk[randi() % junk.size()]
+	var common := _fish_candidates([
+		"common_perch",
+		"common_tropical_bluegill",
+		"common_freshwater_snail",
+		"common_mossback_bass",
+	])
+	if not common.is_empty():
+		return common[randi() % common.size()]
+	var fallback := _fish_candidates(["junk_boot", "junk_can", "junk_seaweed"])
+	return fallback[randi() % fallback.size()] if not fallback.is_empty() else null
 
 func _pick_worm_fish() -> FishData:
 	var roll := randf()
