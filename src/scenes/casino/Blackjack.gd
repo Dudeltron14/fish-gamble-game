@@ -373,24 +373,21 @@ func _spawn_coin_bursts(payout: int) -> void:
 	var center := viewport_size * 0.5
 	var edge_inset := 24.0
 	var emitters := [
-		Vector2(center.x, edge_inset),
-		Vector2(viewport_size.x - edge_inset, center.y),
-		Vector2(center.x, viewport_size.y - edge_inset),
-		Vector2(edge_inset, center.y),
+		{"position": Vector2(center.x, edge_inset), "rotation": 0.0},
+		{"position": Vector2(viewport_size.x - edge_inset, center.y), "rotation": deg_to_rad(90.0)},
+		{"position": Vector2(center.x, viewport_size.y - edge_inset), "rotation": deg_to_rad(180.0)},
+		{"position": Vector2(edge_inset, center.y), "rotation": deg_to_rad(-90.0)},
 	]
 
 	var burst_index := 0
-	for emitter: Vector2 in emitters:
-		var direction := center - emitter
+	for emitter: Dictionary in emitters:
+		var emitter_position: Vector2 = emitter["position"]
 		for i in bursts_per_corner:
 			var burst := COIN_BURST_SCENE.instantiate() as Node2D
 			add_child(burst)
 			var jitter := Vector2(randf_range(-42.0, 42.0), randf_range(-42.0, 42.0))
-			burst.global_position = emitter + jitter
-			var burst_rotation := direction.angle()
-			if not is_equal_approx(emitter.x, center.x):
-				burst_rotation += deg_to_rad(90.0)
-			burst.rotation = burst_rotation
+			burst.global_position = emitter_position + jitter
+			burst.rotation = emitter["rotation"]
 			burst.scale *= 3.0
 			if burst_index > 0:
 				burst.modulate.a = 0.0

@@ -99,6 +99,18 @@ func set_menu_hidden(menu_hidden: bool) -> void:
 	_update_bobber(_is_fishing)
 	_send_state()
 
+func resume_from_menu_at(world_position: Vector2) -> void:
+	global_position = world_position
+	_is_hidden_for_menu = false
+	visible = true
+	velocity = Vector2.ZERO
+	set_physics_process(_is_local_authority())
+	if not _is_fishing and sprite.sprite_frames:
+		sprite.play("idle")
+	_update_bobber(_is_fishing)
+	_send_state()
+	call_deferred("_send_state")
+
 func set_cast_quality(cast_quality: float) -> void:
 	_bobber_cast_quality = clampf(cast_quality, 0.0, 1.0)
 	_update_bobber(_is_fishing)

@@ -15,6 +15,8 @@ var _local_zone := ""
 var _overlay: Node = null
 var _overlay_scene: PackedScene = null
 var _disconnect_dialog: ConfirmationDialog = null
+var _overlay_hides_player := false
+var _overlay_entry_position := Vector2.ZERO
 
 func _ready() -> void:
 	add_to_group("world")
@@ -225,21 +227,28 @@ func _open_overlay(scene: PackedScene) -> void:
 	_overlay.completed.connect(_on_overlay_closed)
 	add_child(_overlay)
 	AudioManager.sfx("sfx_menu_open")
-	_set_local_player_menu_hidden(scene == SHOP_SCENE or scene == BJ_SCENE)
+	_overlay_hides_player = scene == SHOP_SCENE or scene == BJ_SCENE
+	var player := _get_local_player()
+	if player:
+		_overlay_entry_position = player.global_position
+	_set_local_player_menu_hidden(_overlay_hides_player)
 	if scene == FISHING_SCENE:
-		var player := _get_local_player()
 		if player:
 			player.start_fishing()
 
 func _on_overlay_closed() -> void:
 	AudioManager.sfx("sfx_menu_close")
-	_set_local_player_menu_hidden(false)
+	var player := _get_local_player()
+	if _overlay_hides_player and player and player.has_method("resume_from_menu_at"):
+		player.resume_from_menu_at(_overlay_entry_position)
+	else:
+		_set_local_player_menu_hidden(false)
 	if _overlay_scene == FISHING_SCENE:
-		var player := _get_local_player()
 		if player:
 			player.stop_fishing()
 	_overlay = null
 	_overlay_scene = null
+	_overlay_hides_player = false
 
 func _show_disconnect_dialog() -> void:
 	if _disconnect_dialog != null and is_instance_valid(_disconnect_dialog):
