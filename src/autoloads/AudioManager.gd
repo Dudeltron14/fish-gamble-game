@@ -91,7 +91,7 @@ func _load_sfx() -> void:
 		"sfx_cast", "sfx_bite", "sfx_reel_tick", "sfx_catch", "sfx_miss",
 		"sfx_hook_break", "sfx_bait_empty", "sfx_buy", "sfx_equip",
 		"sfx_not_enough_coins", "sfx_menu_open", "sfx_menu_close", "sfx_coins",
-		"sfx_card_deal", "sfx_card_flip", "sfx_blackjack_win", "sfx_blackjack_lose", "sfx_blackjack_push",
+		"sfx_card_deal", "sfx_card_flip", "sfx_card_shuffle", "sfx_blackjack_win", "sfx_blackjack_lose", "sfx_blackjack_push",
 	]:
 		var path := SFX_DIR + name + ".wav"
 		if ResourceLoader.exists(path):
