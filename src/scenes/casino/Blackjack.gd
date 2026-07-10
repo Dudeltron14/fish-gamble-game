@@ -11,10 +11,12 @@ enum State { IDLE, PLAYER_TURN }
 var _state := State.IDLE
 var _dealer_cards: Array = []
 var _dealer_hole_hidden := false
+var _player_value := 0
 
 @onready var coins_label: Label     = %CoinsLabel
 @onready var status_label: Label    = %StatusLabel
 @onready var player_hand: HBoxContainer = %PlayerHand
+@onready var player_value_label: Label = %PlayerValueLabel
 @onready var dealer_hand: HBoxContainer = %DealerHand
 @onready var dealer_info_label: Label = %DealerInfoLabel
 @onready var bet_spin: SpinBox      = %BetSpin
@@ -73,8 +75,9 @@ func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance
 		_deal_card_animated(player_hand, _card_widget(c), delay, true); delay += 0.24
 	_deal_card_animated(dealer_hand, _hidden_widget(), delay, false)
 
-	var pv := _val(player_cards)
-	status_label.text = "Your hand: %d — Hit or Stand?" % pv
+	_player_value = _val(player_cards)
+	_update_player_value()
+	status_label.text = "Hit or Stand?"
 	status_label.modulate = Color.WHITE
 	coins_label.text = "Coins: %d  (bet: %d)" % [balance, bet]
 	GameManager.set_coins(balance)
@@ -83,12 +86,14 @@ func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance
 
 func _on_hit(card: Dictionary, new_val: int) -> void:
 	_deal_card_animated(player_hand, _card_widget(card), 0.0, true)
+	_player_value = new_val
+	_update_player_value()
 	if new_val > 21:
-		status_label.text = "Bust! (%d)" % new_val
+		status_label.text = "Bust!"
 		status_label.modulate = Color(1.0, 0.4, 0.4)
 		_set_actions(false)
 	else:
-		status_label.text = "Your hand: %d" % new_val
+		status_label.text = "Hit or Stand?"
 	double_btn.disabled = true
 
 func _on_dealer_reveal(full_hand: Array, value: int) -> void:
@@ -295,7 +300,12 @@ func _clear_hands() -> void:
 	_clear_node(dealer_hand)
 	_dealer_cards.clear()
 	_dealer_hole_hidden = false
+	_player_value = 0
+	player_value_label.text = ""
 	dealer_info_label.text = ""
+
+func _update_player_value() -> void:
+	player_value_label.text = "Your hand: %d" % _player_value
 
 func _clear_node(node: Node) -> void:
 	for c in node.get_children():
