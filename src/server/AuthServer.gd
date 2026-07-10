@@ -187,9 +187,9 @@ func _ensure_usable_equipment(username: String, player_id: int) -> void:
 	if _db.query_result.is_empty():
 		return
 	var row: Dictionary = _db.query_result[0]
-	var has_rod := _has_owned_item(player_id, str(row.equipped_rod_id))
-	var has_bait := _has_owned_item(player_id, str(row.equipped_bait_id))
-	var has_tackle := _has_owned_item(player_id, str(row.equipped_tackle_id))
+	var has_rod := _has_owned_slot_item(player_id, str(row.equipped_rod_id), "rod")
+	var has_bait := _has_owned_slot_item(player_id, str(row.equipped_bait_id), "bait")
+	var has_tackle := _has_owned_slot_item(player_id, str(row.equipped_tackle_id), "tackle")
 	if has_rod and has_bait and has_tackle:
 		return
 	push_warning("AuthServer: repairing starter equipment username=%s" % username)
@@ -207,6 +207,11 @@ func _ensure_usable_equipment(username: String, player_id: int) -> void:
 		GameServer.get_starter_hook_durability(),
 		player_id,
 	])
+
+func _has_owned_slot_item(player_id: int, item_id: String, slot: String) -> bool:
+	if not _has_owned_item(player_id, item_id):
+		return false
+	return _item_matches_slot(ItemRegistry.get_item(item_id), slot)
 
 func _has_owned_item(player_id: int, item_id: String) -> bool:
 	if item_id.is_empty() or ItemRegistry.get_item(item_id) == null:
@@ -245,9 +250,9 @@ func _load_equipped(session: PlayerSession, player_id: int) -> void:
 		var rod_id := str(row.equipped_rod_id)
 		var bait_id := str(row.equipped_bait_id)
 		var tackle_id := str(row.equipped_tackle_id)
-		session.equipped_rod_id = rod_id if session.get_owned(rod_id) > 0 else first_rod
-		session.equipped_bait_id = bait_id if session.get_owned(bait_id) > 0 else first_bait
-		session.equipped_tackle_id = tackle_id if session.get_owned(tackle_id) > 0 else first_tackle
+		session.equipped_rod_id = rod_id if _is_owned_slot_item(session, rod_id, "rod") else first_rod
+		session.equipped_bait_id = bait_id if _is_owned_slot_item(session, bait_id, "bait") else first_bait
+		session.equipped_tackle_id = tackle_id if _is_owned_slot_item(session, tackle_id, "tackle") else first_tackle
 		session.hook_durability = int(row.hook_durability)
 	else:
 		session.equipped_rod_id = first_rod
@@ -259,6 +264,19 @@ func _load_equipped(session: PlayerSession, player_id: int) -> void:
 		if tackle and session.hook_durability <= 0:
 			session.hook_durability = tackle.durability
 	save_equipment(session)
+
+func _is_owned_slot_item(session: PlayerSession, item_id: String, slot: String) -> bool:
+	return session.get_owned(item_id) > 0 and _item_matches_slot(ItemRegistry.get_item(item_id), slot)
+
+func _item_matches_slot(item: ItemData, slot: String) -> bool:
+	match slot:
+		"rod":
+			return item is RodData
+		"bait":
+			return item is BaitData
+		"tackle":
+			return item is TackleData
+	return false
 
 func save_equipment(session: PlayerSession) -> void:
 	if _db == null:

@@ -134,10 +134,10 @@ Worm:
   - No normal Rare/Legendary pool from Worm.
 - Important caveat: the global 1% Sunken Chest pre-roll still happens before bait selection. Ask the user later whether Worm/no-bait should be excluded from the global chest roll.
 
-Shiny Lure:
+Shiny Lure (superseded):
 
-- User direction: Rare fish should appear inconsistently.
-- Implemented current Shiny Lure behavior:
+- Historical note: Shiny Lure used to be bait. It is now a mid-tier hook/tackle upgrade between Basic Hook and Golden Hook.
+- Previous Shiny Lure bait behavior:
   - 5% junk
   - 45% common starter fish
   - 35% uncommon starter fish
@@ -161,7 +161,7 @@ Historical note only; this bait retest has since been completed.
 ```text
 Previous item: bait retest.
 
-After the bait changes, please retest Worm, Shiny Lure, and Magic Bait. Do the new rarity mixes feel right enough to sign off, or does one still need adjustment?
+After the bait changes, please retest Worm and Magic Bait. Do the new rarity mixes feel right enough to sign off, or does one still need adjustment?
 ```
 
 ## Validation Run
@@ -188,7 +188,6 @@ Historical note only. For the current state, use `docs/SHIP_CHECKLIST.md`.
 - Playtest/sign off bait economy:
   - No bait: accepted.
   - Worm: changed, needs retest.
-  - Shiny Lure: changed, needs retest.
   - Magic Bait: changed, needs retest.
 - Finish art/manual world tasks: zones, collision confirmation, spawn pass.
 - Windows Desktop export remains optional/out of scope unless explicitly revived.

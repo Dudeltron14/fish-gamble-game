@@ -1,7 +1,7 @@
 # Frameworks — How to Add Content
 
 All game content is data-driven via Godot `.tres` Resource files.
-Most item changes require only creating or duplicating a `.tres` file. Worm and Shiny Lure use curated fish pools in `FishingServer.gd`, so add code entries there if a new fish should appear through those baits.
+Most item changes require only creating or duplicating a `.tres` file. Worm uses a curated fish pool in `FishingServer.gd`, so add code entries there if a new fish should appear through that bait.
 
 `ItemRegistry` scans the resource folders at startup and registers everything automatically.
 The shop, fishing system, and HUD all respond to whatever is registered.
@@ -131,7 +131,7 @@ Buying adds `uses_per_stack` to owned count.
 | Field | Type | Description |
 |---|---|---|
 | `id` | String | Unique key. |
-| `display_name` | String | Shown in HUD as `Bait: Shiny Lure ×5`. |
+| `display_name` | String | Shown in HUD as `Bait: Worm ×5`. |
 | `buy_price` | int | Cost per purchase. Each purchase adds `uses_per_stack` uses. |
 | `rarity_weights` | Dictionary | Rarity pool probabilities. Keys: `"common"` `"uncommon"` `"rare"` `"legendary"`. Must sum to ≈1.0. Replaces default weights entirely. |
 | `uses_per_stack` | int | Uses added per purchase (enforced server-side). |
@@ -145,7 +145,6 @@ The full wait time = `randf_range(cast_min, cast_max) × wait_modifier`
 |---|---|---|
 | 1.00 | No change | 1.5–3.5s |
 | 0.90 | 10% shorter (Worm) | 1.4–3.2s |
-| 0.75 | 25% shorter (Lure) | 1.1–2.6s |
 | 0.55 | 45% shorter (Magic Bait) | 0.8–1.9s |
 | 0.35 | 65% shorter (ultra premium) | 0.5–1.2s |
 
@@ -156,11 +155,10 @@ The full wait time = `randf_range(cast_min, cast_max) × wait_modifier`
 ```
 Default (no bait): 50% junk, 50% starter common fish; no uncommon/rare/legendary pool
 Worm data:         {common:0.85, uncommon:0.15, rare:0.00, legendary:0.00}
-Shiny Lure data:   {common:0.50, uncommon:0.35, rare:0.14, legendary:0.01}
 Magic Bait:        {common:0.025, uncommon:0.425, rare:0.40, legendary:0.15}
 ```
 
-Runtime note: No bait, Worm, and Shiny Lure currently use curated server-side pools instead of the dynamic rarity picker. No bait is capped to junk/common starter catches. Worm is capped to junk/common/uncommon starter catches; Shiny Lure is the first stable money-maker with rare and tiny legendary access. Magic Bait uses the normal dynamic picker.
+Runtime note: No bait and Worm currently use curated server-side pools instead of the dynamic rarity picker. No bait is capped to junk/common starter catches. Worm is capped to junk/common/uncommon starter catches. Magic Bait uses the normal dynamic picker.
 
 ---
 
@@ -190,6 +188,7 @@ earned = floor(fish.base_coin_value × fish.difficulty × coin_multiplier)
 | `coin_multiplier` | Kraken payout | Perch payout |
 |---|---|---|
 | 1.0 | 250c (Basic Hook) | 9c |
+| 1.15 | 287c (Shiny Lure) | 10c |
 | 1.3 | 325c (Golden Hook) | 11c |
 | 1.5 | 375c | 13c |
 | 2.0 | 500c | 18c |
@@ -201,6 +200,7 @@ React window = `1.2 / (1 + max(0, difficulty−1) × 0.35) × (1 + escape_reduct
 |---|---|
 | 0.00 | 0.79s |
 | 0.10 | 0.87s (Basic Hook) |
+| 0.18 | 0.93s (Shiny Lure) |
 | 0.25 | 0.98s (Golden Hook) |
 | 0.50 | 1.18s |
 
@@ -231,7 +231,7 @@ To change starter items: edit the constants and helpers in `src/autoloads/GameSe
 
 | Action | Requires code? |
 |---|---|
-| Add new fish | Usually no - duplicate `_template.tres`; add to curated worm/lure pools in code only if desired |
+| Add new fish | Usually no - duplicate `_template.tres`; add to the curated Worm pool in code only if desired |
 | Add new rod | No - duplicate `_template.tres` |
 | Add new bait | No - duplicate `_template.tres` |
 | Add new hook | No - duplicate `_template.tres` |

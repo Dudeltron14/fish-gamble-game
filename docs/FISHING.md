@@ -181,7 +181,7 @@ Successful catches also show a normalized catch sprite fade-out in the world usi
 
 ## Fish Catalogue
 
-All catchables are `.tres` files in `src/resources/fish/`. Most new fish only require creating a file. Worm and Shiny Lure use curated starter pools in `FishingServer.gd`, so add new fish there too if they should appear with those baits.
+All catchables are `.tres` files in `src/resources/fish/`. Most new fish only require creating a file. Worm uses a curated starter pool in `FishingServer.gd`, so add new fish there too if they should appear with that bait.
 
 **Payout formula:** `earned = floor(base_coin_value × catch_difficulty × hook.coin_multiplier)`
 
@@ -222,7 +222,7 @@ The server selects a rarity tier, then picks a random catch of that rarity. A fi
 
 **Selection order:**
 1. Check fixed 1% Sunken Chest chance
-2. Use curated no-bait, Worm, or Shiny Lure pools when applicable
+2. Use curated no-bait or Worm pools when applicable
 3. Otherwise start with bait `rarity_weights`
 4. Apply rod `rarity_bonus` shift
 5. Apply cast quality bonus/penalty
@@ -242,7 +242,6 @@ The server selects a rarity tier, then picks a random catch of that rarity. A fi
 | Bait | Cost | Common | Uncommon | Rare | Legendary | Wait modifier |
 |---|---|---|---|---|---|---|
 | Worm | 5c | 85% | 15% | 0% | 0% | ×0.90 |
-| Shiny Lure | 20c | 50% | 35% | 14% | 1% | ×0.75 |
 | Magic Bait | 60c | 2.5% | 42.5% | 40% | 15% | ×0.55 |
 
 Magic Bait almost eliminates junk and common fish, but keeps a 2.5% common miss chance.
@@ -261,13 +260,11 @@ weights["legendary"] += rarity_bonus × 0.3
 | Angler's Rod | 0.05 | Common −5%, Rare +3.5%, Legendary +1.5% |
 | Master Rod | 0.12 | Common −12%, Rare +8.4%, Legendary +3.6% |
 
-No bait, Worm, and Shiny Lure intentionally use curated starter pools instead of the full dynamic rarity picker.
+No bait and Worm intentionally use curated starter pools instead of the full dynamic rarity picker.
 
 **No bait:** 50% junk, 50% common starter fish. It does not use rod/cast rarity bonuses to enter higher rarity pools.
 
 **Worm:** 8% junk, 70% common starter fish, 22% uncommon starter fish. It does not use rod/cast rarity bonuses to enter the normal Rare/Legendary pool.
-
-**Shiny Lure:** 5% junk, 45% common starter fish, 35% uncommon starter fish, 14% rare fish, 1% legendary fish.
 
 **Magic Bait:** Uses the normal dynamic rarity picker, so any registered fish in the selected rarity can appear.
 
@@ -290,7 +287,6 @@ Buying bait adds `uses_per_stack` to owned count.
 | Bait | Price | Stack | Wait modifier | Pool |
 |---|---|---|---|---|
 | Worm | 5c | 10 uses | −10% | Starter fish only; rare junk |
-| Shiny Lure | 20c | 10 uses | −25% | Stable money-maker; occasional rare |
 | Magic Bait | 60c | 5 uses | −45% | Mostly rare fish, 15% legendary |
 
 ### Hooks — Durability depletes 1 per bite
@@ -300,6 +296,7 @@ When durability hits 0: one hook consumed from inventory, next auto-equips at fu
 | Hook | Price | Durability | Coin multiplier | React bonus |
 |---|---|---|---|---|
 | Basic Hook | 15c (free starter) | 10 uses | ×1.0 | +10% |
+| Shiny Lure | 60c | 15 uses | ×1.15 | +18% |
 | Golden Hook | 120c | 20 uses | ×1.3 | +25% |
 
 **Equipping gear is free** — only bites consume gear.
