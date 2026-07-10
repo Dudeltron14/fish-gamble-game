@@ -136,20 +136,47 @@ sudo chown "$USER:$USER" backups/*.db
 
 This keeps the player's coins, inventory, equipped gear, and hook durability. It only updates the password hash and salt in `players.db`.
 
-Generate a temporary password:
+Use the reusable ops script on the VM:
 
 ```bash
 cd ~/fish-game
-sudo docker compose run --rm --no-deps --entrypoint ./FishGambleGame.x86_64 game-server --headless --reset-password doodle
+sudo python3 scripts/reset_player_password.py doodle
 ```
 
-The command prints the temporary password once. Use it to log in, then reset again if needed.
+That creates a timestamped backup beside `data/players.db`, generates a temporary password, and prints it once.
 
 Set a specific password instead:
 
 ```bash
 cd ~/fish-game
-sudo docker compose run --rm --no-deps --entrypoint ./FishGambleGame.x86_64 game-server --headless --reset-password doodle "new-password-here"
+sudo python3 scripts/reset_player_password.py doodle "new-password-here"
+```
+
+List existing usernames:
+
+```bash
+cd ~/fish-game
+sudo python3 scripts/reset_player_password.py --list
+```
+
+If you only have the Docker deployment folder on the VM and not the repo scripts, fetch the current repo or copy `scripts/reset_player_password.py` into that folder. The script defaults to `data/players.db`, matching the Docker Compose volume.
+
+The exported game server also supports a one-off reset command after the latest image has deployed:
+
+Generate a temporary password:
+
+```bash
+cd ~/fish-game
+sudo docker compose run --rm --no-deps --entrypoint ./FishGambleGame.x86_64 game-server --headless -- --reset-password doodle
+```
+
+The command prints the temporary password once.
+
+Set a specific password instead:
+
+```bash
+cd ~/fish-game
+sudo docker compose run --rm --no-deps --entrypoint ./FishGambleGame.x86_64 game-server --headless -- --reset-password doodle "new-password-here"
 ```
 
 If the live server is running, this one-off admin container uses the same `./data:/app/data` volume and exits after updating the database.
