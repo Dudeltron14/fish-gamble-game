@@ -359,31 +359,39 @@ func _update_player_value() -> void:
 	player_value_label.text = "Your hand: %d" % _player_value
 
 func _spawn_coin_bursts(payout: int) -> void:
-	var count := 1
+	var bursts_per_corner := 1
 	if payout >= 500:
-		count = 14
+		bursts_per_corner = 7
 	elif payout >= 100:
-		count = 7
+		bursts_per_corner = 4
 	elif payout >= 50:
-		count = 3
+		bursts_per_corner = 2
 
-	var center := status_label.global_position + Vector2(status_label.size.x * 0.5, -18.0)
-	var spread := Vector2(34.0, 12.0)
-	if payout >= 100:
-		spread = Vector2(140.0, 42.0)
-	elif payout >= 50:
-		spread = Vector2(78.0, 24.0)
+	var viewport_size := get_viewport().get_visible_rect().size
+	var center := viewport_size * 0.5
+	var inset := Vector2(46.0, 46.0)
+	var corners := [
+		inset,
+		Vector2(viewport_size.x - inset.x, inset.y),
+		Vector2(inset.x, viewport_size.y - inset.y),
+		viewport_size - inset,
+	]
 
-	for i in count:
-		var burst := COIN_BURST_SCENE.instantiate() as Node2D
-		add_child(burst)
-		var offset := Vector2(randf_range(-spread.x, spread.x), randf_range(-spread.y, spread.y))
-		burst.global_position = center + offset
-		if i > 0:
-			burst.modulate.a = 0.0
-			var tween := create_tween()
-			tween.tween_interval(float(i) * 0.045)
-			tween.tween_property(burst, "modulate:a", 1.0, 0.01)
+	var burst_index := 0
+	for corner: Vector2 in corners:
+		var direction := center - corner
+		for i in bursts_per_corner:
+			var burst := COIN_BURST_SCENE.instantiate() as Node2D
+			add_child(burst)
+			var jitter := Vector2(randf_range(-18.0, 18.0), randf_range(-18.0, 18.0))
+			burst.global_position = corner + jitter
+			burst.rotation = direction.angle()
+			if burst_index > 0:
+				burst.modulate.a = 0.0
+				var tween := create_tween()
+				tween.tween_interval(float(burst_index) * 0.035)
+				tween.tween_property(burst, "modulate:a", 1.0, 0.01)
+			burst_index += 1
 
 func _clear_node(node: Node) -> void:
 	for c in node.get_children():
