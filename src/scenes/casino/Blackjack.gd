@@ -227,7 +227,7 @@ func _update_dealer_info(value: int = -1) -> void:
 func _deal_card_animated(hand: HBoxContainer, face_widget: Control, delay: float, reveal_face: bool = true) -> void:
 	var card_widget := _hidden_widget() if reveal_face else face_widget
 	card_widget.pivot_offset = CARD_SIZE * 0.5
-	card_widget.visible = false
+	card_widget.modulate.a = 0.0
 	hand.add_child(card_widget)
 	var tween := create_tween()
 	if delay > 0.0:
@@ -260,7 +260,7 @@ func _start_card_deal(hand: HBoxContainer, card_widget: Control, face_widget: Co
 			flying_card.queue_free()
 		if not is_instance_valid(card_widget):
 			return
-		card_widget.visible = true
+		card_widget.modulate.a = 1.0
 		card_widget.scale = Vector2.ONE
 		_flip_card_in_place(hand, card_widget, face_widget, reveal_face)
 	)
