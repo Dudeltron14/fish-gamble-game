@@ -31,6 +31,8 @@ var _player_value := 0
 
 func _ready() -> void:
 	AudioManager.set_music_context("casino")
+	AudioManager.sfx("sfx_cards_pack_open")
+	AudioManager.sfx("sfx_cards_pack_take_out")
 	NetAPI.bj_deal.connect(_on_deal)
 	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_on_leave_pressed)
 	NetAPI.bj_hit.connect(_on_hit)
@@ -69,6 +71,8 @@ func _on_deal_pressed() -> void:
 func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int) -> void:
 	_state = State.PLAYER_TURN
 	_clear_hands()
+	AudioManager.sfx("sfx_card_shuffle")
+	AudioManager.sfx("sfx_card_fan")
 	_dealer_cards = [dealer_visible]
 	_dealer_hole_hidden = true
 	_update_dealer_info()
@@ -135,7 +139,7 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 	match outcome:
 		"win":
 			AudioManager.sfx("sfx_blackjack_win")
-			AudioManager.sfx("sfx_coins")
+			AudioManager.sfx("sfx_casino_chips")
 			if payout > 0:
 				_spawn_coin_bursts(payout)
 		"bust", "lose": AudioManager.sfx("sfx_blackjack_lose")

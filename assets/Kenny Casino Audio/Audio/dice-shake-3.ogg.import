@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://ce8gosiiwdl6v"
+path="res://.godot/imported/dice-shake-3.ogg-a3c1e7c4fa0156e36296126ffe715c86.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/Kenny Casino Audio/Audio/dice-shake-3.ogg"
+dest_files=["res://.godot/imported/dice-shake-3.ogg-a3c1e7c4fa0156e36296126ffe715c86.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

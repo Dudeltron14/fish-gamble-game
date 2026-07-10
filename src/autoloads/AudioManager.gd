@@ -56,6 +56,71 @@ const PLAYLIST_PATHS: Dictionary = {
 
 const SFX_DIR := "res://assets/sfx/"
 const SFX_EXTENSIONS := [".wav", ".mp3", ".ogg"]
+const KENNY_CASINO_AUDIO_DIR := "res://assets/Kenny Casino Audio/Audio/"
+const SFX_PATHS: Dictionary = {
+	"sfx_card_deal": [
+		KENNY_CASINO_AUDIO_DIR + "card-slide-1.ogg",
+		KENNY_CASINO_AUDIO_DIR + "card-slide-2.ogg",
+		KENNY_CASINO_AUDIO_DIR + "card-slide-3.ogg",
+		KENNY_CASINO_AUDIO_DIR + "card-slide-4.ogg",
+		KENNY_CASINO_AUDIO_DIR + "card-slide-5.ogg",
+		KENNY_CASINO_AUDIO_DIR + "card-slide-6.ogg",
+		KENNY_CASINO_AUDIO_DIR + "card-slide-7.ogg",
+		KENNY_CASINO_AUDIO_DIR + "card-slide-8.ogg",
+	],
+	"sfx_card_flip": [
+		KENNY_CASINO_AUDIO_DIR + "card-place-1.ogg",
+		KENNY_CASINO_AUDIO_DIR + "card-place-2.ogg",
+		KENNY_CASINO_AUDIO_DIR + "card-place-3.ogg",
+		KENNY_CASINO_AUDIO_DIR + "card-place-4.ogg",
+	],
+	"sfx_card_shuffle": [
+		KENNY_CASINO_AUDIO_DIR + "card-shuffle.ogg",
+	],
+	"sfx_card_fan": [
+		KENNY_CASINO_AUDIO_DIR + "card-fan-1.ogg",
+		KENNY_CASINO_AUDIO_DIR + "card-fan-2.ogg",
+	],
+	"sfx_cards_pack_open": [
+		KENNY_CASINO_AUDIO_DIR + "cards-pack-open-1.ogg",
+		KENNY_CASINO_AUDIO_DIR + "cards-pack-open-2.ogg",
+	],
+	"sfx_cards_pack_take_out": [
+		KENNY_CASINO_AUDIO_DIR + "cards-pack-take-out-1.ogg",
+		KENNY_CASINO_AUDIO_DIR + "cards-pack-take-out-2.ogg",
+	],
+	"sfx_blackjack_win": [
+		KENNY_CASINO_AUDIO_DIR + "chips-collide-1.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chips-collide-2.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chips-collide-3.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chips-collide-4.ogg",
+	],
+	"sfx_blackjack_lose": [
+		KENNY_CASINO_AUDIO_DIR + "card-shove-1.ogg",
+		KENNY_CASINO_AUDIO_DIR + "card-shove-2.ogg",
+		KENNY_CASINO_AUDIO_DIR + "card-shove-3.ogg",
+		KENNY_CASINO_AUDIO_DIR + "card-shove-4.ogg",
+	],
+	"sfx_blackjack_push": [
+		KENNY_CASINO_AUDIO_DIR + "chip-lay-1.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chip-lay-2.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chip-lay-3.ogg",
+	],
+	"sfx_casino_chips": [
+		KENNY_CASINO_AUDIO_DIR + "chips-handle-1.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chips-handle-2.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chips-handle-3.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chips-handle-4.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chips-handle-5.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chips-handle-6.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chips-stack-1.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chips-stack-2.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chips-stack-3.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chips-stack-4.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chips-stack-5.ogg",
+		KENNY_CASINO_AUDIO_DIR + "chips-stack-6.ogg",
+	],
+}
 var _sfx_lib: Dictionary = {}
 
 # ── Internal state ────────────────────────────────────────────────────────────
@@ -93,8 +158,15 @@ func _load_sfx() -> void:
 		"sfx_hook_break", "sfx_bait_empty", "sfx_buy", "sfx_equip",
 		"sfx_not_enough_coins", "sfx_menu_open", "sfx_menu_close", "sfx_coins",
 		"sfx_bobber_splash",
-		"sfx_card_deal", "sfx_card_flip", "sfx_blackjack_win", "sfx_blackjack_lose", "sfx_blackjack_push",
+		"sfx_card_deal", "sfx_card_flip", "sfx_card_shuffle", "sfx_card_fan",
+		"sfx_cards_pack_open", "sfx_cards_pack_take_out",
+		"sfx_blackjack_win", "sfx_blackjack_lose", "sfx_blackjack_push", "sfx_casino_chips",
 	]:
+		if SFX_PATHS.has(name):
+			var streams := _load_sfx_variants(SFX_PATHS[name])
+			if not streams.is_empty():
+				_sfx_lib[name] = streams
+				continue
 		for extension: String in SFX_EXTENSIONS:
 			var path := SFX_DIR + name + extension
 			if ResourceLoader.exists(path):
@@ -102,7 +174,21 @@ func _load_sfx() -> void:
 				break
 
 func sfx(name: String) -> void:
-	play_sfx(_sfx_lib.get(name))
+	var entry = _sfx_lib.get(name)
+	if entry is Array:
+		var variants: Array = entry
+		if variants.is_empty():
+			return
+		play_sfx(variants.pick_random())
+	else:
+		play_sfx(entry)
+
+func _load_sfx_variants(paths: Array) -> Array:
+	var streams: Array = []
+	for path: String in paths:
+		if ResourceLoader.exists(path):
+			streams.append(load(path))
+	return streams
 
 # ── Playlist system ───────────────────────────────────────────────────────────
 

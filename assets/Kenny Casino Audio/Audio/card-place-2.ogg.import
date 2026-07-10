@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://dbhv14d1inugh"
+path="res://.godot/imported/card-place-2.ogg-64e95a43f8954b5154cfda307eac04d9.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/Kenny Casino Audio/Audio/card-place-2.ogg"
+dest_files=["res://.godot/imported/card-place-2.ogg-64e95a43f8954b5154cfda307eac04d9.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

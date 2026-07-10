@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://28jhgnxej6pt"
+path="res://.godot/imported/cards-pack-open-2.ogg-63ce8e21f60dc719a36dd6d75a150a76.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/Kenny Casino Audio/Audio/cards-pack-open-2.ogg"
+dest_files=["res://.godot/imported/cards-pack-open-2.ogg-63ce8e21f60dc719a36dd6d75a150a76.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://clm4tr5yhfrvk"
+path="res://.godot/imported/card-shove-2.ogg-edd38eb7832a53fa1ecb97f8933c2469.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/Kenny Casino Audio/Audio/card-shove-2.ogg"
+dest_files=["res://.godot/imported/card-shove-2.ogg-edd38eb7832a53fa1ecb97f8933c2469.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

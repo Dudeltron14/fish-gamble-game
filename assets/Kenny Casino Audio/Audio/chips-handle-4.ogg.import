@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://en7tfhe5wbs3"
+path="res://.godot/imported/chips-handle-4.ogg-6810cbceae857b997ae6537e301035cb.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/Kenny Casino Audio/Audio/chips-handle-4.ogg"
+dest_files=["res://.godot/imported/chips-handle-4.ogg-6810cbceae857b997ae6537e301035cb.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
