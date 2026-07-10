@@ -71,8 +71,6 @@ func _on_deal_pressed() -> void:
 func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int) -> void:
 	_state = State.PLAYER_TURN
 	_clear_hands()
-	AudioManager.sfx("sfx_card_shuffle")
-	AudioManager.sfx("sfx_card_fan")
 	_dealer_cards = [dealer_visible]
 	_dealer_hole_hidden = true
 	_update_dealer_info()
