@@ -5,8 +5,9 @@ signal completed
 const RANKS := ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]
 const SUITS := ["♠","♥","♦","♣"]
 const CARD_SIZE := Vector2(48, 70)
-const CARD_DEAL_FLY_TIME := 0.22
+const CARD_DEAL_FLY_TIME := 0.32
 const CARD_FLIP_HALF_TIME := 0.14
+const CARD_DEAL_ARC_HEIGHT := 54.0
 
 enum State { IDLE, PLAYER_TURN }
 var _state := State.IDLE
@@ -242,11 +243,17 @@ func _start_card_deal(hand: HBoxContainer, card_widget: Control, face_widget: Co
 	add_child(flying_card)
 	flying_card.size = CARD_SIZE
 	flying_card.pivot_offset = CARD_SIZE * 0.5
-	flying_card.global_position = deck_stack.global_position
-	flying_card.rotation = deg_to_rad(-5.0)
-	var target_position := card_widget.global_position
+	var start_position := _card_top_left_from_center(_control_center(deck_stack))
+	var target_position := _card_top_left_from_center(_control_center(card_widget))
+	var arc_dir := -1.0 if target_position.y < start_position.y else 1.0
+	var control_position := (start_position + target_position) * 0.5 + Vector2(0.0, CARD_DEAL_ARC_HEIGHT * arc_dir)
+	flying_card.global_position = start_position
+	flying_card.rotation = deg_to_rad(-8.0 * arc_dir)
 	var tween := create_tween().set_parallel(true)
-	tween.tween_property(flying_card, "global_position", target_position, CARD_DEAL_FLY_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	var deal_curve := func(progress: float) -> void:
+		if is_instance_valid(flying_card):
+			flying_card.global_position = _quadratic_bezier(start_position, control_position, target_position, progress)
+	tween.tween_method(deal_curve, 0.0, 1.0, CARD_DEAL_FLY_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	tween.tween_property(flying_card, "rotation", 0.0, CARD_DEAL_FLY_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	tween.finished.connect(func():
 		if is_instance_valid(flying_card):
@@ -257,6 +264,16 @@ func _start_card_deal(hand: HBoxContainer, card_widget: Control, face_widget: Co
 		card_widget.scale = Vector2.ONE
 		_flip_card_in_place(hand, card_widget, face_widget, reveal_face)
 	)
+
+func _control_center(control: Control) -> Vector2:
+	return control.global_position + control.size * 0.5
+
+func _card_top_left_from_center(center: Vector2) -> Vector2:
+	return center - CARD_SIZE * 0.5
+
+func _quadratic_bezier(start: Vector2, control: Vector2, end: Vector2, progress: float) -> Vector2:
+	var inverse := 1.0 - progress
+	return inverse * inverse * start + 2.0 * inverse * progress * control + progress * progress * end
 
 func _flip_card_in_place(hand: HBoxContainer, card_widget: Control, face_widget: Control, reveal_face: bool) -> void:
 	if not reveal_face:
