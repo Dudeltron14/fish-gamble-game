@@ -101,7 +101,7 @@ func _enter_wait() -> void:
 		lerpf(5.25, 1.5, _cast_quality),
 		lerpf(10.25, 3.5, _cast_quality)
 	)
-	var quality_text := "Perfect cast! 🎯" if _cast_quality > 0.95 else \
+	var quality_text := "Perfect cast!" if _cast_quality > 0.95 else \
 		("Good cast!" if _cast_quality > 0.70 else \
 		("Weak cast…" if _cast_quality > 0.30 else "Terrible cast…"))
 	AudioManager.sfx("sfx_cast")

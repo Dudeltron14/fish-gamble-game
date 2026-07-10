@@ -26,6 +26,10 @@ AudioManager="*res://src/autoloads/AudioManager.gd"
 NetAPI="*res://src/autoloads/NetAPI.gd"
 GameServer="*res://src/autoloads/GameServer.gd"
 
+[audio]
+
+buses/default_bus_layout="res://default_bus_layout.tres"
+
 [display]
 
 window/size/viewport_width=1280
