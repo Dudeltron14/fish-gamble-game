@@ -31,7 +31,7 @@ The checklist intentionally uses the stricter review criteria: server-authoritat
 - [x] Add bobber spawn splash animation.
 - [x] Replace casino exterior with transparent style-matched art.
 - [x] Add blackjack casino backdrop.
-- [ ] Add blackjack-only coin burst VFX on winning payouts.
+- [x] Add blackjack-only coin burst VFX on winning payouts.
 - [ ] Reposition zones after final building placement.
 - [x] Finish water animation setup.
 - [ ] Confirm tilemap/building/water collision in a real play session.

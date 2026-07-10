@@ -8,6 +8,7 @@ const CARD_SIZE := Vector2(48, 70)
 const CARD_DEAL_FLY_TIME := 0.32
 const CARD_FLIP_HALF_TIME := 0.14
 const CARD_DEAL_ARC_HEIGHT := 54.0
+const COIN_BURST_SCENE := preload("res://src/scenes/vfx/CoinBurst.tscn")
 
 enum State { IDLE, PLAYER_TURN }
 var _state := State.IDLE
@@ -132,7 +133,11 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 	}
 	status_label.text = messages.get(outcome, outcome)
 	match outcome:
-		"win":  AudioManager.sfx("sfx_blackjack_win");  AudioManager.sfx("sfx_coins")
+		"win":
+			AudioManager.sfx("sfx_blackjack_win")
+			AudioManager.sfx("sfx_coins")
+			if payout > 0:
+				_spawn_coin_burst()
 		"bust", "lose": AudioManager.sfx("sfx_blackjack_lose")
 		"push": AudioManager.sfx("sfx_blackjack_push")
 	# Pulse the result label
@@ -352,6 +357,11 @@ func _clear_hands() -> void:
 
 func _update_player_value() -> void:
 	player_value_label.text = "Your hand: %d" % _player_value
+
+func _spawn_coin_burst() -> void:
+	var burst := COIN_BURST_SCENE.instantiate() as Node2D
+	add_child(burst)
+	burst.global_position = status_label.global_position + Vector2(status_label.size.x * 0.5, -18.0)
 
 func _clear_node(node: Node) -> void:
 	for c in node.get_children():

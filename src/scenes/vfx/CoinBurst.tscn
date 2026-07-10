@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Texture2D" uid="uid://b0861socvguqc" path="res://assets/Super Pixel Effects Gigapack (Free Version)/spritesheet/Magic Bursts/directional_coin_burst_001/directional_coin_burst_001_small_yellow/spritesheet.png" id="1_coin_sheet"]
+[ext_resource type="Script" path="res://src/scenes/vfx/CoinBurst.gd" id="1_script"]
+
+[node name="CoinBurst" type="Node2D"]
+z_index = 100
+scale = Vector2(1.25, 1.25)
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+texture = ExtResource("1_coin_sheet")
+centered = true
+region_enabled = true
+region_rect = Rect2(0, 0, 64, 64)
