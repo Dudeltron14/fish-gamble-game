@@ -264,6 +264,48 @@ From a client machine, a successful WebSocket test to `wss://fishserver.dudeltro
 
 ---
 
+## Cloudflare Pages Web Client
+
+The intended public browser client is:
+
+```text
+https://fishgame.dudeltron14.win
+```
+
+Use Cloudflare Pages for the static Godot Web export. The Linux Docker server remains separate at `wss://fishserver.dudeltron14.win`.
+
+One-time Cloudflare setup:
+
+1. In Cloudflare, create a Pages project named `fish-game`.
+2. Add the custom domain `fishgame.dudeltron14.win` to that Pages project.
+3. Create a Cloudflare API token that can deploy to Pages for this account.
+4. Add these GitHub repository secrets:
+
+```text
+CLOUDFLARE_API_TOKEN
+CLOUDFLARE_ACCOUNT_ID
+```
+
+After those secrets exist, the `Release` GitHub Action deploys `export/web` to Cloudflare Pages on every push to `master`. The workflow also writes a Pages `_headers` file with the Godot Web cross-origin isolation headers:
+
+```text
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+```
+
+If the Cloudflare secrets are missing, the web deploy job skips cleanly and the server Docker image still builds and publishes.
+
+Quick verification after a deploy:
+
+```text
+https://fishgame.dudeltron14.win
+wss://fishserver.dudeltron14.win
+```
+
+Open the web client, select the default deployed server, then register or log in. The page should load the latest Web export and connect over WSS to the Docker game server.
+
+---
+
 ## Optional Nginx Config (WSS proxy + web client hosting)
 
 Cloudflare Tunnel is the active deployment path. Keep this Nginx example only if we later host the Web client and `/ws` proxy directly on the VPS.
@@ -314,9 +356,10 @@ git push origin v1.0.0
 
 GitHub Actions will automatically:
 1. Export Linux server binary + Web client (via `barichello/godot-ci:4.6.3`)
-2. Build and push Docker image to `ghcr.io/dudeltron14/fish-gamble-game`
-3. Attach web export files to the GitHub Release
-4. Watchtower on your VPS pulls the new image within 5 minutes
+2. Deploy the Web client to Cloudflare Pages when Cloudflare secrets are configured
+3. Build and push Docker image to `ghcr.io/dudeltron14/fish-gamble-game`
+4. Attach web export files to the GitHub Release for tagged releases
+5. Watchtower on your VPS pulls the new image within 5 minutes
 
 ---
 

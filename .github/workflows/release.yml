@@ -16,6 +16,7 @@ env:
 permissions:
   contents: write
   packages: write
+  deployments: write
 
 jobs:
   export:
@@ -46,6 +47,14 @@ jobs:
           mkdir -p export/web
           godot --headless --export-release "Web" export/web/index.html
 
+      - name: Add Cloudflare Pages headers for Godot Web
+        run: |
+          cat > export/web/_headers <<'EOF'
+          /*
+            Cross-Origin-Opener-Policy: same-origin
+            Cross-Origin-Embedder-Policy: require-corp
+          EOF
+
       - name: Upload server export artifact
         uses: actions/upload-artifact@v4
         with:
@@ -57,6 +66,37 @@ jobs:
         with:
           name: web-export
           path: export/web/**
+
+  web:
+    name: Deploy Web client
+    runs-on: ubuntu-latest
+    needs: export
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_PAGES_PROJECT: fish-game
+
+    steps:
+      - name: Download web export artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-export
+          path: export/web
+
+      - name: Skip Cloudflare Pages deploy when secrets are missing
+        if: env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == ''
+        run: |
+          echo "Cloudflare Pages deploy skipped."
+          echo "Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets to enable fishgame.dudeltron14.win deploys."
+
+      - name: Deploy Web client to Cloudflare Pages
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy export/web --project-name=${{ env.CLOUDFLARE_PAGES_PROJECT }} --branch=${{ github.ref_name }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   docker:
     name: Build & push Docker image

@@ -4,7 +4,7 @@ A **multiplayer fishing and casino game** built in Godot 4 for a small group of 
 Fish the island docks, upgrade your gear at the shop, and test your luck at the Blackjack table.
 All game logic is server-authoritative — no cheating, just vibes.
 
-> Runs in-browser (WebAssembly) or as a desktop client.
+> Runs in-browser at `https://fishgame.dudeltron14.win`.
 > Server auto-deploys to a Linux VPS via Docker + GitHub Actions.
 
 ---
@@ -106,8 +106,9 @@ git lfs pull
 
 1. Open **Godot 4.6.x**, import `project.godot`
 2. Press **Play** → click **Host & Play** to start a local server + join instantly
-3. To join the deployed server, use the default `fishserver.dudeltron14.win` server button, then register or log in
-4. To invite a friend on the same network, use **Add Other Server** and enter your LAN IP
+3. To play the latest deployed Web build, open `https://fishgame.dudeltron14.win`
+4. To join the deployed server from a local client, use the default `fishserver.dudeltron14.win` server button, then register or log in
+5. To invite a friend on the same network, use **Add Other Server** and enter your LAN IP
 
 ---
 
