@@ -44,6 +44,14 @@ Think of the sound a whip or thin rod makes when swung. Light and airy, not heav
 
 ---
 
+### `sfx_bobber_splash.mp3`
+**Trigger:** Bobber appears on the water and the splash animation starts.
+**Character:** A short, soft close water drop or tiny plop.
+**Duration:** 0.1–0.3s
+**Tone:** Gentle water drop, not a large splash.
+
+---
+
 ### `sfx_bite.wav`
 **Trigger:** `!! BITE !!` alert appears — the fish has taken the lure.
 **Character:** A quick, attention-grabbing *ping* or *ding* — like a small bell or notification chime.
@@ -197,6 +205,7 @@ Slightly more dramatic than sfx_catch since blackjack wins are rarer.
 ## Delivery Checklist
 
 - [ ] `sfx_cast.wav`
+- [ ] `sfx_bobber_splash.mp3`
 - [ ] `sfx_bite.wav`
 - [ ] `sfx_reel_tick.wav`
 - [ ] `sfx_catch.wav`
@@ -214,7 +223,7 @@ Slightly more dramatic than sfx_catch since blackjack wins are rarer.
 - [ ] `sfx_blackjack_lose.wav`
 - [ ] `sfx_blackjack_push.wav`
 
-**Total: 17 sound effects**
+**Total: 18 sound effects**
 
 Drop all files into: `assets/sfx/`
 After adding, right-click `assets/sfx/` in Godot's FileSystem dock → **Reimport**.

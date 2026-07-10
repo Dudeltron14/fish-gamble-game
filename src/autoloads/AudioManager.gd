@@ -55,6 +55,7 @@ const PLAYLIST_PATHS: Dictionary = {
 # ── SFX library ───────────────────────────────────────────────────────────────
 
 const SFX_DIR := "res://assets/sfx/"
+const SFX_EXTENSIONS := [".wav", ".mp3", ".ogg"]
 var _sfx_lib: Dictionary = {}
 
 # ── Internal state ────────────────────────────────────────────────────────────
@@ -91,11 +92,14 @@ func _load_sfx() -> void:
 		"sfx_cast", "sfx_bite", "sfx_reel_tick", "sfx_catch", "sfx_miss",
 		"sfx_hook_break", "sfx_bait_empty", "sfx_buy", "sfx_equip",
 		"sfx_not_enough_coins", "sfx_menu_open", "sfx_menu_close", "sfx_coins",
+		"sfx_bobber_splash",
 		"sfx_card_deal", "sfx_card_flip", "sfx_blackjack_win", "sfx_blackjack_lose", "sfx_blackjack_push",
 	]:
-		var path := SFX_DIR + name + ".wav"
-		if ResourceLoader.exists(path):
-			_sfx_lib[name] = load(path)
+		for extension: String in SFX_EXTENSIONS:
+			var path := SFX_DIR + name + extension
+			if ResourceLoader.exists(path):
+				_sfx_lib[name] = load(path)
+				break
 
 func sfx(name: String) -> void:
 	play_sfx(_sfx_lib.get(name))

@@ -34,6 +34,7 @@ func set_cast_visible(show: bool, flip_h: bool, cast_quality: float) -> void:
 			_time = 0.0
 			_splash_time = 0.0
 			_splash_active = true
+			AudioManager.sfx("sfx_bobber_splash")
 	else:
 		_splash_active = false
 	queue_redraw()
