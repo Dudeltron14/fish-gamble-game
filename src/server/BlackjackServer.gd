@@ -43,7 +43,9 @@ func handle_hit(peer_id: int) -> void:
 	session.set_meta("bj_deck", deck)
 	session.set_meta("bj_ph",   ph)
 	NetAPI.rpc_id(peer_id, "notify_bj_hit", card, _val(ph))
-	if _val(ph) >= 21:
+	if _val(ph) > 21:
+		_resolve(peer_id, session)
+	elif _val(ph) == 21:
 		_run_dealer(peer_id, session)
 
 func handle_stand(peer_id: int) -> void:
@@ -66,7 +68,10 @@ func handle_double(peer_id: int) -> void:
 	session.set_meta("bj_deck", deck)
 	session.set_meta("bj_ph",   ph)
 	NetAPI.rpc_id(peer_id, "notify_bj_hit", card, _val(ph))
-	_run_dealer(peer_id, session)
+	if _val(ph) > 21:
+		_resolve(peer_id, session)
+	else:
+		_run_dealer(peer_id, session)
 
 func handle_forfeit(peer_id: int) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)

@@ -137,7 +137,7 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 			AudioManager.sfx("sfx_blackjack_win")
 			AudioManager.sfx("sfx_coins")
 			if payout > 0:
-				_spawn_coin_burst()
+				_spawn_coin_bursts(payout)
 		"bust", "lose": AudioManager.sfx("sfx_blackjack_lose")
 		"push": AudioManager.sfx("sfx_blackjack_push")
 	# Pulse the result label
@@ -358,10 +358,32 @@ func _clear_hands() -> void:
 func _update_player_value() -> void:
 	player_value_label.text = "Your hand: %d" % _player_value
 
-func _spawn_coin_burst() -> void:
-	var burst := COIN_BURST_SCENE.instantiate() as Node2D
-	add_child(burst)
-	burst.global_position = status_label.global_position + Vector2(status_label.size.x * 0.5, -18.0)
+func _spawn_coin_bursts(payout: int) -> void:
+	var count := 1
+	if payout >= 500:
+		count = 14
+	elif payout >= 100:
+		count = 7
+	elif payout >= 50:
+		count = 3
+
+	var center := status_label.global_position + Vector2(status_label.size.x * 0.5, -18.0)
+	var spread := Vector2(34.0, 12.0)
+	if payout >= 100:
+		spread = Vector2(140.0, 42.0)
+	elif payout >= 50:
+		spread = Vector2(78.0, 24.0)
+
+	for i in count:
+		var burst := COIN_BURST_SCENE.instantiate() as Node2D
+		add_child(burst)
+		var offset := Vector2(randf_range(-spread.x, spread.x), randf_range(-spread.y, spread.y))
+		burst.global_position = center + offset
+		if i > 0:
+			burst.modulate.a = 0.0
+			var tween := create_tween()
+			tween.tween_interval(float(i) * 0.045)
+			tween.tween_property(burst, "modulate:a", 1.0, 0.01)
 
 func _clear_node(node: Node) -> void:
 	for c in node.get_children():
