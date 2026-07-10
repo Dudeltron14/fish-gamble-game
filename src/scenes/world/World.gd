@@ -150,9 +150,33 @@ func get_zone_for_peer(peer_id: int) -> String:
 	if player == null:
 		return ""
 	for zone in $Zones.get_children():
-		if zone is Area2D and _zone_contains_point(zone, player.global_position):
+		if zone is Area2D and _zone_contains_player(zone, player):
 			return zone.name
 	return ""
+
+func _zone_contains_player(zone: Area2D, player: Node2D) -> bool:
+	if _zone_contains_point(zone, player.global_position):
+		return true
+	for zone_shape_node in zone.get_children():
+		var zone_shape := zone_shape_node as CollisionShape2D
+		if zone_shape == null or zone_shape.disabled:
+			continue
+		var zone_rect := zone_shape.shape as RectangleShape2D
+		if zone_rect == null:
+			continue
+		var zone_bounds := _rect_shape_global_bounds(zone_shape, zone_rect)
+		for player_shape_node in player.get_children():
+			var player_shape := player_shape_node as CollisionShape2D
+			if player_shape == null or player_shape.disabled:
+				continue
+			var player_rect := player_shape.shape as RectangleShape2D
+			if player_rect:
+				var player_bounds := _rect_shape_global_bounds(player_shape, player_rect)
+				if zone_bounds.intersects(player_bounds, true):
+					return true
+			elif zone_bounds.has_point(player_shape.global_position):
+				return true
+	return false
 
 func _zone_contains_point(zone: Area2D, point: Vector2) -> bool:
 	for child in zone.get_children():
@@ -166,6 +190,25 @@ func _zone_contains_point(zone: Area2D, point: Vector2) -> bool:
 		if absf(local_point.x) <= rect.size.x * 0.5 and absf(local_point.y) <= rect.size.y * 0.5:
 			return true
 	return false
+
+func _rect_shape_global_bounds(shape_node: CollisionShape2D, rect: RectangleShape2D) -> Rect2:
+	var half_size := rect.size * 0.5
+	var corners := [
+		Vector2(-half_size.x, -half_size.y),
+		Vector2(half_size.x, -half_size.y),
+		Vector2(half_size.x, half_size.y),
+		Vector2(-half_size.x, half_size.y),
+	]
+	var first_point: Vector2 = shape_node.global_transform * corners[0]
+	var min_point := first_point
+	var max_point := first_point
+	for i in range(1, corners.size()):
+		var point: Vector2 = shape_node.global_transform * corners[i]
+		min_point.x = minf(min_point.x, point.x)
+		min_point.y = minf(min_point.y, point.y)
+		max_point.x = maxf(max_point.x, point.x)
+		max_point.y = maxf(max_point.y, point.y)
+	return Rect2(min_point, max_point - min_point)
 
 func _get_local_player() -> Node:
 	return players.get_node_or_null(str(multiplayer.get_unique_id()))
