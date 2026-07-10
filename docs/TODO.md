@@ -10,7 +10,7 @@ Living task list. The stricter release gate lives in `docs/SHIP_CHECKLIST.md`.
 - [ ] Confirm Docker SQLite persistence through restart/update.
 - [ ] Playtest expanded 17-catch roster, payouts, and Baby Kraken difficulty after the latest art/content pass.
 - [ ] Verify new blackjack backdrop and flip animations in an exported Web build when playtesting is available.
-- [ ] Add coin burst VFX using `assets/Super Pixel Effects Gigapack (Free Version)/spritesheet/Magic Bursts/directional_coin_burst_001/` for coin gains.
+- [ ] Add blackjack-only coin burst VFX on winning payouts.
 
 ---
 
@@ -20,6 +20,20 @@ Living task list. The stricter release gate lives in `docs/SHIP_CHECKLIST.md`.
 - [ ] Confirm tilemap physics collision on water/buildings in a real play session.
 - [ ] Final SpawnPoint pass.
 - [ ] Capture gameplay screenshots for README.
+
+---
+
+## Saved Plans
+
+### Blackjack Coin Burst VFX
+
+- Trigger only from `src/scenes/casino/Blackjack.gd` in `_on_result()` when `outcome == "win"` and `payout > 0`.
+- Do not trigger from `GameManager.coins_changed`; that would incorrectly fire on login, refunds, purchases, debug coin grants, or future coin changes.
+- Use `assets/Super Pixel Effects Gigapack (Free Version)/spritesheet/Magic Bursts/directional_coin_burst_001/directional_coin_burst_001_small_yellow/spritesheet.png`.
+- Asset metadata: 31 frames, one row, `64x64` per frame.
+- Preferred implementation: add `src/scenes/vfx/CoinBurst.gd` and `src/scenes/vfx/CoinBurst.tscn`; animate a `Sprite2D` via `region_rect`, nearest filtering, then `queue_free()` at the end.
+- Initial placement target: near the blackjack win/status text or between the win text and `coins_label`, so it reads as a casino payout celebration without covering the cards.
+- Verification: blackjack win shows the burst, blackjack push/loss/bust/deal deduction do not; sprite remains crisp and cleans itself up.
 
 ---
 
