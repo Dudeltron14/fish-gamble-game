@@ -11,6 +11,10 @@ func _ready() -> void:
 	coins_label.text = "Coins: %d" % GameManager.current_coins
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") and visible:
+		visible = false
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("debug_toggle"):
 		visible = not visible
 		if visible:

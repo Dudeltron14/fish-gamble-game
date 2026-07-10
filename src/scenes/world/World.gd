@@ -14,6 +14,7 @@ const STATS_SCENE   := preload("res://src/scenes/ui/GearStatsPanel.tscn")
 var _local_zone := ""
 var _overlay: Node = null
 var _overlay_scene: PackedScene = null
+var _disconnect_dialog: ConfirmationDialog = null
 
 func _ready() -> void:
 	add_to_group("world")
@@ -55,6 +56,11 @@ func _ready() -> void:
 			spawn_player(1, host_session.username)
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		if _overlay == null:
+			_show_disconnect_dialog()
+			get_viewport().set_input_as_handled()
+		return
 	if not event.is_action_pressed("interact") or _overlay != null:
 		return
 	match _local_zone:
@@ -234,6 +240,38 @@ func _on_overlay_closed() -> void:
 			player.stop_fishing()
 	_overlay = null
 	_overlay_scene = null
+
+func _show_disconnect_dialog() -> void:
+	if _disconnect_dialog != null and is_instance_valid(_disconnect_dialog):
+		_disconnect_dialog.popup_centered()
+		return
+	_disconnect_dialog = ConfirmationDialog.new()
+	_disconnect_dialog.title = "Disconnect?"
+	_disconnect_dialog.dialog_text = "Leave the current server and return to the login screen?"
+	_disconnect_dialog.ok_button_text = "Disconnect"
+	_disconnect_dialog.cancel_button_text = "Stay"
+	_disconnect_dialog.confirmed.connect(_disconnect_to_login)
+	_disconnect_dialog.canceled.connect(_disconnect_dialog.queue_free)
+	_disconnect_dialog.close_requested.connect(_disconnect_dialog.queue_free)
+	_disconnect_dialog.tree_exited.connect(func(): _disconnect_dialog = null)
+	add_child(_disconnect_dialog)
+	_disconnect_dialog.popup_centered()
+
+func _disconnect_to_login() -> void:
+	NetworkManager.disconnect_from_server()
+	GameManager.is_hosting = false
+	GameManager.current_player_name = ""
+	GameManager.set_coins(0)
+	GameManager.set_zone("")
+	GameManager.set_owned_items({})
+	GameManager.equipped_rod_id = ""
+	GameManager.equipped_bait_id = ""
+	GameManager.equipped_tackle_id = ""
+	GameManager.equipped_changed.emit()
+	GameManager.hook_durability = 0
+	GameManager.hook_max_durability = 0
+	GameManager.hook_durability_changed.emit(0, 0)
+	GameManager.go_to_scene("res://src/scenes/ui/LoginScreen.tscn")
 
 func _on_fishing_result_received(caught: bool, _fish_id: String, _earned: int, _new_balance: int) -> void:
 	if caught:

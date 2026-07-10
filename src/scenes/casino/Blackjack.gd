@@ -387,7 +387,10 @@ func _spawn_coin_bursts(payout: int) -> void:
 			add_child(burst)
 			var jitter := Vector2(randf_range(-42.0, 42.0), randf_range(-42.0, 42.0))
 			burst.global_position = emitter + jitter
-			burst.rotation = direction.angle()
+			var burst_rotation := direction.angle()
+			if not is_equal_approx(emitter.x, center.x):
+				burst_rotation += deg_to_rad(90.0)
+			burst.rotation = burst_rotation
 			burst.scale *= 3.0
 			if burst_index > 0:
 				burst.modulate.a = 0.0
@@ -402,6 +405,7 @@ func _clear_node(node: Node) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
 		_on_leave_pressed()
 
 func _on_leave_pressed() -> void:
@@ -410,7 +414,7 @@ func _on_leave_pressed() -> void:
 		return
 	var dialog := ConfirmationDialog.new()
 	dialog.title = "Leave the Table?"
-	dialog.dialog_text = "You have an active hand.\nLeaving now forfeits your bet — you will not be refunded."
+	dialog.dialog_text = "You have an active blackjack hand.\nLeaving now forfeits your bet. Your money will be lost and this hand will not be saved."
 	dialog.ok_button_text = "Leave and Forfeit"
 	dialog.cancel_button_text = "Stay"
 	dialog.confirmed.connect(_forfeit_and_close)
