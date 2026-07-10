@@ -8,12 +8,6 @@ const CATCH_DISPLAY_SIZE := 32.0
 const FISH_SHEET := preload("res://assets/free fish/free fish.png")
 const FISH_FRAME_SIZE := Vector2i(16, 16)
 const FISH_SHEET_COLUMNS := 3
-const JUNK_SHEET := preload("res://assets/free fish/junk.png")
-const JUNK_REGIONS := {
-	"junk_boot": Rect2(222, 368, 257, 238),
-	"junk_can": Rect2(613, 361, 197, 245),
-	"junk_seaweed": Rect2(963, 368, 219, 238),
-}
 
 @export var player_name: String = "":
 	set(v):
@@ -166,18 +160,14 @@ func _catch_texture_for(fish: FishData) -> Texture2D:
 	if fish.sprite_frame < 0:
 		return null
 	var atlas := AtlasTexture.new()
-	if JUNK_REGIONS.has(fish.id):
-		atlas.atlas = JUNK_SHEET
-		atlas.region = JUNK_REGIONS[fish.id]
-	else:
-		var frame := maxi(fish.sprite_frame, 0)
-		var column := frame % FISH_SHEET_COLUMNS
-		var row := floori(float(frame) / float(FISH_SHEET_COLUMNS))
-		atlas.atlas = FISH_SHEET
-		atlas.region = Rect2(
-			Vector2(column * FISH_FRAME_SIZE.x, row * FISH_FRAME_SIZE.y),
-			FISH_FRAME_SIZE
-		)
+	var frame := maxi(fish.sprite_frame, 0)
+	var column := frame % FISH_SHEET_COLUMNS
+	var row := floori(float(frame) / float(FISH_SHEET_COLUMNS))
+	atlas.atlas = FISH_SHEET
+	atlas.region = Rect2(
+		Vector2(column * FISH_FRAME_SIZE.x, row * FISH_FRAME_SIZE.y),
+		FISH_FRAME_SIZE
+	)
 	return atlas
 
 func _catch_display_scale(texture: Texture2D) -> float:

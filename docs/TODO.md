@@ -14,7 +14,7 @@ Status: tracked in `docs/SHIP_CHECKLIST.md`.
 
 - Trigger only from `src/scenes/casino/Blackjack.gd` in `_on_result()` when `outcome == "win"` and `payout > 0`.
 - Do not trigger from `GameManager.coins_changed`; that would incorrectly fire on login, refunds, purchases, debug coin grants, or future coin changes.
-- Use `assets/Super Pixel Effects Gigapack (Free Version)/spritesheet/Magic Bursts/directional_coin_burst_001/directional_coin_burst_001_small_yellow/spritesheet.png`.
+- Runtime asset now lives at `assets/vfx/coin_burst_sheet.png`; it was copied out of the Super Pixel Effects pack so exports can omit the full pack.
 - Asset metadata: 31 frames, one row, `64x64` per frame.
 - Preferred implementation: add `src/scenes/vfx/CoinBurst.gd` and `src/scenes/vfx/CoinBurst.tscn`; animate a `Sprite2D` via `region_rect`, nearest filtering, then `queue_free()` at the end.
 - Initial placement target: near the blackjack win/status text or between the win text and `coins_label`, so it reads as a casino payout celebration without covering the cards.

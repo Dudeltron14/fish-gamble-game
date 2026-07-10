@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3]
 
-[ext_resource type="Texture2D" uid="uid://b0861socvguqc" path="res://assets/Super Pixel Effects Gigapack (Free Version)/spritesheet/Magic Bursts/directional_coin_burst_001/directional_coin_burst_001_small_yellow/spritesheet.png" id="1_coin_sheet"]
+[ext_resource type="Texture2D" path="res://assets/vfx/coin_burst_sheet.png" id="1_coin_sheet"]
 [ext_resource type="Script" path="res://src/scenes/vfx/CoinBurst.gd" id="1_script"]
 
 [node name="CoinBurst" type="Node2D"]
