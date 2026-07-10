@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="BaitData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/BaitData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/User_Gen_ChatGPT/gear/glow_grub.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1")
+id = "glow_grub"
+display_name = "Glow Grub"
+description = "A lively mid-tier bait. Better odds than worms, without the full magic-bait price."
+icon = ExtResource("2_icon")
+buy_price = 25
+sell_price = 8
+rarity_weights = {"common": 0.45, "uncommon": 0.40, "rare": 0.14, "legendary": 0.01}
+uses_per_stack = 10
+wait_modifier = 0.75

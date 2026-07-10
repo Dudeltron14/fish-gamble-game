@@ -26,7 +26,7 @@ func _give_coins() -> void:
 func _give_gear() -> void:
 	var session := GameServer.get_session(multiplayer.get_unique_id())
 	# 5 of each bait
-	for item_id in ["worm", "magic_bait"]:
+	for item_id in ["worm", "glow_grub", "magic_bait"]:
 		if session: session.owned_items[item_id] = session.owned_items.get(item_id, 0) + 5
 		GameManager.set_owned(item_id, GameManager.get_owned(item_id) + 5)
 	# 1 of each hook

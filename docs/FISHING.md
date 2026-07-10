@@ -242,6 +242,7 @@ The server selects a rarity tier, then picks a random catch of that rarity. A fi
 | Bait | Cost | Common | Uncommon | Rare | Legendary | Wait modifier |
 |---|---|---|---|---|---|---|
 | Worm | 5c | 85% | 15% | 0% | 0% | ×0.90 |
+| Glow Grub | 25c | 45% | 40% | 14% | 1% | ×0.75 |
 | Magic Bait | 60c | 2.5% | 42.5% | 40% | 15% | ×0.55 |
 
 Magic Bait almost eliminates junk and common fish, but keeps a 2.5% common miss chance.
@@ -287,6 +288,7 @@ Buying bait adds `uses_per_stack` to owned count.
 | Bait | Price | Stack | Wait modifier | Pool |
 |---|---|---|---|---|
 | Worm | 5c | 10 uses | −10% | Starter fish only; rare junk |
+| Glow Grub | 25c | 10 uses | −25% | Better income; small rare/legendary chance |
 | Magic Bait | 60c | 5 uses | −45% | Mostly rare fish, 15% legendary |
 
 ### Hooks — Durability depletes 1 per bite

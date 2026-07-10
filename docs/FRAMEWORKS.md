@@ -145,6 +145,7 @@ The full wait time = `randf_range(cast_min, cast_max) × wait_modifier`
 |---|---|---|
 | 1.00 | No change | 1.5–3.5s |
 | 0.90 | 10% shorter (Worm) | 1.4–3.2s |
+| 0.75 | 25% shorter (Glow Grub) | 1.1–2.6s |
 | 0.55 | 45% shorter (Magic Bait) | 0.8–1.9s |
 | 0.35 | 65% shorter (ultra premium) | 0.5–1.2s |
 
@@ -155,10 +156,11 @@ The full wait time = `randf_range(cast_min, cast_max) × wait_modifier`
 ```
 Default (no bait): 50% junk, 50% starter common fish; no uncommon/rare/legendary pool
 Worm data:         {common:0.85, uncommon:0.15, rare:0.00, legendary:0.00}
+Glow Grub:         {common:0.45, uncommon:0.40, rare:0.14, legendary:0.01}
 Magic Bait:        {common:0.025, uncommon:0.425, rare:0.40, legendary:0.15}
 ```
 
-Runtime note: No bait and Worm currently use curated server-side pools instead of the dynamic rarity picker. No bait is capped to junk/common starter catches. Worm is capped to junk/common/uncommon starter catches. Magic Bait uses the normal dynamic picker.
+Runtime note: No bait and Worm currently use curated server-side pools instead of the dynamic rarity picker. No bait is capped to junk/common starter catches. Worm is capped to junk/common/uncommon starter catches. Glow Grub and Magic Bait use the normal dynamic picker.
 
 ---
 
