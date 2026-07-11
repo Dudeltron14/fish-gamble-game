@@ -93,9 +93,10 @@ func spawn_player(peer_id: int, p_name: String) -> void:
 	player.name = str(peer_id)
 	player.set_multiplayer_authority(peer_id)
 	player.player_name = p_name
+	player.set_meta("player_name", p_name)
 	player.position = spawn_point.position
 	players.add_child(player)
-	_broadcast_player_spawn(player)
+	_broadcast_player_spawn(player, p_name)
 	_sync_players_to_peer(peer_id)
 
 func ensure_player(peer_id: int, p_name: String, spawn_position: Vector2) -> void:
@@ -107,6 +108,7 @@ func ensure_player(peer_id: int, p_name: String, spawn_position: Vector2) -> voi
 		players.add_child(player)
 	player.set_multiplayer_authority(peer_id)
 	player.player_name = p_name
+	player.set_meta("player_name", p_name)
 	if player.position == Vector2.ZERO:
 		player.position = spawn_position
 	if player.has_method("configure_spawned_player"):
@@ -136,15 +138,15 @@ func despawn_remote_player(peer_id: int) -> void:
 		return
 	_remove_player_node(peer_id)
 
-func _broadcast_player_spawn(player: CharacterBody2D) -> void:
-	NetAPI.rpc("notify_world_player_spawned", player.name.to_int(), player.player_name, player.position)
+func _broadcast_player_spawn(player: CharacterBody2D, p_name: String = "") -> void:
+	NetAPI.rpc("notify_world_player_spawned", player.name.to_int(), _player_display_name(player, p_name), player.position)
 
 func _sync_players_to_peer(peer_id: int) -> void:
 	for child in players.get_children():
 		var player := child as CharacterBody2D
 		if player == null:
 			continue
-		NetAPI.rpc_id(peer_id, "notify_world_player_spawned", player.name.to_int(), player.player_name, player.position)
+		NetAPI.rpc_id(peer_id, "notify_world_player_spawned", player.name.to_int(), _player_display_name(player), player.position)
 	call_deferred("_sync_players_to_peer_deferred", peer_id)
 
 func _sync_players_to_peer_deferred(peer_id: int) -> void:
@@ -153,7 +155,18 @@ func _sync_players_to_peer_deferred(peer_id: int) -> void:
 		var player := child as CharacterBody2D
 		if player == null:
 			continue
-		NetAPI.rpc_id(peer_id, "notify_world_player_spawned", player.name.to_int(), player.player_name, player.position)
+		NetAPI.rpc_id(peer_id, "notify_world_player_spawned", player.name.to_int(), _player_display_name(player), player.position)
+
+func _player_display_name(player: CharacterBody2D, fallback: String = "") -> String:
+	if not fallback.is_empty():
+		return fallback
+	var meta_name := str(player.get_meta("player_name", ""))
+	if not meta_name.is_empty():
+		return meta_name
+	var property_name := str(player.get("player_name"))
+	if not property_name.is_empty() and property_name != "<null>":
+		return property_name
+	return "Player %s" % player.name
 
 func _notify_world_ready() -> void:
 	await get_tree().process_frame
