@@ -53,6 +53,8 @@ func _ready() -> void:
 	_update_region()
 
 func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
 	_time += delta
 	_update_region()
 	_update_pulse()
