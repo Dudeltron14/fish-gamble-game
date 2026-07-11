@@ -119,7 +119,7 @@ func apply_authoritative_player_input(peer_id: int, input_dir: Vector2, animatio
 
 func apply_remote_player_state(peer_id: int, pos: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = -1.0) -> void:
 	var player := players.get_node_or_null(str(peer_id))
-	if player == null or peer_id == multiplayer.get_unique_id():
+	if player == null:
 		return
 	if player.has_method("apply_remote_state"):
 		player.apply_remote_state(pos, animation, flip_h, hidden, bobber_cast_quality)
