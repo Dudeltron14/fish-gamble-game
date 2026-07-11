@@ -8,7 +8,8 @@ cd fish-gamble-game
 git lfs pull                        # downloads all PNG/audio assets
 ```
 1. Open Godot 4, import `project.godot`
-2. Hit **Run** — game starts in client mode. Use **Host & Play** for a local server, or the default `fishserver.dudeltron14.win` option for the deployed server.
+2. Hit **Run** — game starts in client mode and uses the official deployed server route by default: `wss://fishserver.dudeltron14.win`.
+3. For most playtesting, use the public Web client at `https://fishgame.dudeltron14.win`.
 
 ---
 
@@ -348,7 +349,7 @@ https://fishgame.dudeltron14.win
 wss://fishserver.dudeltron14.win
 ```
 
-Open the web client, select the default deployed server, then register or log in. The page should load the latest Web export and connect over WSS to the Docker game server.
+Open the web client, then register or log in. The page should load the latest Web export and connect over WSS to the Docker game server.
 
 If the web page loads but networking fails, verify the game server separately with:
 

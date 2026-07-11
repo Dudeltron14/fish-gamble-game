@@ -21,7 +21,7 @@ All game logic is server-authoritative — no cheating, just vibes.
 | 🎰 **Blackjack** | Full server-side state machine. Hit, Stand, Double Down. Dealer follows standard rules (hit <17). Real card sprites with flip reveals. |
 | 🏪 **Shop** | Buy and equip rods, bait, and hooks. Live owned count, durability tracking, gear consumption per cast. |
 | 🌍 **World** | Pixel-art island. Walk to the Dock, Shop, or Casino — press E to interact. |
-| 👤 **Multiplayer** | WebSocket-based. Dedicated clients default to `wss://fishserver.dudeltron14.win`, with custom server support. |
+| 👤 **Multiplayer** | WebSocket-based. Public clients connect to the official server at `wss://fishserver.dudeltron14.win`. |
 | 🔐 **Auth** | Username + password (double-hashed with per-user salt). SQLite persistence. 50 coin starting balance. |
 | 🚀 **Auto-deploy** | Push a `v*.*.*` tag → GitHub Actions exports + builds Docker image → Watchtower auto-pulls on VPS. |
 
@@ -104,11 +104,10 @@ cd fish-gamble-game
 git lfs pull
 ```
 
-1. Open **Godot 4.6.x**, import `project.godot`
-2. Press **Play** → click **Host & Play** to start a local server + join instantly
-3. To play the latest deployed Web build, open `https://fishgame.dudeltron14.win`
-4. To join the deployed server from a local client, use the default `fishserver.dudeltron14.win` server button, then register or log in
-5. To invite a friend on the same network, use **Add Other Server** and enter your LAN IP
+1. To play the latest deployed Web build, open `https://fishgame.dudeltron14.win`
+2. Register or log in from the main menu; the client connects to `wss://fishserver.dudeltron14.win`.
+3. For local development, open **Godot 4.6.x**, import `project.godot`, and press **Play** to run the client.
+4. Run a dedicated server separately when testing server changes locally.
 
 ---
 

@@ -8,7 +8,7 @@ The sections below preserve original handoff context from the earlier checklist 
 
 Since the original handoff, these items have been completed and verified in playtest:
 
-- Deployed clients default to `wss://fishserver.dudeltron14.win`, with a custom server option.
+- Deployed clients connect to `wss://fishserver.dudeltron14.win`; the main menu currently exposes only the official server path.
 - Cloudflare Tunnel is the active WSS route to the Docker game server.
 - Registration/login works against the Docker server.
 - Starter inventory and equipped gear are granted on registration and repaired for existing database accounts.
