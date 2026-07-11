@@ -1,10 +1,20 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://b8xq01boqpi3w"]
 
-[ext_resource type="Script" path="res://src/scenes/ui/LoginScreen.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/User_Gen_ChatGPT/Main Menu/ChatGPT Image Jul 10, 2026, 10_30_29 PM.png" id="2_bg"]
+[ext_resource type="Script" uid="uid://cft5md3g6ew0s" path="res://src/scenes/ui/LoginScreen.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://copwiq7o6o85l" path="res://assets/User_Gen_ChatGPT/Main Menu/ChatGPT Image Jul 10, 2026, 10_30_29 PM.png" id="2_bg"]
 [ext_resource type="PackedScene" path="res://src/scenes/ui/MainMenuAmbience.tscn" id="3_ambience"]
+[ext_resource type="Shader" uid="uid://c43kl253agsyr" path="res://src/shaders/menu_effect_key.gdshader" id="5_yffci"]
+[ext_resource type="PackedScene" path="res://src/scenes/ui/menu_effects/MenuDustMote.tscn" id="6_av0tn"]
+[ext_resource type="PackedScene" path="res://src/scenes/ui/menu_effects/MenuLanternFlame.tscn" id="7_av0tn"]
+[ext_resource type="PackedScene" path="res://src/scenes/ui/menu_effects/MenuBrassGlint.tscn" id="8_4wa3p"]
 
-[node name="LoginScreen" type="Control"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_d0v0i"]
+shader = ExtResource("5_yffci")
+shader_parameter/saturation_cutoff = 0.12
+shader_parameter/brightness_cutoff = 0.42
+shader_parameter/alpha_multiplier = 0.45
+
+[node name="LoginScreen" type="Control" unique_id=1870668477]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -13,7 +23,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="BG" type="TextureRect" parent="."]
+[node name="BG" type="TextureRect" parent="." unique_id=1110996873]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -24,9 +34,13 @@ texture = ExtResource("2_bg")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Ambience" parent="." instance=ExtResource("3_ambience")]
+[node name="Ambience" parent="." unique_id=585993244 instance=ExtResource("3_ambience")]
+layout_mode = 1
+offset_left = 1.0
+offset_right = 1.0
 
-[node name="Dim" type="ColorRect" parent="."]
+[node name="Dim" type="ColorRect" parent="." unique_id=675766251]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -36,7 +50,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.03, 0.015, 0.005, 0.23)
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Center" type="CenterContainer" parent="." unique_id=81357515]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -44,65 +58,242 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="PanelContainer" parent="Center"]
+[node name="Panel" type="PanelContainer" parent="Center" unique_id=618094854]
+layout_mode = 2
 
-[node name="Margin" type="MarginContainer" parent="Center/Panel"]
+[node name="Margin" type="MarginContainer" parent="Center/Panel" unique_id=1074687322]
+layout_mode = 2
 theme_override_constants/margin_left = 28
-theme_override_constants/margin_right = 28
 theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 28
 theme_override_constants/margin_bottom = 28
 
-[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
+[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin" unique_id=1272801864]
 custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Title" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="Title" type="Label" parent="Center/Panel/Margin/VBox" unique_id=1607141243]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
 text = "Fish Gamble Game"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 22
 
-[node name="Sep" type="HSeparator" parent="Center/Panel/Margin/VBox"]
+[node name="Sep" type="HSeparator" parent="Center/Panel/Margin/VBox" unique_id=2144778347]
+layout_mode = 2
 
-[node name="ServerLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="ServerLabel" type="Label" parent="Center/Panel/Margin/VBox" unique_id=262884227]
+layout_mode = 2
 text = "Server"
 
-[node name="OfficialServerBtn" type="Button" parent="Center/Panel/Margin/VBox"]
+[node name="OfficialServerBtn" type="Button" parent="Center/Panel/Margin/VBox" unique_id=1430614450]
 unique_name_in_owner = true
+layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "Connect through Cloudflare to the public dedicated server."
 text = "Official Server - fishserver.dudeltron14.win"
 
-[node name="UsernameLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="UsernameLabel" type="Label" parent="Center/Panel/Margin/VBox" unique_id=176230672]
+layout_mode = 2
 text = "Username"
 
-[node name="UsernameField" type="LineEdit" parent="Center/Panel/Margin/VBox"]
+[node name="UsernameField" type="LineEdit" parent="Center/Panel/Margin/VBox" unique_id=746450506]
 unique_name_in_owner = true
+layout_mode = 2
 placeholder_text = "Enter username"
 
-[node name="PasswordLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="PasswordLabel" type="Label" parent="Center/Panel/Margin/VBox" unique_id=1365342077]
+layout_mode = 2
 text = "Password"
 
-[node name="PasswordField" type="LineEdit" parent="Center/Panel/Margin/VBox"]
+[node name="PasswordField" type="LineEdit" parent="Center/Panel/Margin/VBox" unique_id=1528997787]
 unique_name_in_owner = true
+layout_mode = 2
 placeholder_text = "Enter password"
 secret = true
 
-[node name="Buttons" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+[node name="Buttons" type="HBoxContainer" parent="Center/Panel/Margin/VBox" unique_id=1453867077]
+layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="LoginBtn" type="Button" parent="Center/Panel/Margin/VBox/Buttons"]
+[node name="LoginBtn" type="Button" parent="Center/Panel/Margin/VBox/Buttons" unique_id=1512973481]
 unique_name_in_owner = true
+layout_mode = 2
 size_flags_horizontal = 3
 text = "Join / Login"
 
-[node name="RegisterBtn" type="Button" parent="Center/Panel/Margin/VBox/Buttons"]
+[node name="RegisterBtn" type="Button" parent="Center/Panel/Margin/VBox/Buttons" unique_id=1628020931]
 unique_name_in_owner = true
+layout_mode = 2
 size_flags_horizontal = 3
 text = "Register"
 
-[node name="StatusLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="StatusLabel" type="Label" parent="Center/Panel/Margin/VBox" unique_id=639801078]
 unique_name_in_owner = true
 modulate = Color(1, 0.45, 0.45, 1)
+layout_mode = 2
 horizontal_alignment = 1
-text = ""
 autowrap_mode = 3
+
+[node name="MenuDustMote" parent="." unique_id=757489659 instance=ExtResource("6_av0tn")]
+modulate = Color(1, 1, 1, 0.45)
+texture_filter = 1
+material = SubResource("ShaderMaterial_d0v0i")
+position = Vector2(212.99998, 626.00006)
+scale = Vector2(0.32828283, 0.3891129)
+region_rect = Rect2(99.125, 0, 99.125, 992)
+
+[node name="MenuLanternFlame" parent="." unique_id=1721597252 instance=ExtResource("7_av0tn")]
+modulate = Color(1, 1, 1, 0.95)
+texture_filter = 1
+position = Vector2(388.87503, 600.5)
+scale = Vector2(0.08906247, 0.0742188)
+region_rect = Rect2(2560, 0, 160, 256)
+
+[node name="MenuLanternFlame2" parent="." unique_id=851905358 instance=ExtResource("7_av0tn")]
+modulate = Color(1, 1, 1, 0.95)
+texture_filter = 1
+position = Vector2(113.37499, 448.5)
+scale = Vector2(0.095312566, 0.07421869)
+region_rect = Rect2(0, 0, 160, 256)
+
+[node name="MenuLanternFlame3" parent="." unique_id=1456966718 instance=ExtResource("7_av0tn")]
+modulate = Color(1, 1, 1, 0.95)
+texture_filter = 1
+position = Vector2(546.875, 95.99999)
+scale = Vector2(0.08906219, 0.07031244)
+region_rect = Rect2(2080, 0, 160, 256)
+
+[node name="MenuLanternFlame5" parent="." unique_id=1229797551 instance=ExtResource("7_av0tn")]
+modulate = Color(1, 1, 1, 0.95)
+texture_filter = 1
+position = Vector2(977.00006, 101)
+scale = Vector2(0.057031006, 0.046875015)
+region_rect = Rect2(2400, 0, 160, 256)
+
+[node name="MenuLanternFlame6" parent="." unique_id=664466473 instance=ExtResource("7_av0tn")]
+modulate = Color(1, 1, 1, 0.95)
+texture_filter = 1
+position = Vector2(1240, 245)
+scale = Vector2(0.08906219, 0.07031244)
+region_rect = Rect2(2240, 0, 160, 256)
+
+[node name="MenuLanternFlame4" parent="." unique_id=2055003257 instance=ExtResource("7_av0tn")]
+modulate = Color(1, 1, 1, 0.95)
+texture_filter = 1
+position = Vector2(324.5, 107)
+scale = Vector2(0.09374995, 0.07812499)
+region_rect = Rect2(2240, 0, 160, 256)
+
+[node name="MenuBrassGlint" parent="." unique_id=680535660 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(58, 542)
+scale = Vector2(1.8906246, 1.3828132)
+region_rect = Rect2(480, 0, 32, 32)
+
+[node name="MenuBrassGlint2" parent="." unique_id=1062502958 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(73, 548)
+scale = Vector2(1.2265625, 0.81640726)
+region_rect = Rect2(0, 0, 32, 32)
+
+[node name="MenuBrassGlint3" parent="." unique_id=126446628 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(70, 629)
+scale = Vector2(1.2265625, 0.81640726)
+region_rect = Rect2(0, 0, 32, 32)
+
+[node name="MenuBrassGlint4" parent="." unique_id=1958259508 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(1080, 516)
+scale = Vector2(1.53125, 1.3125)
+region_rect = Rect2(128, 0, 32, 32)
+
+[node name="MenuBrassGlint5" parent="." unique_id=26979167 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(965, 585)
+region_rect = Rect2(64, 0, 32, 32)
+
+[node name="MenuBrassGlint6" parent="." unique_id=2031963190 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(984, 616)
+region_rect = Rect2(64, 0, 32, 32)
+
+[node name="MenuBrassGlint7" parent="." unique_id=637318787 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(1120, 538)
+region_rect = Rect2(32, 0, 32, 32)
+
+[node name="MenuBrassGlint8" parent="." unique_id=1694264906 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(1074, 556)
+region_rect = Rect2(480, 0, 32, 32)
+
+[node name="MenuBrassGlint9" parent="." unique_id=56025240 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(1040, 537)
+region_rect = Rect2(416, 0, 32, 32)
+
+[node name="MenuBrassGlint10" parent="." unique_id=224434984 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(934, 598)
+region_rect = Rect2(96, 0, 32, 32)
+
+[node name="MenuBrassGlint11" parent="." unique_id=1697940178 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(1064, 542)
+region_rect = Rect2(128, 0, 32, 32)
+
+[node name="MenuBrassGlint12" parent="." unique_id=91964750 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(1099, 527)
+region_rect = Rect2(32, 0, 32, 32)
+
+[node name="MenuBrassGlint13" parent="." unique_id=327689194 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(990, 592)
+region_rect = Rect2(352, 0, 32, 32)
+
+[node name="MenuBrassGlint14" parent="." unique_id=429727873 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(1054, 641)
+region_rect = Rect2(0, 0, 32, 32)
+
+[node name="MenuBrassGlint15" parent="." unique_id=666376464 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(1111, 612)
+region_rect = Rect2(416, 0, 32, 32)
+
+[node name="MenuBrassGlint16" parent="." unique_id=498981845 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(828, 561)
+region_rect = Rect2(128, 0, 32, 32)
+
+[node name="MenuBrassGlint17" parent="." unique_id=1243726954 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(1209.9999, 245)
+scale = Vector2(1.5625, 1.84375)
+region_rect = Rect2(160, 0, 32, 32)
+
+[node name="MenuBrassGlint18" parent="." unique_id=1535284718 instance=ExtResource("8_4wa3p")]
+modulate = Color(1, 1, 1, 0.9)
+texture_filter = 1
+position = Vector2(1179, 242)
+region_rect = Rect2(352, 0, 32, 32)

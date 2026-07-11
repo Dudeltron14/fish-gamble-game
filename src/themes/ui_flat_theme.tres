@@ -1,120 +1,119 @@
-[gd_resource type="Theme" load_steps=17 format=3]
+[gd_resource type="Theme" format=3 uid="uid://yrrkceaiqg4p"]
 
-[ext_resource type="Texture2D" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Frame03a.png" id="1_panel"]
-[ext_resource type="Texture2D" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Button02a_1.png" id="2_button_normal"]
-[ext_resource type="Texture2D" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Button02a_2.png" id="3_button_hover"]
-[ext_resource type="Texture2D" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Button02a_3.png" id="4_button_pressed"]
-[ext_resource type="Texture2D" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Button02a_4.png" id="5_button_disabled"]
-[ext_resource type="Texture2D" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_InputField02a.png" id="6_input"]
-[ext_resource type="Texture2D" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_InputField02a.png" id="7_input_focus"]
-[ext_resource type="Texture2D" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Bar11a.png" id="8_bar"]
-[ext_resource type="Texture2D" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_BarFill01e.png" id="9_bar_fill"]
+[ext_resource type="Texture2D" uid="uid://qkpxhengvxtw" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Frame03a.png" id="1_panel"]
+[ext_resource type="Texture2D" uid="uid://g0nl3igx2wu7" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Button02a_1.png" id="2_button_normal"]
+[ext_resource type="Texture2D" uid="uid://dfkd3gcc1myon" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Button02a_2.png" id="3_button_hover"]
+[ext_resource type="Texture2D" uid="uid://y1stsyf68yhq" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Button02a_3.png" id="4_button_pressed"]
+[ext_resource type="Texture2D" uid="uid://chfio3vn1d6xe" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Button02a_4.png" id="5_button_disabled"]
+[ext_resource type="Texture2D" uid="uid://ypeck0juioui" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_InputField02a.png" id="7_input_focus"]
+[ext_resource type="Texture2D" uid="uid://depnkxt764ks1" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Bar11a.png" id="8_bar"]
+[ext_resource type="Texture2D" uid="uid://b0bgxjx4crt3x" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_BarFill01e.png" id="9_bar_fill"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_panel"]
-texture = ExtResource("1_panel")
-modulate_color = Color(0.42, 0.28, 0.16, 0.96)
-texture_margin_left = 12.0
-texture_margin_top = 12.0
-texture_margin_right = 12.0
-texture_margin_bottom = 12.0
-content_margin_left = 12.0
-content_margin_top = 10.0
-content_margin_right = 12.0
-content_margin_bottom = 10.0
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_button_normal"]
-texture = ExtResource("2_button_normal")
-modulate_color = Color(0.62, 0.38, 0.18, 1)
-texture_margin_left = 8.0
-texture_margin_top = 8.0
-texture_margin_right = 8.0
-texture_margin_bottom = 8.0
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_button_disabled"]
 content_margin_left = 10.0
 content_margin_top = 5.0
 content_margin_right = 10.0
 content_margin_bottom = 5.0
+texture = ExtResource("5_button_disabled")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+modulate_color = Color(0.26, 0.22, 0.18, 0.85)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_empty"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_button_hover"]
-texture = ExtResource("3_button_hover")
-modulate_color = Color(0.82, 0.54, 0.24, 1)
-texture_margin_left = 8.0
-texture_margin_top = 8.0
-texture_margin_right = 8.0
-texture_margin_bottom = 8.0
 content_margin_left = 10.0
 content_margin_top = 5.0
 content_margin_right = 10.0
 content_margin_bottom = 5.0
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_button_pressed"]
-texture = ExtResource("4_button_pressed")
-modulate_color = Color(0.38, 0.23, 0.12, 1)
+texture = ExtResource("3_button_hover")
 texture_margin_left = 8.0
 texture_margin_top = 8.0
 texture_margin_right = 8.0
 texture_margin_bottom = 8.0
+modulate_color = Color(0.82, 0.54, 0.24, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_button_normal"]
+content_margin_left = 10.0
+content_margin_top = 5.0
+content_margin_right = 10.0
+content_margin_bottom = 5.0
+texture = ExtResource("2_button_normal")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+modulate_color = Color(0.62, 0.38, 0.18, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_button_pressed"]
 content_margin_left = 10.0
 content_margin_top = 6.0
 content_margin_right = 10.0
 content_margin_bottom = 4.0
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_button_disabled"]
-texture = ExtResource("5_button_disabled")
-modulate_color = Color(0.26, 0.22, 0.18, 0.85)
+texture = ExtResource("4_button_pressed")
 texture_margin_left = 8.0
 texture_margin_top = 8.0
 texture_margin_right = 8.0
 texture_margin_bottom = 8.0
-content_margin_left = 10.0
-content_margin_top = 5.0
-content_margin_right = 10.0
-content_margin_bottom = 5.0
+modulate_color = Color(0.38, 0.23, 0.12, 1)
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_input"]
-texture = ExtResource("6_input")
-modulate_color = Color(0.28, 0.18, 0.11, 1)
-texture_margin_left = 8.0
-texture_margin_top = 8.0
-texture_margin_right = 8.0
-texture_margin_bottom = 8.0
-content_margin_left = 8.0
-content_margin_top = 4.0
-content_margin_right = 8.0
-content_margin_bottom = 4.0
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_input_focus"]
-texture = ExtResource("7_input_focus")
-modulate_color = Color(0.39, 0.25, 0.14, 1)
-texture_margin_left = 8.0
-texture_margin_top = 8.0
-texture_margin_right = 8.0
-texture_margin_bottom = 8.0
-content_margin_left = 8.0
-content_margin_top = 4.0
-content_margin_right = 8.0
-content_margin_bottom = 4.0
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_empty"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_panel"]
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+texture = ExtResource("1_panel")
+texture_margin_left = 12.0
+texture_margin_top = 12.0
+texture_margin_right = 12.0
+texture_margin_bottom = 12.0
+modulate_color = Color(0.42, 0.28, 0.16, 0.96)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bar"]
-texture = ExtResource("8_bar")
-modulate_color = Color(0.54, 0.32, 0.14, 1)
-texture_margin_left = 6.0
-texture_margin_top = 3.0
-texture_margin_right = 6.0
-texture_margin_bottom = 3.0
 content_margin_left = 4.0
 content_margin_top = 2.0
 content_margin_right = 4.0
 content_margin_bottom = 2.0
+texture = ExtResource("8_bar")
+texture_margin_left = 6.0
+texture_margin_top = 3.0
+texture_margin_right = 6.0
+texture_margin_bottom = 3.0
+modulate_color = Color(0.54, 0.32, 0.14, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bar_fill"]
 texture = ExtResource("9_bar_fill")
-modulate_color = Color(0.95, 0.7, 0.28, 1)
 texture_margin_left = 6.0
 texture_margin_top = 1.0
 texture_margin_right = 6.0
 texture_margin_bottom = 1.0
+modulate_color = Color(0.95, 0.7, 0.28, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_input_focus"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+texture = ExtResource("7_input_focus")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+modulate_color = Color(0.39, 0.25, 0.14, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_input"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+texture = ExtResource("7_input_focus")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+modulate_color = Color(0.28, 0.18, 0.11, 1)
 
 [resource]
 default_base_scale = 1.0
