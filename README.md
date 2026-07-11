@@ -2,7 +2,7 @@
 
 A **multiplayer fishing and casino game** built in Godot 4 for a small group of friends.
 Fish the island docks, upgrade your gear at the shop, and test your luck at the Blackjack table.
-Coin-affecting gameplay is server-authoritative; movement is client-reported for trusted closed-beta play.
+Coin-affecting gameplay is server-authoritative; movement position is server-simulated from client input.
 
 > Runs in-browser at `https://fishgame.dudeltron14.win`.
 > Server auto-deploys to a Linux VPS via Docker + GitHub Actions.

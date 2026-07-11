@@ -110,13 +110,12 @@ func ensure_player(peer_id: int, p_name: String, spawn_position: Vector2) -> voi
 	if player.position == Vector2.ZERO:
 		player.position = spawn_position
 
-func apply_authoritative_player_state(peer_id: int, pos: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = -1.0) -> void:
+func apply_authoritative_player_input(peer_id: int, input_dir: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = -1.0) -> void:
 	var player := players.get_node_or_null(str(peer_id))
 	if player == null:
 		return
-	player.position = pos
-	if player.has_method("apply_remote_state"):
-		player.apply_remote_state(pos, animation, flip_h, hidden, bobber_cast_quality)
+	if player.has_method("apply_server_input"):
+		player.apply_server_input(input_dir, animation, flip_h, hidden, bobber_cast_quality)
 
 func apply_remote_player_state(peer_id: int, pos: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = -1.0) -> void:
 	var player := players.get_node_or_null(str(peer_id))

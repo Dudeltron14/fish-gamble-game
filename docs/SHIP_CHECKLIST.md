@@ -14,7 +14,7 @@ The intended ship path is the Web client at `https://fishgame.dudeltron14.win`, 
 
 These are not blockers for a trusted friends-and-family closed beta unless you want to harden the game before wider access.
 
-- [ ] Decide whether client-reported movement is acceptable for launch, or promote server-authoritative/server-validated movement into pre-launch scope.
+- [ ] Validate server-authoritative movement in live two-client playtest: local movement responsiveness, remote movement visibility, shop/casino hiding, fishing animation/bobber sync, and collision behavior.
 - [ ] Decide whether current fishing timing guardrails are sufficient, or promote stronger server-side reel validation into pre-launch scope.
 
 ## Post-Playtest

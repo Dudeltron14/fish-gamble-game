@@ -24,6 +24,9 @@ const FISH_SHEET_COLUMNS := 3
 var _is_fishing := false
 var _is_hidden_for_menu := false
 var _state_send_accum := 0.0
+var _server_state_send_accum := 0.0
+var _last_input_dir := Vector2.ZERO
+var _server_input_dir := Vector2.ZERO
 var _remote_target_position := Vector2.ZERO
 var _bobber_cast_quality := -1.0
 var _catch_tween: Tween = null
@@ -44,20 +47,29 @@ func _update_local_control() -> void:
 	if not is_node_ready():
 		return
 	var is_local := _is_local_authority()
-	set_physics_process(is_local)
+	set_physics_process(is_local or _is_dedicated_server_player())
 	camera.enabled = is_local
 
 func _process(delta: float) -> void:
-	if _is_local_authority():
+	if multiplayer.is_server() and not GameManager.is_hosting:
+		return
+	if _is_local_authority() and multiplayer.multiplayer_peer == null:
 		return
 	position = position.lerp(_remote_target_position, minf(1.0, REMOTE_LERP_SPEED * delta))
 
 func _physics_process(delta: float) -> void:
+	if _is_dedicated_server_player():
+		_server_physics(delta)
+		return
+	if not _is_local_authority():
+		return
 	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = dir * SPEED
+	if _uses_local_movement():
+		velocity = dir * SPEED
+		move_and_slide()
 	_update_animation(dir)
-	move_and_slide()
-	_send_state_if_due(delta)
+	_last_input_dir = dir
+	_send_input_if_due(delta)
 
 func _update_animation(dir: Vector2) -> void:
 	if _is_fishing:
@@ -73,11 +85,12 @@ func _update_animation(dir: Vector2) -> void:
 func start_fishing() -> void:
 	_is_fishing = true
 	_bobber_cast_quality = -1.0
-	set_physics_process(false)
+	if not _is_dedicated_server_player():
+		set_physics_process(false)
 	velocity = Vector2.ZERO
 	sprite.play("fishing")
 	_update_bobber(true)
-	_send_state()
+	_send_input()
 
 func play_hook() -> void:
 	sprite.play("hook")
@@ -88,16 +101,18 @@ func stop_fishing() -> void:
 	_is_fishing = false
 	_bobber_cast_quality = -1.0
 	var is_local := _is_local_authority()
-	set_physics_process(is_local)
+	set_physics_process(is_local or _is_dedicated_server_player())
 	sprite.play("idle")
 	_update_bobber(false)
-	_send_state()
+	_send_input()
 
 func set_menu_hidden(menu_hidden: bool) -> void:
 	_is_hidden_for_menu = menu_hidden
 	visible = not menu_hidden
+	if menu_hidden:
+		_last_input_dir = Vector2.ZERO
 	_update_bobber(_is_fishing)
-	_send_state()
+	_send_input()
 
 func resume_from_menu_at(world_position: Vector2) -> void:
 	global_position = world_position
@@ -108,13 +123,13 @@ func resume_from_menu_at(world_position: Vector2) -> void:
 	if not _is_fishing and sprite.sprite_frames:
 		sprite.play("idle")
 	_update_bobber(_is_fishing)
-	_send_state()
-	call_deferred("_send_state")
+	_send_input()
+	call_deferred("_send_input")
 
 func set_cast_quality(cast_quality: float) -> void:
 	_bobber_cast_quality = clampf(cast_quality, 0.0, 1.0)
 	_update_bobber(_is_fishing)
-	_send_state()
+	_send_input()
 
 func show_catch(fish_id: String) -> void:
 	var fish := ItemRegistry.get_item(fish_id) as FishData
@@ -139,6 +154,10 @@ func show_catch(fish_id: String) -> void:
 
 func apply_remote_state(pos: Vector2, animation: String, flip_h: bool, menu_hidden: bool, bobber_cast_quality: float = -1.0) -> void:
 	_remote_target_position = pos
+	if _is_local_authority():
+		var correction := pos - position
+		if correction.length() > 48.0:
+			position = pos
 	visible = not menu_hidden
 	if sprite.sprite_frames and sprite.animation != animation:
 		sprite.play(animation)
@@ -146,20 +165,58 @@ func apply_remote_state(pos: Vector2, animation: String, flip_h: bool, menu_hidd
 	_bobber_cast_quality = -1.0 if bobber_cast_quality < 0.0 else clampf(bobber_cast_quality, 0.0, 1.0)
 	_update_bobber(animation == "fishing")
 
-func _send_state_if_due(delta: float) -> void:
+func apply_server_input(input_dir: Vector2, animation: String, flip_h: bool, menu_hidden: bool, bobber_cast_quality: float = -1.0) -> void:
+	if not _is_dedicated_server_player():
+		return
+	_server_input_dir = input_dir.limit_length(1.0)
+	_is_hidden_for_menu = menu_hidden
+	visible = not menu_hidden
+	if animation == "fishing":
+		_is_fishing = true
+	elif _is_fishing and animation != "hook":
+		_is_fishing = false
+	if sprite.sprite_frames and sprite.animation != animation:
+		sprite.play(animation)
+	sprite.flip_h = flip_h
+	_bobber_cast_quality = -1.0 if bobber_cast_quality < 0.0 else clampf(bobber_cast_quality, 0.0, 1.0)
+	_update_bobber(_is_fishing)
+
+func _send_input_if_due(delta: float) -> void:
 	_state_send_accum += delta
 	if _state_send_accum < STATE_SEND_INTERVAL:
 		return
 	_state_send_accum = 0.0
-	_send_state()
+	_send_input()
 
-func _send_state() -> void:
+func _send_input() -> void:
 	if not _is_local_authority() or multiplayer.multiplayer_peer == null:
 		return
-	NetAPI.rpc_id(1, "c2s_player_state", position, str(sprite.animation), sprite.flip_h, _is_hidden_for_menu, _bobber_cast_quality)
+	NetAPI.rpc_id(1, "c2s_player_input", _last_input_dir, str(sprite.animation), sprite.flip_h, _is_hidden_for_menu, _bobber_cast_quality)
 
 func _is_local_authority() -> bool:
 	return multiplayer.get_unique_id() == get_multiplayer_authority()
+
+func _is_dedicated_server_player() -> bool:
+	return multiplayer.is_server() and not GameManager.is_hosting
+
+func _uses_local_movement() -> bool:
+	return multiplayer.multiplayer_peer == null or (multiplayer.is_server() and GameManager.is_hosting)
+
+func _server_physics(delta: float) -> void:
+	if _is_hidden_for_menu or _is_fishing:
+		velocity = Vector2.ZERO
+	else:
+		velocity = _server_input_dir.limit_length(1.0) * SPEED
+		_update_animation(_server_input_dir)
+		move_and_slide()
+	_broadcast_server_state_if_due(delta)
+
+func _broadcast_server_state_if_due(delta: float) -> void:
+	_server_state_send_accum += delta
+	if _server_state_send_accum < STATE_SEND_INTERVAL:
+		return
+	_server_state_send_accum = 0.0
+	NetAPI.rpc("notify_player_state", name.to_int(), position, str(sprite.animation), sprite.flip_h, _is_hidden_for_menu, _bobber_cast_quality)
 
 func _update_bobber(force_visible: bool) -> void:
 	if bobber_visual and bobber_visual.has_method("set_cast_visible"):

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Fish Gamble Game is server-authoritative for account state, inventory, coins, fishing rewards, shop purchases, blackjack, and zone-gated actions. Movement is currently client-reported and server-relayed for trusted closed-beta play.
+Fish Gamble Game is server-authoritative for account state, inventory, coins, fishing rewards, shop purchases, blackjack, zone-gated actions, and player position. Clients report movement input; the server simulates position and relays the result.
 
 ```
 Browser/Desktop Client          Linux Server (Docker)
@@ -33,7 +33,7 @@ LoginScreen.tscn                World.tscn (headless)
 2. **Client starts:** `Main.gd` → `LoginScreen.tscn`
 3. **Login:** client sends `request_login` RPC → `AuthServer` validates, loads coins + inventory → `notify_login`
 4. **World entry:** client changes to `World.tscn` → sends `c2s_world_ready` → server spawns `Player` node → `MultiplayerSpawner` replicates to all peers
-5. **Position sync:** each client sends its current player state to the server with `c2s_player_state`; the server verifies the peer is authenticated, applies the state to the server-side player node, then relays it to the other clients
+5. **Position sync:** each client sends movement input and visual state with `c2s_player_input`; the server verifies the peer is authenticated, simulates movement on the server-side player node, then relays the authoritative position to all clients with `notify_player_state`
 
 ## Server authority model
 
@@ -41,7 +41,7 @@ LoginScreen.tscn                World.tscn (headless)
 - Clients send **intent** (request_login, c2s_fishing_start, c2s_bj_bet)
 - Server validates zone, balance, session state before acting
 - Server sends **result** back to the specific peer (rpc_id)
-- Movement is not yet server-simulated; for launch it is treated as a trusted-client playtest feature unless promoted into the security scope.
+- Movement position is server-simulated from client input. Clients do not send their world position.
 
 ## RPC naming conventions
 

@@ -30,5 +30,5 @@ These are not required for the current Web-client/Linux-Docker ship path unless 
 - Chat box.
 - VFX on catch.
 - Post-playtest fish economy pass: tune 17-catch roster payouts, bait pools, and Baby Kraken difficulty/reward after closed beta feedback.
-- Stronger anti-cheat: server-authoritative movement and server-validated fishing reel simulation.
+- Stronger anti-cheat: server-validated fishing reel simulation beyond the current timing guardrails.
 - Optional Windows Desktop export preset, only if desktop clients become a release target.

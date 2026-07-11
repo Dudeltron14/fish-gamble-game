@@ -46,6 +46,7 @@ Desktop Windows export is out of scope for this launch path.
 ### World / UI / Art
 
 - Casino exterior, casino backdrop, and fish shop interior art are wired.
+- Player position is server-simulated from client movement input; final live two-client validation is tracked in `docs/SHIP_CHECKLIST.md`.
 - Water animation setup and 1080p world coverage have been verified.
 - Tilemap/building/water collision has been checked in a real play session.
 - Spawn point behavior has been confirmed.
@@ -55,4 +56,4 @@ Desktop Windows export is out of scope for this launch path.
 ## Deferred Until After Closed Beta Feedback
 
 - Economy tuning for the expanded 17-catch roster, payouts, bait pools, and Baby Kraken difficulty/reward.
-- Stronger anti-cheat beyond the current trusted-friends launch scope.
+- Stronger fishing/reel anti-cheat beyond the current timing guardrails.
