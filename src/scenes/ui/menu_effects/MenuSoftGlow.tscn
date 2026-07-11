@@ -6,8 +6,8 @@
 [node name="MenuSoftGlow" type="Sprite2D"]
 texture = ExtResource("2")
 centered = true
-region_enabled = true
 script = ExtResource("1")
 fps = 7.0
+animate_frames = false
 alpha = 0.55
 remove_generated_background = false

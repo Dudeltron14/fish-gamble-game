@@ -9,6 +9,11 @@ const KEY_SHADER := preload("res://src/shaders/menu_effect_key.gdshader")
 		_update_region()
 
 @export var fps := 10.0
+@export var animate_frames := true:
+	set(value):
+		animate_frames = value
+		_update_region()
+
 @export var start_frame := 0:
 	set(value):
 		start_frame = max(0, value)
@@ -29,7 +34,6 @@ var _time := 0.0
 
 func _ready() -> void:
 	centered = true
-	region_enabled = true
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	modulate.a = alpha
 	_update_material()
@@ -41,6 +45,9 @@ func _process(delta: float) -> void:
 
 func _update_region() -> void:
 	if texture == null:
+		return
+	region_enabled = animate_frames
+	if not animate_frames:
 		return
 	var frame_width := float(texture.get_width()) / float(frame_count)
 	var frame_height := float(texture.get_height())
