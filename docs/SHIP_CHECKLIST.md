@@ -22,7 +22,6 @@ The checklist intentionally uses the stricter review criteria: server-authoritat
 - [x] Verify gear consumption in 2-player sessions: bait decrement, hook durability, break/re-equip, reconnect state.
 - [x] Verify HUD and GearStatsPanel live refresh after bait/hook depletion.
 - [x] Validate blackjack card rendering, backdrop, and flip animations in an exported build, including visual signoff.
-- [ ] Playtest expanded 17-catch roster, payouts, and Baby Kraken 2.5 difficulty.
 
 ## Visual / Content
 
@@ -55,3 +54,9 @@ Out of scope for this ship path: Windows Desktop export. The intended client is 
 - [x] Update `README.md`, `TODO.md`, `FRAMEWORKS.md`, and `FISHING.md` for the July 2026 gameplay/art/deploy pass.
 - [ ] Keep docs aligned after exported blackjack validation and the final world pass.
 - [ ] After playtest signoff, move completed items from this checklist into a release note or done section.
+
+## Post-Playtest
+
+These are intentionally deferred until after the first closed beta playtest starts producing real economy feedback.
+
+- [ ] Balance expanded 17-catch roster, payouts, and Baby Kraken 2.5 difficulty from closed beta data.
