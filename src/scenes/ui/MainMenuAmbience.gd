@@ -11,18 +11,30 @@ class Sparkle:
 	var phase: float
 	var size: float
 
-const LANTERNS := [
-	Vector2(0.305, 0.23),
-	Vector2(0.695, 0.23),
-	Vector2(0.165, 0.52),
-	Vector2(0.835, 0.52),
+const LANTERN_GLOWS := [
+	{"pos": Vector2(0.305, 0.228), "radius": 0.058, "strength": 0.95},
+	{"pos": Vector2(0.431, 0.125), "radius": 0.038, "strength": 0.62},
+	{"pos": Vector2(0.699, 0.229), "radius": 0.056, "strength": 0.86},
+	{"pos": Vector2(0.165, 0.519), "radius": 0.064, "strength": 0.82},
+	{"pos": Vector2(0.047, 0.628), "radius": 0.040, "strength": 0.58},
+	{"pos": Vector2(0.306, 0.913), "radius": 0.038, "strength": 0.50},
+	{"pos": Vector2(0.841, 0.884), "radius": 0.037, "strength": 0.48},
 ]
 
-const COIN_PILES := [
-	Vector2(0.23, 0.58),
-	Vector2(0.77, 0.58),
-	Vector2(0.17, 0.42),
-	Vector2(0.83, 0.42),
+const SPARKLE_CLUSTERS := [
+	Vector2(0.789, 0.515),
+	Vector2(0.829, 0.431),
+	Vector2(0.862, 0.501),
+	Vector2(0.876, 0.776),
+	Vector2(0.744, 0.602),
+	Vector2(0.244, 0.585),
+	Vector2(0.151, 0.887),
+	Vector2(0.951, 0.075),
+]
+
+const WATER_REGIONS := [
+	Rect2(0.060, 0.248, 0.150, 0.142),
+	Rect2(0.747, 0.170, 0.075, 0.190),
 ]
 
 var _time := 0.0
@@ -64,21 +76,23 @@ func _build_particles() -> void:
 		mote.radius = rng.randf_range(0.8, 1.8)
 		mote.phase = rng.randf_range(0.0, TAU)
 		_dust.append(mote)
-	for pile in COIN_PILES:
-		for i in 5:
+	for cluster in SPARKLE_CLUSTERS:
+		for i in 4:
 			var sparkle := Sparkle.new()
-			sparkle.pos = pile + Vector2(rng.randf_range(-0.035, 0.035), rng.randf_range(-0.025, 0.025))
+			sparkle.pos = cluster + Vector2(rng.randf_range(-0.024, 0.024), rng.randf_range(-0.018, 0.018))
 			sparkle.phase = rng.randf_range(0.0, TAU)
 			sparkle.size = rng.randf_range(3.0, 6.0)
 			_sparkles.append(sparkle)
 
 func _draw_lantern_glow(viewport_size: Vector2) -> void:
-	for i in LANTERNS.size():
-		var center: Vector2 = LANTERNS[i] * viewport_size
+	for i in LANTERN_GLOWS.size():
+		var glow: Dictionary = LANTERN_GLOWS[i]
+		var center: Vector2 = glow["pos"] * viewport_size
 		var pulse := 0.5 + 0.5 * sin(_time * 2.4 + float(i) * 0.9)
-		var radius := viewport_size.y * (0.052 + pulse * 0.009)
-		_draw_soft_circle(center, radius, Color(1.0, 0.58, 0.12, 0.12 + pulse * 0.07), 6)
-		_draw_soft_circle(center, radius * 0.42, Color(1.0, 0.78, 0.30, 0.18 + pulse * 0.08), 4)
+		var strength: float = glow["strength"]
+		var radius := viewport_size.y * (float(glow["radius"]) + pulse * 0.006)
+		_draw_soft_circle(center, radius, Color(1.0, 0.58, 0.12, (0.08 + pulse * 0.055) * strength), 6)
+		_draw_soft_circle(center, radius * 0.42, Color(1.0, 0.78, 0.30, (0.12 + pulse * 0.06) * strength), 4)
 
 func _draw_dust(viewport_size: Vector2) -> void:
 	for mote in _dust:
@@ -98,14 +112,15 @@ func _draw_coin_sparkles(viewport_size: Vector2) -> void:
 		draw_circle(center, 1.3, Color(1.0, 0.94, 0.58, 0.5 * twinkle))
 
 func _draw_water_shimmer(viewport_size: Vector2) -> void:
-	var y_base := viewport_size.y * 0.74
-	for i in 8:
-		var y := y_base + float(i) * viewport_size.y * 0.018
-		var offset := sin(_time * 0.8 + float(i) * 0.65) * viewport_size.x * 0.018
-		var alpha := 0.018 + 0.02 * sin(_time * 1.3 + float(i))
-		var start := Vector2(viewport_size.x * 0.28 + offset, y)
-		var end := Vector2(viewport_size.x * 0.72 + offset, y + sin(_time + float(i)) * 2.0)
-		draw_line(start, end, Color(0.55, 0.95, 0.82, alpha), 1.0)
+	for region in WATER_REGIONS:
+		var rect := Rect2(region.position * viewport_size, region.size * viewport_size)
+		for i in 5:
+			var y := rect.position.y + rect.size.y * (0.28 + float(i) * 0.13)
+			var offset := sin(_time * 0.9 + float(i) * 0.65) * rect.size.x * 0.07
+			var alpha := 0.025 + 0.025 * sin(_time * 1.4 + float(i))
+			var start := Vector2(rect.position.x + rect.size.x * 0.14 + offset, y)
+			var end := Vector2(rect.position.x + rect.size.x * 0.86 + offset, y + sin(_time + float(i)) * 1.3)
+			draw_line(start, end, Color(0.48, 0.88, 0.86, alpha), 1.0)
 
 func _draw_light_flicker(viewport_size: Vector2) -> void:
 	var flicker := 0.035 + 0.025 * sin(_time * 1.7) + 0.015 * sin(_time * 4.1)
