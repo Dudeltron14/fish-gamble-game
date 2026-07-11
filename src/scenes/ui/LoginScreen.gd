@@ -3,6 +3,7 @@ extends Control
 const CONNECT_TIMEOUT := 5.0
 const AUTH_TIMEOUT := 5.0
 const OFFICIAL_SERVER_URL := "wss://fishserver.dudeltron14.win"
+const MENU_EFFECT_REFERENCE_SIZE := Vector2(1280.0, 720.0)
 
 enum _Action { NONE, LOGIN, REGISTER }
 
@@ -11,6 +12,7 @@ var _pending_username := ""
 var _pending_hash := ""
 var _connect_attempt_id := 0
 var _auth_attempt_id := 0
+var _menu_effect_bases := {}
 
 @onready var official_server_btn: Button = %OfficialServerBtn
 @onready var username_field: LineEdit = %UsernameField
@@ -27,6 +29,8 @@ func _ready() -> void:
 	NetworkManager.connected_to_server.connect(_on_network_connected)
 	NetworkManager.connection_failed.connect(_on_connection_failed)
 	NetworkManager.server_disconnected.connect(_on_server_disconnected)
+	resized.connect(_layout_menu_effects)
+	call_deferred("_capture_menu_effect_bases")
 
 func _on_login_pressed() -> void:
 	if not _validate():
@@ -140,3 +144,33 @@ func set_buttons_enabled(enabled: bool) -> void:
 	login_btn.disabled = not enabled
 	register_btn.disabled = not enabled
 	official_server_btn.disabled = not enabled
+
+func _capture_menu_effect_bases() -> void:
+	_menu_effect_bases.clear()
+	for child in get_children():
+		var sprite := child as Sprite2D
+		if sprite == null or not sprite.name.begins_with("Menu"):
+			continue
+		_menu_effect_bases[sprite] = {
+			"position": sprite.position,
+			"scale": sprite.scale,
+		}
+	_layout_menu_effects()
+
+func _layout_menu_effects() -> void:
+	if _menu_effect_bases.is_empty():
+		return
+	var viewport_size := size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		viewport_size = get_viewport_rect().size
+	var cover_scale := maxf(
+		viewport_size.x / MENU_EFFECT_REFERENCE_SIZE.x,
+		viewport_size.y / MENU_EFFECT_REFERENCE_SIZE.y
+	)
+	var offset := (viewport_size - MENU_EFFECT_REFERENCE_SIZE * cover_scale) * 0.5
+	for sprite: Sprite2D in _menu_effect_bases:
+		if not is_instance_valid(sprite):
+			continue
+		var base: Dictionary = _menu_effect_bases[sprite]
+		sprite.position = Vector2(base["position"]) * cover_scale + offset
+		sprite.scale = Vector2(base["scale"]) * cover_scale
