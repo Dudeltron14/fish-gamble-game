@@ -155,6 +155,7 @@ texture_filter = 1
 position = Vector2(113.37499, 448.5)
 scale = Vector2(0.095312566, 0.07421869)
 region_rect = Rect2(0, 0, 160, 256)
+start_frame = 1
 
 [node name="MenuLanternFlame3" parent="." unique_id=1456966718 instance=ExtResource("7_av0tn")]
 modulate = Color(1, 1, 1, 0.95)
@@ -162,6 +163,7 @@ texture_filter = 1
 position = Vector2(546.875, 95.99999)
 scale = Vector2(0.08906219, 0.07031244)
 region_rect = Rect2(2080, 0, 160, 256)
+start_frame = 3
 
 [node name="MenuLanternFlame5" parent="." unique_id=1229797551 instance=ExtResource("7_av0tn")]
 modulate = Color(1, 1, 1, 0.95)
@@ -169,6 +171,7 @@ texture_filter = 1
 position = Vector2(977.00006, 101)
 scale = Vector2(0.057031006, 0.046875015)
 region_rect = Rect2(2400, 0, 160, 256)
+start_frame = 2
 
 [node name="MenuLanternFlame6" parent="." unique_id=664466473 instance=ExtResource("7_av0tn")]
 modulate = Color(1, 1, 1, 0.95)
@@ -176,6 +179,7 @@ texture_filter = 1
 position = Vector2(1240, 245)
 scale = Vector2(0.08906219, 0.07031244)
 region_rect = Rect2(2240, 0, 160, 256)
+start_frame = 6
 
 [node name="MenuLanternFlame4" parent="." unique_id=2055003257 instance=ExtResource("7_av0tn")]
 modulate = Color(1, 1, 1, 0.95)
@@ -183,6 +187,7 @@ texture_filter = 1
 position = Vector2(324.5, 107)
 scale = Vector2(0.09374995, 0.07812499)
 region_rect = Rect2(2240, 0, 160, 256)
+start_frame = 5
 
 [node name="MenuBrassGlint" parent="." unique_id=680535660 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
@@ -197,6 +202,7 @@ texture_filter = 1
 position = Vector2(73, 548)
 scale = Vector2(1.2265625, 0.81640726)
 region_rect = Rect2(0, 0, 32, 32)
+start_frame = 2
 
 [node name="MenuBrassGlint3" parent="." unique_id=126446628 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
@@ -204,6 +210,7 @@ texture_filter = 1
 position = Vector2(70, 629)
 scale = Vector2(1.2265625, 0.81640726)
 region_rect = Rect2(0, 0, 32, 32)
+start_frame = 3
 
 [node name="MenuBrassGlint4" parent="." unique_id=1958259508 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
@@ -211,78 +218,91 @@ texture_filter = 1
 position = Vector2(1080, 516)
 scale = Vector2(1.53125, 1.3125)
 region_rect = Rect2(128, 0, 32, 32)
+start_frame = 1
 
 [node name="MenuBrassGlint5" parent="." unique_id=26979167 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
 texture_filter = 1
 position = Vector2(965, 585)
 region_rect = Rect2(64, 0, 32, 32)
+start_frame = 6
 
 [node name="MenuBrassGlint6" parent="." unique_id=2031963190 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
 texture_filter = 1
 position = Vector2(984, 616)
 region_rect = Rect2(64, 0, 32, 32)
+start_frame = 5
 
 [node name="MenuBrassGlint7" parent="." unique_id=637318787 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
 texture_filter = 1
 position = Vector2(1120, 538)
 region_rect = Rect2(32, 0, 32, 32)
+start_frame = 7
 
 [node name="MenuBrassGlint8" parent="." unique_id=1694264906 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
 texture_filter = 1
 position = Vector2(1074, 556)
 region_rect = Rect2(480, 0, 32, 32)
+start_frame = 9
 
 [node name="MenuBrassGlint9" parent="." unique_id=56025240 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
 texture_filter = 1
 position = Vector2(1040, 537)
 region_rect = Rect2(416, 0, 32, 32)
+start_frame = 8
 
 [node name="MenuBrassGlint10" parent="." unique_id=224434984 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
 texture_filter = 1
 position = Vector2(934, 598)
 region_rect = Rect2(96, 0, 32, 32)
+start_frame = 11
 
 [node name="MenuBrassGlint11" parent="." unique_id=1697940178 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
 texture_filter = 1
 position = Vector2(1064, 542)
 region_rect = Rect2(128, 0, 32, 32)
+start_frame = 10
 
 [node name="MenuBrassGlint12" parent="." unique_id=91964750 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
 texture_filter = 1
 position = Vector2(1099, 527)
 region_rect = Rect2(32, 0, 32, 32)
+start_frame = 12
 
 [node name="MenuBrassGlint13" parent="." unique_id=327689194 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
 texture_filter = 1
 position = Vector2(990, 592)
 region_rect = Rect2(352, 0, 32, 32)
+start_frame = 13
 
 [node name="MenuBrassGlint14" parent="." unique_id=429727873 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
 texture_filter = 1
 position = Vector2(1054, 641)
 region_rect = Rect2(0, 0, 32, 32)
+start_frame = 14
 
 [node name="MenuBrassGlint15" parent="." unique_id=666376464 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
 texture_filter = 1
 position = Vector2(1111, 612)
 region_rect = Rect2(416, 0, 32, 32)
+start_frame = 15
 
 [node name="MenuBrassGlint16" parent="." unique_id=498981845 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
 texture_filter = 1
 position = Vector2(828, 561)
 region_rect = Rect2(128, 0, 32, 32)
+start_frame = 16
 
 [node name="MenuBrassGlint17" parent="." unique_id=1243726954 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
@@ -290,9 +310,11 @@ texture_filter = 1
 position = Vector2(1209.9999, 245)
 scale = Vector2(1.5625, 1.84375)
 region_rect = Rect2(160, 0, 32, 32)
+start_frame = 17
 
 [node name="MenuBrassGlint18" parent="." unique_id=1535284718 instance=ExtResource("8_4wa3p")]
 modulate = Color(1, 1, 1, 0.9)
 texture_filter = 1
 position = Vector2(1179, 242)
 region_rect = Rect2(352, 0, 32, 32)
+start_frame = 18

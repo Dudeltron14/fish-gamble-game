@@ -29,17 +29,13 @@ All game logic is server-authoritative — no cheating, just vibes.
 
 ## Screenshots
 
-> 📸 **Gameplay screenshots needed** — run the game and capture these:
-
-| File to save | What to capture |
+| Login | World |
 |---|---|
-| `docs/screenshots/fishing.png` | Fishing minigame reel in progress (green/red catch bar visible) |
-| `docs/screenshots/shop.png` | Shop overlay open showing items with owned counts |
-| `docs/screenshots/blackjack.png` | Blackjack table mid-game with cards dealt |
-| `docs/screenshots/hud.png` | In-game HUD showing Rod / Bait ×N / Hook N/10 |
-| `docs/screenshots/login.png` | Login screen |
+| ![Login screen](docs/screenshots/login.png) | ![World overview](docs/screenshots/world.png) |
 
-Save to `docs/screenshots/` and they'll appear here automatically once added.
+| Fishing | Shop | Blackjack |
+|---|---|---|
+| ![Fishing minigame](docs/screenshots/fishing.png) | ![Fish shop](docs/screenshots/shop.png) | ![Blackjack table](docs/screenshots/blackjack.png) |
 
 ---
 

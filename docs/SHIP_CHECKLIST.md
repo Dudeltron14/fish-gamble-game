@@ -45,7 +45,7 @@ The checklist intentionally uses the stricter review criteria: server-authoritat
 - [x] Confirm Cloudflare Tunnel origin routing to the Docker game server.
 - [x] Confirm Docker SQLite persistence through container restart/update.
 - [x] Run Linux server export and Web export from CI or local Godot.
-- [ ] Update screenshots in `docs/screenshots/` for README.
+- [x] Update screenshots in `docs/screenshots/` for README.
 
 Out of scope for this ship path: Windows Desktop export. The intended client is the Web export, backed by the Linux Docker server.
 
