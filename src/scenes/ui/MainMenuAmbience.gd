@@ -1,134 +1,102 @@
 extends Control
 
-class DustMote:
-	var pos: Vector2
-	var speed: float
-	var radius: float
-	var phase: float
+const FRAME_COUNT := 16
 
-class Sparkle:
-	var pos: Vector2
-	var phase: float
-	var size: float
+const FLAME_SHEET := "res://assets/User_Gen_ChatGPT/Main Menu/Menu_effects/small_lantern_flame_flicker.png"
+const GLOW_SHEET := "res://assets/User_Gen_ChatGPT/Main Menu/Menu_effects/Soft_warm_glow.png"
+const WATER_SHEET := "res://assets/User_Gen_ChatGPT/Main Menu/Menu_effects/subtle_water_shimmer.png"
+const SPARKLE_SHEET := "res://assets/User_Gen_ChatGPT/Main Menu/Menu_effects/tiny_golden_coin_sparkle.png"
+const DUST_SHEET := "res://assets/User_Gen_ChatGPT/Main Menu/Menu_effects/tiny_warm_dust.png"
 
-const LANTERN_GLOWS := [
-	{"pos": Vector2(0.305, 0.228), "radius": 0.058, "strength": 0.95},
-	{"pos": Vector2(0.431, 0.125), "radius": 0.038, "strength": 0.62},
-	{"pos": Vector2(0.699, 0.229), "radius": 0.056, "strength": 0.86},
-	{"pos": Vector2(0.165, 0.519), "radius": 0.064, "strength": 0.82},
-	{"pos": Vector2(0.047, 0.628), "radius": 0.040, "strength": 0.58},
-	{"pos": Vector2(0.306, 0.913), "radius": 0.038, "strength": 0.50},
-	{"pos": Vector2(0.841, 0.884), "radius": 0.037, "strength": 0.48},
-]
+const KEY_SHADER := preload("res://src/shaders/menu_effect_key.gdshader")
 
-const SPARKLE_CLUSTERS := [
-	Vector2(0.789, 0.515),
-	Vector2(0.829, 0.431),
-	Vector2(0.862, 0.501),
-	Vector2(0.876, 0.776),
-	Vector2(0.744, 0.602),
-	Vector2(0.244, 0.585),
-	Vector2(0.151, 0.887),
-	Vector2(0.951, 0.075),
-]
+const EFFECTS := [
+	# Lanterns and lamp glows.
+	{"sheet": FLAME_SHEET, "pos": Vector2(0.255, 0.146), "size": 30.0, "fps": 10.0, "start": 0, "key": true, "alpha": 0.95},
+	{"sheet": FLAME_SHEET, "pos": Vector2(0.431, 0.125), "size": 24.0, "fps": 9.0, "start": 5, "key": true, "alpha": 0.78},
+	{"sheet": FLAME_SHEET, "pos": Vector2(0.770, 0.147), "size": 24.0, "fps": 9.5, "start": 9, "key": true, "alpha": 0.78},
+	{"sheet": FLAME_SHEET, "pos": Vector2(0.047, 0.619), "size": 30.0, "fps": 10.0, "start": 3, "key": true, "alpha": 0.86},
+	{"sheet": FLAME_SHEET, "pos": Vector2(0.306, 0.908), "size": 24.0, "fps": 9.0, "start": 11, "key": true, "alpha": 0.72},
+	{"sheet": FLAME_SHEET, "pos": Vector2(0.741, 0.840), "size": 22.0, "fps": 8.5, "start": 7, "key": true, "alpha": 0.65},
+	{"sheet": FLAME_SHEET, "pos": Vector2(0.926, 0.395), "size": 28.0, "fps": 10.0, "start": 13, "key": true, "alpha": 0.82},
 
-const WATER_REGIONS := [
-	Rect2(0.060, 0.248, 0.150, 0.142),
-	Rect2(0.747, 0.170, 0.075, 0.190),
+	{"sheet": GLOW_SHEET, "pos": Vector2(0.305, 0.228), "size": 116.0, "fps": 7.5, "start": 2, "key": false, "alpha": 0.55},
+	{"sheet": GLOW_SHEET, "pos": Vector2(0.699, 0.229), "size": 106.0, "fps": 7.0, "start": 7, "key": false, "alpha": 0.48},
+	{"sheet": GLOW_SHEET, "pos": Vector2(0.165, 0.519), "size": 118.0, "fps": 7.5, "start": 11, "key": false, "alpha": 0.44},
+	{"sheet": GLOW_SHEET, "pos": Vector2(0.825, 0.513), "size": 96.0, "fps": 7.0, "start": 5, "key": false, "alpha": 0.36},
+
+	# Aquarium and harbor water shimmer.
+	{"sheet": WATER_SHEET, "pos": Vector2(0.136, 0.320), "size": 132.0, "fps": 8.0, "start": 1, "key": true, "alpha": 0.58},
+	{"sheet": WATER_SHEET, "pos": Vector2(0.784, 0.265), "size": 78.0, "fps": 7.0, "start": 8, "key": true, "alpha": 0.44},
+
+	# Coins and shiny props. Each start is staggered so repeats do not sync.
+	{"sheet": SPARKLE_SHEET, "pos": Vector2(0.789, 0.515), "size": 28.0, "fps": 11.0, "start": 0, "key": true, "alpha": 0.86},
+	{"sheet": SPARKLE_SHEET, "pos": Vector2(0.829, 0.431), "size": 24.0, "fps": 10.0, "start": 4, "key": true, "alpha": 0.72},
+	{"sheet": SPARKLE_SHEET, "pos": Vector2(0.862, 0.501), "size": 24.0, "fps": 10.5, "start": 8, "key": true, "alpha": 0.78},
+	{"sheet": SPARKLE_SHEET, "pos": Vector2(0.876, 0.776), "size": 30.0, "fps": 11.5, "start": 12, "key": true, "alpha": 0.9},
+	{"sheet": SPARKLE_SHEET, "pos": Vector2(0.744, 0.602), "size": 20.0, "fps": 9.5, "start": 6, "key": true, "alpha": 0.58},
+	{"sheet": SPARKLE_SHEET, "pos": Vector2(0.244, 0.585), "size": 18.0, "fps": 9.5, "start": 2, "key": true, "alpha": 0.48},
+	{"sheet": SPARKLE_SHEET, "pos": Vector2(0.151, 0.887), "size": 18.0, "fps": 9.0, "start": 10, "key": true, "alpha": 0.52},
+	{"sheet": SPARKLE_SHEET, "pos": Vector2(0.951, 0.075), "size": 20.0, "fps": 10.0, "start": 14, "key": true, "alpha": 0.62},
+
+	# Dust motes in light shafts. Kept sparse and staggered.
+	{"sheet": DUST_SHEET, "pos": Vector2(0.207, 0.590), "size": 44.0, "fps": 6.0, "start": 0, "key": true, "alpha": 0.38},
+	{"sheet": DUST_SHEET, "pos": Vector2(0.251, 0.897), "size": 42.0, "fps": 5.5, "start": 5, "key": true, "alpha": 0.34},
+	{"sheet": DUST_SHEET, "pos": Vector2(0.772, 0.602), "size": 40.0, "fps": 6.5, "start": 10, "key": true, "alpha": 0.32},
+	{"sheet": DUST_SHEET, "pos": Vector2(0.880, 0.448), "size": 38.0, "fps": 5.5, "start": 13, "key": true, "alpha": 0.30},
 ]
 
 var _time := 0.0
-var _dust: Array[DustMote] = []
-var _sparkles: Array[Sparkle] = []
+var _effect_nodes: Array[Sprite2D] = []
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_build_particles()
+	_create_effects()
 
 func _process(delta: float) -> void:
 	_time += delta
-	for mote in _dust:
-		mote.pos.y -= mote.speed * delta
-		mote.pos.x += sin(_time * 0.45 + mote.phase) * delta * 5.0
-		if mote.pos.y < -0.05:
-			mote.pos.y = 1.05
+	_update_effects()
 	queue_redraw()
 
 func _draw() -> void:
-	var viewport_size := size
-	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
-		return
-	_draw_lantern_glow(viewport_size)
-	_draw_water_shimmer(viewport_size)
-	_draw_dust(viewport_size)
-	_draw_coin_sparkles(viewport_size)
-	_draw_light_flicker(viewport_size)
+	var flicker := 0.018 + 0.012 * sin(_time * 1.7) + 0.007 * sin(_time * 4.1)
+	draw_rect(Rect2(Vector2.ZERO, size), Color(1.0, 0.58, 0.18, flicker), false, 1.0)
 
-func _build_particles() -> void:
-	_dust.clear()
-	_sparkles.clear()
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 13077
-	for i in 46:
-		var mote := DustMote.new()
-		mote.pos = Vector2(rng.randf(), rng.randf())
-		mote.speed = rng.randf_range(0.008, 0.023)
-		mote.radius = rng.randf_range(0.8, 1.8)
-		mote.phase = rng.randf_range(0.0, TAU)
-		_dust.append(mote)
-	for cluster in SPARKLE_CLUSTERS:
-		for i in 4:
-			var sparkle := Sparkle.new()
-			sparkle.pos = cluster + Vector2(rng.randf_range(-0.024, 0.024), rng.randf_range(-0.018, 0.018))
-			sparkle.phase = rng.randf_range(0.0, TAU)
-			sparkle.size = rng.randf_range(3.0, 6.0)
-			_sparkles.append(sparkle)
-
-func _draw_lantern_glow(viewport_size: Vector2) -> void:
-	for i in LANTERN_GLOWS.size():
-		var glow: Dictionary = LANTERN_GLOWS[i]
-		var center: Vector2 = glow["pos"] * viewport_size
-		var pulse := 0.5 + 0.5 * sin(_time * 2.4 + float(i) * 0.9)
-		var strength: float = glow["strength"]
-		var radius := viewport_size.y * (float(glow["radius"]) + pulse * 0.006)
-		_draw_soft_circle(center, radius, Color(1.0, 0.58, 0.12, (0.08 + pulse * 0.055) * strength), 6)
-		_draw_soft_circle(center, radius * 0.42, Color(1.0, 0.78, 0.30, (0.12 + pulse * 0.06) * strength), 4)
-
-func _draw_dust(viewport_size: Vector2) -> void:
-	for mote in _dust:
-		var alpha := 0.08 + 0.08 * sin(_time * 0.8 + mote.phase)
-		draw_circle(mote.pos * viewport_size, mote.radius, Color(1.0, 0.78, 0.42, alpha))
-
-func _draw_coin_sparkles(viewport_size: Vector2) -> void:
-	for sparkle in _sparkles:
-		var twinkle := maxf(0.0, sin(_time * 4.2 + sparkle.phase))
-		if twinkle < 0.28:
+func _create_effects() -> void:
+	for effect in EFFECTS:
+		var texture := load(effect["sheet"]) as Texture2D
+		if texture == null:
+			push_warning("MainMenuAmbience: missing effect sheet %s" % effect["sheet"])
 			continue
-		var center: Vector2 = sparkle.pos * viewport_size
-		var arm := sparkle.size * (0.7 + twinkle * 0.7)
-		var color := Color(1.0, 0.82, 0.28, 0.18 + twinkle * 0.42)
-		draw_line(center + Vector2(-arm, 0.0), center + Vector2(arm, 0.0), color, 1.4)
-		draw_line(center + Vector2(0.0, -arm), center + Vector2(0.0, arm), color, 1.4)
-		draw_circle(center, 1.3, Color(1.0, 0.94, 0.58, 0.5 * twinkle))
+		var sprite := Sprite2D.new()
+		sprite.texture = texture
+		sprite.region_enabled = true
+		sprite.centered = true
+		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		sprite.modulate.a = float(effect.get("alpha", 1.0))
+		if bool(effect.get("key", false)):
+			var material := ShaderMaterial.new()
+			material.shader = KEY_SHADER
+			material.set_shader_parameter("alpha_multiplier", float(effect.get("alpha", 1.0)))
+			sprite.material = material
+		sprite.set_meta("effect", effect)
+		add_child(sprite)
+		_effect_nodes.append(sprite)
+	_update_effects()
 
-func _draw_water_shimmer(viewport_size: Vector2) -> void:
-	for region in WATER_REGIONS:
-		var rect := Rect2(region.position * viewport_size, region.size * viewport_size)
-		for i in 5:
-			var y := rect.position.y + rect.size.y * (0.28 + float(i) * 0.13)
-			var offset := sin(_time * 0.9 + float(i) * 0.65) * rect.size.x * 0.07
-			var alpha := 0.025 + 0.025 * sin(_time * 1.4 + float(i))
-			var start := Vector2(rect.position.x + rect.size.x * 0.14 + offset, y)
-			var end := Vector2(rect.position.x + rect.size.x * 0.86 + offset, y + sin(_time + float(i)) * 1.3)
-			draw_line(start, end, Color(0.48, 0.88, 0.86, alpha), 1.0)
-
-func _draw_light_flicker(viewport_size: Vector2) -> void:
-	var flicker := 0.035 + 0.025 * sin(_time * 1.7) + 0.015 * sin(_time * 4.1)
-	draw_rect(Rect2(Vector2.ZERO, viewport_size), Color(1.0, 0.62, 0.24, flicker), false, 1.0)
-
-func _draw_soft_circle(center: Vector2, radius: float, color: Color, steps: int) -> void:
-	for i in steps:
-		var t := 1.0 - float(i) / float(steps)
-		var c := color
-		c.a *= t * t
-		draw_circle(center, radius * t, c)
+func _update_effects() -> void:
+	for sprite in _effect_nodes:
+		if not is_instance_valid(sprite):
+			continue
+		var effect: Dictionary = sprite.get_meta("effect")
+		var texture := sprite.texture
+		if texture == null:
+			continue
+		var frame_width := float(texture.get_width()) / float(FRAME_COUNT)
+		var frame_height := float(texture.get_height())
+		var frame := (int(floor(_time * float(effect.get("fps", 8.0)))) + int(effect.get("start", 0))) % FRAME_COUNT
+		sprite.region_rect = Rect2(Vector2(frame_width * frame, 0.0), Vector2(frame_width, frame_height))
+		sprite.position = effect["pos"] * size
+		var target_size := float(effect.get("size", 32.0))
+		var longest_side := maxf(frame_width, frame_height)
+		sprite.scale = Vector2.ONE * (target_size / longest_side)
