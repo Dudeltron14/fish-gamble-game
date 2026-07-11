@@ -262,6 +262,12 @@ func stop_music(fade_out: float = 0.5) -> void:
 	_music_tween.tween_property(_music_player, "volume_db", -80.0, fade_out)
 	_music_tween.tween_callback(_music_player.stop)
 
+func clear_music_context(fade_out: float = 0.5) -> void:
+	_current_context = ""
+	_current_playlist.clear()
+	_track_index = 0
+	stop_music(fade_out)
+
 # ── SFX ───────────────────────────────────────────────────────────────────────
 
 func set_music_volume(linear: float) -> void:

@@ -40,7 +40,7 @@ The checklist intentionally uses the stricter review criteria: server-authoritat
 
 ## Release / Deployment
 
-- [ ] Confirm GHCR package visibility.
+- [x] Confirm GHCR package visibility.
 - [x] Confirm deployed clients can connect through `wss://fishserver.dudeltron14.win`.
 - [x] Confirm Cloudflare Tunnel origin routing to the Docker game server.
 - [x] Confirm Docker SQLite persistence through container restart/update.

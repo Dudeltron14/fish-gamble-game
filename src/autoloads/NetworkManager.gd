@@ -44,10 +44,13 @@ func connect_to_url(url: String) -> Error:
 	return OK
 
 func disconnect_from_server() -> void:
+	var had_peer := _peer != null or multiplayer.multiplayer_peer != null
 	if _peer != null:
 		_peer.close()
 		_peer = null
 	multiplayer.multiplayer_peer = null
+	if had_peer:
+		AudioManager.clear_music_context()
 
 func is_server() -> bool:
 	return multiplayer.is_server()
@@ -59,9 +62,11 @@ func _on_connected_to_server() -> void:
 	connected_to_server.emit()
 
 func _on_connection_failed() -> void:
+	AudioManager.clear_music_context()
 	connection_failed.emit()
 
 func _on_server_disconnected() -> void:
+	AudioManager.clear_music_context()
 	server_disconnected.emit()
 
 func _on_peer_connected(id: int) -> void:
