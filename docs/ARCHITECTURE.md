@@ -2,7 +2,7 @@
 
 ## Overview
 
-Fish Gamble Game is a server-authoritative multiplayer game. The server validates every game action; clients handle input and rendering only.
+Fish Gamble Game is server-authoritative for account state, inventory, coins, fishing rewards, shop purchases, blackjack, and zone-gated actions. Movement is currently client-reported and server-relayed for trusted closed-beta play.
 
 ```
 Browser/Desktop Client          Linux Server (Docker)
@@ -33,14 +33,15 @@ LoginScreen.tscn                World.tscn (headless)
 2. **Client starts:** `Main.gd` → `LoginScreen.tscn`
 3. **Login:** client sends `request_login` RPC → `AuthServer` validates, loads coins + inventory → `notify_login`
 4. **World entry:** client changes to `World.tscn` → sends `c2s_world_ready` → server spawns `Player` node → `MultiplayerSpawner` replicates to all peers
-5. **Position sync:** each player's `MultiplayerSynchronizer` syncs `position`, `flip_h`, `animation`, `player_name` from authority (owner) to all others
+5. **Position sync:** each client sends its current player state to the server with `c2s_player_state`; the server verifies the peer is authenticated, applies the state to the server-side player node, then relays it to the other clients
 
 ## Server authority model
 
-- Server **never** trusts client-supplied game-state values (coins, fish caught, etc.)
+- Server **never** trusts client-supplied game-state values that affect persistence or rewards (coins, fish caught, shop purchases, blackjack results, equipped gear, etc.)
 - Clients send **intent** (request_login, c2s_fishing_start, c2s_bj_bet)
 - Server validates zone, balance, session state before acting
 - Server sends **result** back to the specific peer (rpc_id)
+- Movement is not yet server-simulated; for launch it is treated as a trusted-client playtest feature unless promoted into the security scope.
 
 ## RPC naming conventions
 

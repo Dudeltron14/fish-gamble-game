@@ -2,7 +2,7 @@
 
 A **multiplayer fishing and casino game** built in Godot 4 for a small group of friends.
 Fish the island docks, upgrade your gear at the shop, and test your luck at the Blackjack table.
-All game logic is server-authoritative — no cheating, just vibes.
+Coin-affecting gameplay is server-authoritative; movement is client-reported for trusted closed-beta play.
 
 > Runs in-browser at `https://fishgame.dudeltron14.win`.
 > Server auto-deploys to a Linux VPS via Docker + GitHub Actions.
@@ -54,13 +54,14 @@ Players start with a **Starter Rod**, **10 Worm uses**, and **1 Basic Hook** (10
 | Bait | Cost | Rare % | Legendary % |
 |---|---|---|---|
 | Worm | 5c | 0% | 0% |
-| Shiny Lure | 20c | 14% | 1% |
+| Glow Grub | 25c | 14% | 1% |
 | Magic Bait | 60c | 40% | 15% |
 
 ### Hooks (durability depletes each cast)
 | Hook | Cost | Durability | Coin bonus |
 |---|---|---|---|
-| Basic Hook | Free starter | 10 uses | ×1.0 |
+| Basic Hook | 15c / free starter | 10 uses | ×1.0 |
+| Shiny Lure | 60c | 15 uses | ×1.15 |
 | Golden Hook | 120c | 20 uses | ×1.3 |
 
 ### Fish
@@ -167,7 +168,8 @@ See [docs/FRAMEWORKS.md](docs/FRAMEWORKS.md) for the full guide.
 | Doc | Contents |
 |---|---|
 | [FISHING.md](docs/FISHING.md) | Complete fishing system reference — every value, formula, and mechanic |
-| [SHIP_CHECKLIST.md](docs/SHIP_CHECKLIST.md) | Current release gate: validation, playtest, art, export, and deployment tasks |
+| [SHIP_CHECKLIST.md](docs/SHIP_CHECKLIST.md) | Current launch gate and deferred scope decisions |
+| [RELEASE_NOTES.md](docs/RELEASE_NOTES.md) | Launch-candidate completed work and current scope |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Multiplayer flow, server authority model, RPC conventions, DB schema |
 | [FRAMEWORKS.md](docs/FRAMEWORKS.md) | How to add fish, rods, bait, tackle, and casino games |
 | [SETUP.md](docs/SETUP.md) | Collaborator quickstart, Docker deploy, Nginx config |

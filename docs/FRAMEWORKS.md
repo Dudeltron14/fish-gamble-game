@@ -190,10 +190,10 @@ earned = floor(fish.base_coin_value × fish.difficulty × coin_multiplier)
 | `coin_multiplier` | Kraken payout | Perch payout |
 |---|---|---|
 | 1.0 | 650c (Basic Hook) | 9c |
-| 1.15 | 287c (Shiny Lure) | 10c |
+| 1.15 | 747c (Shiny Lure) | 10c |
 | 1.3 | 845c (Golden Hook) | 11c |
-| 1.5 | 375c | 13c |
-| 2.0 | 500c | 18c |
+| 1.5 | 975c | 13c |
+| 2.0 | 1300c | 18c |
 
 ### Escape Reduction Reference
 React window = `1.2 / (1 + max(0, difficulty−1) × 0.35) × (1 + escape_reduction)`
