@@ -31,10 +31,10 @@ The checklist intentionally uses the stricter review criteria: server-authoritat
 - [x] Replace casino exterior with transparent style-matched art.
 - [x] Add blackjack casino backdrop.
 - [x] Add blackjack-only coin burst VFX on winning payouts.
-- [ ] Reposition zones after final building placement.
+- [x] Reposition zones after final building placement.
 - [x] Finish water animation setup.
-- [ ] Confirm tilemap/building/water collision in a real play session.
-- [ ] Final spawn point pass.
+- [x] Confirm tilemap/building/water collision in a real play session.
+- [x] Final spawn point pass.
 - [x] Add final fish shop interior backdrop.
 - [x] Assign remaining non-catch item icons on `.tres` resources and show them in shop rows.
 

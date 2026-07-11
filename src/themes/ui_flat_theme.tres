@@ -2,7 +2,6 @@
 
 [ext_resource type="Texture2D" uid="uid://qkpxhengvxtw" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Frame03a.png" id="1_panel"]
 [ext_resource type="Texture2D" uid="uid://g0nl3igx2wu7" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Button02a_1.png" id="2_button_normal"]
-[ext_resource type="Texture2D" uid="uid://dfkd3gcc1myon" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Button02a_2.png" id="3_button_hover"]
 [ext_resource type="Texture2D" uid="uid://y1stsyf68yhq" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Button02a_3.png" id="4_button_pressed"]
 [ext_resource type="Texture2D" uid="uid://chfio3vn1d6xe" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Button02a_4.png" id="5_button_disabled"]
 [ext_resource type="Texture2D" uid="uid://ypeck0juioui" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_InputField02a.png" id="7_input_focus"]
@@ -28,7 +27,7 @@ content_margin_left = 10.0
 content_margin_top = 5.0
 content_margin_right = 10.0
 content_margin_bottom = 5.0
-texture = ExtResource("3_button_hover")
+texture = ExtResource("2_button_normal")
 texture_margin_left = 8.0
 texture_margin_top = 8.0
 texture_margin_right = 8.0
