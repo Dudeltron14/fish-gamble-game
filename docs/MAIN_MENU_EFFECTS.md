@@ -4,6 +4,7 @@ The main menu background effects are editor-placeable scenes. Open `src/scenes/u
 
 Available presets:
 
+- `MenuLanternFlame.tscn`
 - `MenuCoinSparkle.tscn`
 - `MenuDustMote.tscn`
 
@@ -16,6 +17,6 @@ For each effect instance:
 5. Adjust `alpha` if the effect is too strong.
 6. Leave `remove_generated_background` enabled for generated sheets with fake white/checker backgrounds.
 
-Only `MenuCoinSparkle` and `MenuDustMote` are currently approved for use. The generated flame, soft glow, and water shimmer sheets were removed from the editor presets because their motion does not line up well enough with the fixed background.
+`MenuLanternFlame`, `MenuCoinSparkle`, and `MenuDustMote` are currently approved for use. The flame preset uses a cleaned 17-frame transparent strip made from a generated flame contact sheet. The generated soft glow and water shimmer sheets were removed from the editor presets because their motion does not line up well enough with the fixed background.
 
 The `Ambience` node sits above the background image and below the dim layer/login UI, so effects should remain atmospheric and not block the form.
