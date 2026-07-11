@@ -1,4 +1,3 @@
-@tool
 extends Sprite2D
 
 const KEY_SHADER := preload("res://src/shaders/menu_effect_key.gdshader")
