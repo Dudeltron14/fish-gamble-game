@@ -200,7 +200,7 @@ All catchables are `.tres` files in `src/resources/fish/`. Most new fish only re
 | Pearl Clam | rare | 1.4 | 35c | **49c** | 63c |
 | Golden Trout | rare | 1.6 | 35c | **56c** | 72c |
 | Northern Pike | rare | 2.1 | 35c | **73c** | 95c |
-| Baby Kraken | legendary | 2.5 | 100c | **250c** | 325c |
+| Baby Kraken | legendary | 2.5 | 260c | **650c** | 845c |
 | Sunken Chest | legendary | 2.2 | 150c | **330c** | 429c |
 | Ancient Key | legendary | 2.5 | 150c | **375c** | 487c |
 

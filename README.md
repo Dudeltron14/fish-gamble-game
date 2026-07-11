@@ -81,7 +81,7 @@ Players start with a **Starter Rod**, **10 Worm uses**, and **1 Basic Hook** (10
 | Pearl Clam | Rare | 49c |
 | Golden Trout | Rare | 56c |
 | Northern Pike | Rare | 73c |
-| Baby Kraken | Legendary | 250c (325c with Golden Hook) |
+| Baby Kraken | Legendary | 650c (845c with Golden Hook) |
 | Sunken Chest | Legendary | 330c |
 | Ancient Key | Legendary | 375c |
 

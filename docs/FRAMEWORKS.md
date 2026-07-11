@@ -189,9 +189,9 @@ earned = floor(fish.base_coin_value × fish.difficulty × coin_multiplier)
 ```
 | `coin_multiplier` | Kraken payout | Perch payout |
 |---|---|---|
-| 1.0 | 250c (Basic Hook) | 9c |
+| 1.0 | 650c (Basic Hook) | 9c |
 | 1.15 | 287c (Shiny Lure) | 10c |
-| 1.3 | 325c (Golden Hook) | 11c |
+| 1.3 | 845c (Golden Hook) | 11c |
 | 1.5 | 375c | 13c |
 | 2.0 | 500c | 18c |
 

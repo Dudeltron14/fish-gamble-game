@@ -222,7 +222,7 @@ func _refresh() -> void:
 		durability_lbl.text = "Durability  %d / %d" % [cur, max_v]
 		_tip(durability_icon, durability_lbl, "Durability  %d / %d\nUses remaining before this hook breaks.\nOne use lost per bite (win or lose).\nWhen it reaches 0, one hook is consumed from inventory and the next auto-equips at full durability." % [cur, max_v])
 		coin_lbl.text = "Coins  x%.1f" % tackle.coin_multiplier
-		_tip(coin_icon, coin_lbl, "Coin Multiplier  x%.1f\nAll fish payouts are multiplied by this value.\nExample: Kraken (280c base) → %dc with this hook." % [tackle.coin_multiplier, int(280.0 * tackle.coin_multiplier)])
+		_tip(coin_icon, coin_lbl, "Coin Multiplier  x%.1f\nAll fish payouts are multiplied by this value.\nExample: Kraken (650c base) → %dc with this hook." % [tackle.coin_multiplier, int(650.0 * tackle.coin_multiplier)])
 		react_lbl.text = "React window  +%d%%" % int(tackle.escape_reduction * 100)
 		_tip(react_icon, react_lbl, "React Window  +%d%%\nExtends the time you have to press E when a fish bites.\nCritical on hard fish — Kraken base react time is only 0.74s.\nWith this hook: %.2fs react window on Kraken." % [int(tackle.escape_reduction * 100), 0.74 * (1.0 + tackle.escape_reduction)])
 	else:

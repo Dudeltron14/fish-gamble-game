@@ -12,6 +12,6 @@ buy_price = 0
 sell_price = 0
 icon = ExtResource("2_kraken")
 rarity = "legendary"
-base_coin_value = 100
+base_coin_value = 260
 catch_difficulty = 2.5
 sprite_frame = 4
