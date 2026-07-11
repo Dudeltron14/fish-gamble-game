@@ -32,6 +32,11 @@ jobs:
         with:
           lfs: true
 
+      - name: Install Godot Linux runtime dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends fontconfig libfontconfig1
+
       - name: Setup Godot export templates
         run: |
           mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
