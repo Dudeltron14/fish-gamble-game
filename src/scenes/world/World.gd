@@ -109,6 +109,8 @@ func ensure_player(peer_id: int, p_name: String, spawn_position: Vector2) -> voi
 	player.player_name = p_name
 	if player.position == Vector2.ZERO:
 		player.position = spawn_position
+	if player.has_method("configure_spawned_player"):
+		player.configure_spawned_player(spawn_position)
 
 func apply_authoritative_player_input(peer_id: int, input_dir: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = -1.0) -> void:
 	var player := players.get_node_or_null(str(peer_id))
@@ -138,6 +140,15 @@ func _broadcast_player_spawn(player: CharacterBody2D) -> void:
 	NetAPI.rpc("notify_world_player_spawned", player.name.to_int(), player.player_name, player.position)
 
 func _sync_players_to_peer(peer_id: int) -> void:
+	for child in players.get_children():
+		var player := child as CharacterBody2D
+		if player == null:
+			continue
+		NetAPI.rpc_id(peer_id, "notify_world_player_spawned", player.name.to_int(), player.player_name, player.position)
+	call_deferred("_sync_players_to_peer_deferred", peer_id)
+
+func _sync_players_to_peer_deferred(peer_id: int) -> void:
+	await get_tree().process_frame
 	for child in players.get_children():
 		var player := child as CharacterBody2D
 		if player == null:

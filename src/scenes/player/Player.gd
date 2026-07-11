@@ -165,6 +165,12 @@ func apply_remote_state(pos: Vector2, animation: String, flip_h: bool, menu_hidd
 	_bobber_cast_quality = -1.0 if bobber_cast_quality < 0.0 else clampf(bobber_cast_quality, 0.0, 1.0)
 	_update_bobber(animation == "fishing")
 
+func configure_spawned_player(spawn_position: Vector2) -> void:
+	if position == Vector2.ZERO:
+		position = spawn_position
+	_remote_target_position = position
+	_update_local_control()
+
 func apply_server_input(input_dir: Vector2, animation: String, flip_h: bool, menu_hidden: bool, bobber_cast_quality: float = -1.0) -> void:
 	if not _is_dedicated_server_player():
 		return
