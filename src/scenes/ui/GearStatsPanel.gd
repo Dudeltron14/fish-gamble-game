@@ -44,16 +44,11 @@ const SETTINGS_FILE := "user://settings.cfg"
 var _expanded := false
 var _music_vol := 80.0
 var _sfx_vol   := 80.0
-var _camera_zoom := 2.0
 var _vbox: VBoxContainer
-var _music_slider: HSlider
-var _sfx_slider: HSlider
-var _zoom_slider: HSlider
-var _zoom_value_lbl: Label
 
 func _ready() -> void:
 	_vbox = $Panel/Margin/VBox
-	_build_settings_section()
+	_build_volume_section()
 	_load_settings()
 	_set_expanded(false)   # collapsed by default — only title shows
 
@@ -70,7 +65,7 @@ func _ready() -> void:
 	GameManager.owned_changed.connect(_refresh)
 	_refresh()
 
-func _build_settings_section() -> void:
+func _build_volume_section() -> void:
 	var sep := HSeparator.new()
 	_vbox.add_child(sep)
 
@@ -80,17 +75,17 @@ func _build_settings_section() -> void:
 	music_lbl.text = "Music"
 	music_lbl.custom_minimum_size = Vector2(40, 0)
 	music_lbl.add_theme_font_size_override("font_size", 11)
-	_music_slider = HSlider.new()
-	_music_slider.name = "MusicSlider"
-	_music_slider.min_value = 0.0
-	_music_slider.max_value = 100.0
-	_music_slider.step = 1.0
-	_music_slider.value = _music_vol
-	_music_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_music_slider.focus_mode = Control.FOCUS_NONE  # prevent Tab key capture
-	_music_slider.value_changed.connect(_on_music_changed)
+	var music_slider := HSlider.new()
+	music_slider.name = "MusicSlider"
+	music_slider.min_value = 0.0
+	music_slider.max_value = 100.0
+	music_slider.step = 1.0
+	music_slider.value = _music_vol
+	music_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	music_slider.focus_mode = Control.FOCUS_NONE  # prevent Tab key capture
+	music_slider.value_changed.connect(_on_music_changed)
 	music_row.add_child(music_lbl)
-	music_row.add_child(_music_slider)
+	music_row.add_child(music_slider)
 	_vbox.add_child(music_row)
 
 	var sfx_row := HBoxContainer.new()
@@ -99,43 +94,18 @@ func _build_settings_section() -> void:
 	sfx_lbl.text = "SFX"
 	sfx_lbl.custom_minimum_size = Vector2(40, 0)
 	sfx_lbl.add_theme_font_size_override("font_size", 11)
-	_sfx_slider = HSlider.new()
-	_sfx_slider.name = "SFXSlider"
-	_sfx_slider.min_value = 0.0
-	_sfx_slider.max_value = 100.0
-	_sfx_slider.step = 1.0
-	_sfx_slider.value = _sfx_vol
-	_sfx_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_sfx_slider.focus_mode = Control.FOCUS_NONE  # prevent Tab key capture
-	_sfx_slider.value_changed.connect(_on_sfx_changed)
+	var sfx_slider := HSlider.new()
+	sfx_slider.name = "SFXSlider"
+	sfx_slider.min_value = 0.0
+	sfx_slider.max_value = 100.0
+	sfx_slider.step = 1.0
+	sfx_slider.value = _sfx_vol
+	sfx_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sfx_slider.focus_mode = Control.FOCUS_NONE  # prevent Tab key capture
+	sfx_slider.value_changed.connect(_on_sfx_changed)
 	sfx_row.add_child(sfx_lbl)
-	sfx_row.add_child(_sfx_slider)
+	sfx_row.add_child(sfx_slider)
 	_vbox.add_child(sfx_row)
-
-	var zoom_row := HBoxContainer.new()
-	zoom_row.add_theme_constant_override("separation", 8)
-	var zoom_lbl := Label.new()
-	zoom_lbl.text = "View Zoom"
-	zoom_lbl.custom_minimum_size = Vector2(64, 0)
-	zoom_lbl.add_theme_font_size_override("font_size", 11)
-	_zoom_slider = HSlider.new()
-	_zoom_slider.name = "ZoomSlider"
-	_zoom_slider.min_value = 1.0
-	_zoom_slider.max_value = 4.0
-	_zoom_slider.step = 0.25
-	_zoom_slider.value = _camera_zoom
-	_zoom_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_zoom_slider.focus_mode = Control.FOCUS_NONE
-	_zoom_slider.value_changed.connect(_on_zoom_changed)
-	_zoom_value_lbl = Label.new()
-	_zoom_value_lbl.custom_minimum_size = Vector2(38, 0)
-	_zoom_value_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_zoom_value_lbl.add_theme_font_size_override("font_size", 11)
-	zoom_row.add_child(zoom_lbl)
-	zoom_row.add_child(_zoom_slider)
-	zoom_row.add_child(_zoom_value_lbl)
-	_vbox.add_child(zoom_row)
-	_refresh_zoom_label()
 
 func _on_music_changed(value: float) -> void:
 	_music_vol = value
@@ -145,12 +115,6 @@ func _on_music_changed(value: float) -> void:
 func _on_sfx_changed(value: float) -> void:
 	_sfx_vol = value
 	AudioManager.set_sfx_volume(value / 100.0)
-	_save_settings()
-
-func _on_zoom_changed(value: float) -> void:
-	_camera_zoom = value
-	GameManager.set_camera_zoom(value)
-	_refresh_zoom_label()
 	_save_settings()
 
 func _set_expanded(expand: bool) -> void:
@@ -164,35 +128,18 @@ func is_expanded() -> bool:
 
 func _save_settings() -> void:
 	var cfg := ConfigFile.new()
-	cfg.load(SETTINGS_FILE)
 	cfg.set_value("audio", "music_volume", _music_vol)
 	cfg.set_value("audio", "sfx_volume",   _sfx_vol)
-	cfg.set_value("gameplay", "camera_zoom", _camera_zoom)
 	cfg.save(SETTINGS_FILE)
 
 func _load_settings() -> void:
 	var cfg := ConfigFile.new()
-	if cfg.load(SETTINGS_FILE) == OK:
-		_music_vol = cfg.get_value("audio", "music_volume", 80.0)
-		_sfx_vol   = cfg.get_value("audio", "sfx_volume",   80.0)
-		_camera_zoom = cfg.get_value("gameplay", "camera_zoom", 2.0)
+	if cfg.load(SETTINGS_FILE) != OK:
+		return
+	_music_vol = cfg.get_value("audio", "music_volume", 80.0)
+	_sfx_vol   = cfg.get_value("audio", "sfx_volume",   80.0)
 	AudioManager.set_music_volume(_music_vol / 100.0)
 	AudioManager.set_sfx_volume(_sfx_vol / 100.0)
-	GameManager.set_camera_zoom(_camera_zoom)
-	_sync_settings_controls()
-
-func _sync_settings_controls() -> void:
-	if _music_slider:
-		_music_slider.set_value_no_signal(_music_vol)
-	if _sfx_slider:
-		_sfx_slider.set_value_no_signal(_sfx_vol)
-	if _zoom_slider:
-		_zoom_slider.set_value_no_signal(_camera_zoom)
-	_refresh_zoom_label()
-
-func _refresh_zoom_label() -> void:
-	if _zoom_value_lbl:
-		_zoom_value_lbl.text = "%d%%" % int(round(_camera_zoom * 100.0))
 
 func _tip(icon: TextureRect, lbl: Label, text: String) -> void:
 	icon.tooltip_text = text

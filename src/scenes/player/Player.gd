@@ -33,8 +33,6 @@ var _catch_tween: Tween = null
 
 func _ready() -> void:
 	_update_local_control()
-	if not GameManager.camera_zoom_changed.is_connected(_on_camera_zoom_changed):
-		GameManager.camera_zoom_changed.connect(_on_camera_zoom_changed)
 	name_label.text = player_name
 	_remote_target_position = position
 	if not _is_local_authority():
@@ -51,8 +49,6 @@ func _update_local_control() -> void:
 	var is_local := _is_local_authority()
 	set_physics_process(is_local or _is_dedicated_server_player())
 	camera.enabled = is_local
-	if is_local:
-		_apply_camera_zoom(GameManager.camera_zoom)
 
 func _process(delta: float) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting:
@@ -211,13 +207,6 @@ func _is_dedicated_server_player() -> bool:
 
 func _uses_local_movement() -> bool:
 	return multiplayer.multiplayer_peer == null or (multiplayer.is_server() and GameManager.is_hosting)
-
-func _on_camera_zoom_changed(value: float) -> void:
-	if _is_local_authority():
-		_apply_camera_zoom(value)
-
-func _apply_camera_zoom(value: float) -> void:
-	camera.zoom = Vector2.ONE * clampf(value, 1.0, 4.0)
 
 func _server_physics(delta: float) -> void:
 	if _is_hidden_for_menu or _is_fishing:
