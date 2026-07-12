@@ -92,11 +92,18 @@ size_flags_horizontal = 3
 tooltip_text = "Connect through Cloudflare to the public dedicated server."
 text = "Official Server - fishserver.dudeltron14.win"
 
+[node name="StagingServerBtn" type="Button" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Connect to the staging server for testing pending changes."
+text = "Staging Server"
+
 [node name="OtherServerBtn" type="Button" parent="Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-tooltip_text = "Show a custom server URL for staging or local testing."
+tooltip_text = "Show a custom server URL for local testing."
 text = "Other Server"
 
 [node name="ServerUrlField" type="LineEdit" parent="Center/Panel/Margin/VBox"]
