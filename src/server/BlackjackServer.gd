@@ -4,7 +4,7 @@ enum State { PLAYER_TURN, DEALER_TURN }
 
 func handle_bet(peer_id: int, amount: int) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
-	if session == null:
+	if session == null or session.current_zone != "CasinoZone":
 		_err(peer_id, "Not at a table."); return
 	if session.has_meta("bj_state"):
 		_err(peer_id, "Game already in progress."); return
@@ -15,8 +15,6 @@ func handle_bet(peer_id: int, amount: int) -> void:
 		_err(peer_id, "Enter a valid bet."); return
 	if amount > session.coins:
 		_err(peer_id, "Not enough coins."); return
-	if session.current_zone != "CasinoZone":
-		_err(peer_id, "Not at a table."); return
 
 	session.coins -= amount
 	session.set_meta("bj_bet", amount)
