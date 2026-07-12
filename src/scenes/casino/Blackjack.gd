@@ -15,6 +15,7 @@ var _state := State.IDLE
 var _dealer_cards: Array = []
 var _dealer_hole_hidden := false
 var _player_value := 0
+var _preferred_bet := 10
 
 @onready var coins_label: Label     = %CoinsLabel
 @onready var status_label: Label    = %StatusLabel
@@ -70,6 +71,8 @@ func _on_deal_pressed() -> void:
 
 func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int) -> void:
 	_state = State.PLAYER_TURN
+	_preferred_bet = bet
+	bet_spin.value = bet
 	_clear_hands()
 	_dealer_cards = [dealer_visible]
 	_dealer_hole_hidden = true
@@ -155,6 +158,7 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 func _on_error(msg: String) -> void:
 	status_label.text = msg
 	status_label.modulate = Color(1.0, 0.4, 0.4)
+	_state = State.IDLE
 	_refresh_betting_controls()
 
 # ── Card widgets ──────────────────────────────────────────────────────────────
@@ -336,6 +340,11 @@ func _on_coins_changed(new_amount: int) -> void:
 
 func _refresh_betting_controls() -> void:
 	var balance: int = maxi(0, GameManager.current_coins)
+	if _state != State.IDLE:
+		bet_spin.editable = false
+		deal_btn.disabled = true
+		return
+	bet_spin.editable = true
 	bet_spin.min_value = 1.0 if balance > 0 else 0.0
 	bet_spin.max_value = maxi(1, balance)
 	if balance <= 0:
@@ -345,7 +354,7 @@ func _refresh_betting_controls() -> void:
 			status_label.text = "You need coins to play."
 	else:
 		if int(bet_spin.value) <= 0 or int(bet_spin.value) > balance:
-			bet_spin.value = mini(10, balance)
+			bet_spin.value = mini(_preferred_bet, balance)
 		deal_btn.disabled = _state != State.IDLE
 
 func _clear_hands() -> void:
