@@ -144,6 +144,8 @@ The current public routes are `https://fishgame.dudeltron14.win` for the Web cli
 
 Use `staging` as the shared pre-production branch. Feature branches should be reviewed and merged into `staging` first. Every push to `staging` builds and pushes fresh `:staging` Docker images for the game server and Web client. The staging VM stack runs those images on separate ports and a separate database.
 
+Use `staging2` for an isolated contributor lane, currently intended for Alex or another contributor who needs to test a feature without disturbing the main staging environment. Every push to `staging2` publishes `:staging2` images and uses separate Docker ports, Cloudflare routes, and database storage.
+
 When staging has been playtested and signed off, merge `staging` into `master`. Every push to `master` builds and pushes production `:latest` Docker images. Watchtower on the VPS should pick production images up automatically.
 
 Deployment flow:
@@ -156,6 +158,15 @@ feature/fix branch
   -> merge staging into master when production-ready
   -> production auto-builds ghcr.io/...:latest
   -> test https://fishgame.dudeltron14.win
+```
+
+Isolated contributor flow:
+
+```text
+alex/feature branch
+  -> pull request into staging2
+  -> staging2 auto-builds ghcr.io/...:staging2
+  -> test https://fishgame-staging2.dudeltron14.win
 ```
 
 Use a version tag when you also want a GitHub Release with attached Web export files:

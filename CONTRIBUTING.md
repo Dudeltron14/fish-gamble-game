@@ -27,6 +27,7 @@ Open `project.godot` in Godot for client work. Server and Web deployment details
 - Use one branch and one pull request per feedback item or bug.
 - Target normal feature/fix PRs at `staging`, not `master`.
 - `staging` is the shared pre-production branch. Merged changes auto-build the staging Docker images for playtesting.
+- Use `staging2` when a contributor needs an isolated pre-production lane that will not disturb the main staging environment.
 - `master` is production. Only merge `staging` into `master` after the staging web client/server have been tested and signed off.
 - Keep PRs small enough to review without guessing what changed.
 - Do not mix economy tuning, UI polish, and networking fixes in the same PR.
@@ -63,6 +64,15 @@ Use this flow for most work:
 7. When staging is good, merge staging into master for production.
 ```
 
+For Alex's isolated environment, use the same flow but target `staging2`:
+
+```text
+feature branch
+  -> PR into staging2
+  -> staging2 auto-builds :staging2 images
+  -> test https://fishgame-staging2.dudeltron14.win against wss://fishserver-staging2.dudeltron14.win
+```
+
 Helpful commands:
 
 ```bash
@@ -72,12 +82,30 @@ git pull --ff-only origin staging
 git checkout -b feedback/<short-description>
 ```
 
+For staging2 work:
+
+```bash
+git fetch origin
+git checkout staging2
+git pull --ff-only origin staging2
+git checkout -b alex/<short-description>
+```
+
 After a PR merges into `staging`, update the staging VM stack:
 
 ```bash
 cd ~/fish-game
 sudo docker compose -f docker-compose.staging.yml pull
 sudo docker compose -f docker-compose.staging.yml up -d
+sudo docker compose -f docker-compose.staging.yml ps
+```
+
+The same compose file also runs the isolated staging2 services:
+
+```bash
+cd ~/fish-game
+sudo docker compose -f docker-compose.staging.yml pull game-server-staging2 web-client-staging2
+sudo docker compose -f docker-compose.staging.yml up -d game-server-staging2 web-client-staging2
 sudo docker compose -f docker-compose.staging.yml ps
 ```
 

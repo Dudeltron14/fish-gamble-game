@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - staging
+      - staging2
   workflow_dispatch:
     inputs:
       ref:
@@ -11,7 +12,7 @@ on:
         required: true
         default: "staging"
       image_tag:
-        description: "GHCR tag to publish for staging"
+        description: "GHCR tag to publish for staging. Manual override only."
         required: true
         default: "staging"
 env:
@@ -20,7 +21,7 @@ env:
   IMAGE_NAME: dudeltron14/fish-gamble-game
   WEB_IMAGE_NAME: dudeltron14/fish-gamble-game-web
   BUILD_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref_name }}
-  IMAGE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || 'staging' }}
+  IMAGE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || github.ref_name }}
 
 permissions:
   contents: read

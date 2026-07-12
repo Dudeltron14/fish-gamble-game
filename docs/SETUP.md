@@ -385,9 +385,21 @@ Web port:     8081 -> container 80
 Database:     ./data-staging/players.db
 ```
 
+There is also a second isolated staging lane for contributor work that should not disturb the main staging environment:
+
+```text
+Branch:       staging2
+Server image: ghcr.io/dudeltron14/fish-gamble-game:staging2
+Web image:    ghcr.io/dudeltron14/fish-gamble-game-web:staging2
+Server port:  7072 -> container 7070
+Web port:     8082 -> container 80
+Database:     ./data-staging2/players.db
+Owner/use:    Alex or another contributor who needs an undisturbed feature test environment
+```
+
 ### Merge Work Into Staging
 
-Create PRs from feature/fix branches into `staging`:
+Create PRs from feature/fix branches into `staging` for Noah's shared QA lane:
 
 ```bash
 git checkout -b feedback/shop-equipped-state
@@ -402,11 +414,25 @@ base: staging
 compare: feedback/shop-equipped-state
 ```
 
-After review, merge the PR into `staging`. Every push to `staging` automatically runs the **Staging** workflow and publishes:
+For Alex's isolated lane, open the PR against `staging2` instead:
+
+```text
+base: staging2
+compare: alex/<feature-name>
+```
+
+After review, merge the PR into the correct staging branch. Every push to `staging` automatically runs the **Staging** workflow and publishes:
 
 ```text
 ghcr.io/dudeltron14/fish-gamble-game:staging
 ghcr.io/dudeltron14/fish-gamble-game-web:staging
+```
+
+Every push to `staging2` publishes:
+
+```text
+ghcr.io/dudeltron14/fish-gamble-game:staging2
+ghcr.io/dudeltron14/fish-gamble-game-web:staging2
 ```
 
 The staging Web client includes explicit server choices on the login screen:
@@ -428,7 +454,7 @@ ref: branch-name-or-sha
 image_tag: staging
 ```
 
-Manual runs overwrite the shared `:staging` images, so coordinate before using them while another staging playtest is active.
+Manual runs overwrite whichever tag you provide. Use `image_tag: staging` for the main staging lane or `image_tag: staging2` for Alex's lane. Coordinate before using manual runs while someone else is actively playtesting that lane.
 
 ### Start Staging On The VM
 
@@ -449,11 +475,19 @@ Follow staging logs:
 sudo docker compose -f docker-compose.staging.yml logs -f game-server-staging
 ```
 
+Follow staging2 logs:
+
+```bash
+sudo docker compose -f docker-compose.staging.yml logs -f game-server-staging2
+```
+
 Local VM checks:
 
 ```bash
 curl -I http://localhost:8081
 curl -I http://localhost:8081/index.pck
+curl -I http://localhost:8082
+curl -I http://localhost:8082/index.pck
 ```
 
 ### Cloudflare Tunnel Routes
@@ -463,6 +497,8 @@ Add two public hostname routes to the existing Cloudflare Tunnel:
 ```text
 fishserver-staging.dudeltron14.win -> http://172.17.0.1:7071
 fishgame-staging.dudeltron14.win   -> http://172.17.0.1:8081
+fishserver-staging2.dudeltron14.win -> http://172.17.0.1:7072
+fishgame-staging2.dudeltron14.win   -> http://172.17.0.1:8082
 ```
 
 Then test:
@@ -470,6 +506,8 @@ Then test:
 ```text
 https://fishgame-staging.dudeltron14.win
 wss://fishserver-staging.dudeltron14.win
+https://fishgame-staging2.dudeltron14.win
+wss://fishserver-staging2.dudeltron14.win
 ```
 
 ### Promote After Staging Passes
@@ -492,7 +530,7 @@ ghcr.io/dudeltron14/fish-gamble-game:latest
 ghcr.io/dudeltron14/fish-gamble-game-web:latest
 ```
 
-If staging fails, leave `master` alone. Fix the feature branch, merge the fix into `staging`, wait for the automatic staging workflow, pull staging on the VM, and test again.
+If staging fails, leave `master` alone. Fix the feature branch, merge the fix into the same staging lane, wait for the automatic staging workflow, pull staging on the VM, and test again.
 
 ### Keeping Staging Current With Master
 
@@ -506,6 +544,17 @@ git push origin staging
 ```
 
 Resolve conflicts carefully if they appear. The push to `staging` will rebuild the shared staging images.
+
+Keep `staging2` current the same way when Alex needs a fresh base:
+
+```bash
+git checkout staging2
+git pull --ff-only origin staging2
+git merge origin/master
+git push origin staging2
+```
+
+The push to `staging2` will rebuild the `:staging2` images.
 
 ---
 
