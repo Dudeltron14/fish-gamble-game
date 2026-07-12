@@ -25,6 +25,9 @@ Open `project.godot` in Godot for client work. Server and Web deployment details
 ## Branch And PR Rules
 
 - Use one branch and one pull request per feedback item or bug.
+- Target normal feature/fix PRs at `staging`, not `master`.
+- `staging` is the shared pre-production branch. Merged changes auto-build the staging Docker images for playtesting.
+- `master` is production. Only merge `staging` into `master` after the staging web client/server have been tested and signed off.
 - Keep PRs small enough to review without guessing what changed.
 - Do not mix economy tuning, UI polish, and networking fixes in the same PR.
 - Do not commit local databases, temporary exports, or unrelated generated files.
@@ -46,6 +49,47 @@ Recommended PR titles:
 [Docs] Add playtest triage workflow
 ```
 
+## Staging And Release Flow
+
+Use this flow for most work:
+
+```text
+1. Create a feature/fix branch from staging.
+2. Open a PR into staging.
+3. Merge after review.
+4. Wait for the Staging GitHub Action to publish :staging images.
+5. Pull/recreate the staging containers on the VM.
+6. Test https://fishgame-staging.dudeltron14.win against wss://fishserver-staging.dudeltron14.win.
+7. When staging is good, merge staging into master for production.
+```
+
+Helpful commands:
+
+```bash
+git fetch origin
+git checkout staging
+git pull --ff-only origin staging
+git checkout -b feedback/<short-description>
+```
+
+After a PR merges into `staging`, update the staging VM stack:
+
+```bash
+cd ~/fish-game
+sudo docker compose -f docker-compose.staging.yml pull
+sudo docker compose -f docker-compose.staging.yml up -d
+sudo docker compose -f docker-compose.staging.yml ps
+```
+
+Only production release managers should promote staging to master:
+
+```bash
+git checkout master
+git pull --ff-only origin master
+git merge --ff-only origin/staging
+git push origin master
+```
+
 ## Verification
 
 For code or scene changes, run the Godot headless load check before opening a PR:
@@ -55,4 +99,3 @@ For code or scene changes, run the Godot headless load check before opening a PR
 ```
 
 For networking changes, also test against the Docker server or clearly say why that was not possible.
-

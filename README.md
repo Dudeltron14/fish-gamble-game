@@ -23,7 +23,7 @@ Coin-affecting gameplay is server-authoritative; movement position is server-sim
 | 🌍 **World** | Pixel-art island. Walk to the Dock, Shop, or Casino — press E to interact. |
 | 👤 **Multiplayer** | WebSocket-based. Public clients connect to the official server at `wss://fishserver.dudeltron14.win`. |
 | 🔐 **Auth** | Username + password (double-hashed with per-user salt). SQLite persistence. 50 coin starting balance. |
-| 🚀 **Auto-deploy** | Push to `master` → GitHub Actions exports Web/server builds + pushes Docker images → Watchtower auto-pulls on VPS. |
+| 🚀 **Auto-deploy** | Push/merge to `staging` publishes `:staging` Docker images for QA. Merge verified `staging` into `master` to publish production `:latest` images. |
 
 ---
 
@@ -142,7 +142,21 @@ The current public routes are `https://fishgame.dudeltron14.win` for the Web cli
 
 ## Deploying And Releasing
 
-Every push to `master` builds and pushes fresh `latest` Docker images for the game server and Web client. Watchtower on the VPS should pick those up automatically.
+Use `staging` as the shared pre-production branch. Feature branches should be reviewed and merged into `staging` first. Every push to `staging` builds and pushes fresh `:staging` Docker images for the game server and Web client. The staging VM stack runs those images on separate ports and a separate database.
+
+When staging has been playtested and signed off, merge `staging` into `master`. Every push to `master` builds and pushes production `:latest` Docker images. Watchtower on the VPS should pick production images up automatically.
+
+Deployment flow:
+
+```text
+feature/fix branch
+  -> pull request into staging
+  -> staging auto-builds ghcr.io/...:staging
+  -> test https://fishgame-staging.dudeltron14.win
+  -> merge staging into master when production-ready
+  -> production auto-builds ghcr.io/...:latest
+  -> test https://fishgame.dudeltron14.win
+```
 
 Use a version tag when you also want a GitHub Release with attached Web export files:
 
@@ -154,15 +168,16 @@ git push origin v1.0.0
 GitHub Actions will:
 1. Export Linux server binary + Web client (Godot CI)
 2. Build and push Docker images to `ghcr.io/dudeltron14/fish-gamble-game` and `ghcr.io/dudeltron14/fish-gamble-game-web`
-3. Deploy the Web client to Cloudflare Pages when the Cloudflare secrets are configured
-4. Attach Web export files to the GitHub Release page for version tags
-5. Watchtower picks up new Docker images on the VPS within 5 minutes
+3. Publish `:staging` from the `staging` branch or `:latest` from `master`
+4. Deploy the Web client to Cloudflare Pages when the Cloudflare secrets are configured
+5. Attach Web export files to the GitHub Release page for version tags
+6. Watchtower picks up new Docker images on the VPS within 5 minutes
 
 ---
 
 ## Contributing And Playtesting
 
-New contributors should start with [CONTRIBUTING.md](CONTRIBUTING.md). Use one branch and one pull request per feedback item or bug so active fixes stay easy to review.
+New contributors should start with [CONTRIBUTING.md](CONTRIBUTING.md). Use one branch and one pull request per feedback item or bug so active fixes stay easy to review. Target normal feature/fix PRs at `staging`, not `master`; `master` is for production releases after staging passes.
 
 Playtester reports should follow [docs/PLAYTEST_FEEDBACK.md](docs/PLAYTEST_FEEDBACK.md). Launch-blocking findings belong in [docs/SHIP_CHECKLIST.md](docs/SHIP_CHECKLIST.md); completed closed-beta status lives in [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
 
