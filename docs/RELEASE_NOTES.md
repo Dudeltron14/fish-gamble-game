@@ -6,6 +6,10 @@ Target: browser-based closed beta at `https://fishgame.dudeltron14.win`, backed 
 
 Desktop Windows export is out of scope for this launch path.
 
+## Everything Fixed Status
+
+As of the server-authoritative movement validation pass, login, server-authoritative spawn, server-simulated movement, remote player visibility, and deployed Web client connection are confirmed working against the Docker server.
+
 ## Completed For Closed Beta
 
 ### Networking / Deployment
@@ -46,7 +50,7 @@ Desktop Windows export is out of scope for this launch path.
 ### World / UI / Art
 
 - Casino exterior, casino backdrop, and fish shop interior art are wired.
-- Player position is server-simulated from client movement input; final live two-client validation is tracked in `docs/SHIP_CHECKLIST.md`.
+- Player position is server-simulated from client movement input and has passed live validation.
 - Water animation setup and 1080p world coverage have been verified.
 - Tilemap/building/water collision has been checked in a real play session.
 - Spawn point behavior has been confirmed.
