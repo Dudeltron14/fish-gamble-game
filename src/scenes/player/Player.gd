@@ -95,7 +95,7 @@ func start_fishing() -> void:
 func play_hook() -> void:
 	sprite.play("hook")
 	_update_bobber(false)
-	_send_state()
+	_send_input()
 
 func stop_fishing() -> void:
 	_is_fishing = false
