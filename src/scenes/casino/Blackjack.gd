@@ -10,7 +10,7 @@ const CARD_FLIP_HALF_TIME := 0.14
 const CARD_DEAL_ARC_HEIGHT := 54.0
 const COIN_BURST_SCENE := preload("res://src/scenes/vfx/CoinBurst.tscn")
 
-enum State { IDLE, PLAYER_TURN }
+enum State { IDLE, DEAL_PENDING, PLAYER_TURN }
 var _state := State.IDLE
 var _dealer_cards: Array = []
 var _dealer_hole_hidden := false
@@ -56,14 +56,22 @@ func _ready() -> void:
 
 func _on_deal_pressed() -> void:
 	var amount := int(bet_spin.value)
-	if amount <= 0 or GameManager.current_coins <= 0 or amount > GameManager.current_coins:
+	if amount <= 0 or GameManager.current_coins <= 0:
 		status_label.text = "You need coins to play."
 		status_label.modulate = Color(1.0, 0.4, 0.4)
 		_refresh_betting_controls()
 		return
+	if amount > GameManager.current_coins:
+		status_label.text = "Not enough coins."
+		status_label.modulate = Color(1.0, 0.4, 0.4)
+		_refresh_betting_controls()
+		return
+	_state = State.DEAL_PENDING
+	_preferred_bet = amount
 	_clear_hands()
 	_set_actions(false)
 	deal_btn.disabled = true
+	bet_spin.editable = false
 	status_label.text = "Dealing…"
 	NetAPI.rpc_id(1, "c2s_bj_bet", amount)
 
@@ -158,7 +166,8 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 func _on_error(msg: String) -> void:
 	status_label.text = msg
 	status_label.modulate = Color(1.0, 0.4, 0.4)
-	_state = State.IDLE
+	if _state == State.DEAL_PENDING:
+		_state = State.IDLE
 	_refresh_betting_controls()
 
 # ── Card widgets ──────────────────────────────────────────────────────────────
