@@ -13,8 +13,11 @@ var _pending_hash := ""
 var _connect_attempt_id := 0
 var _auth_attempt_id := 0
 var _menu_effect_bases := {}
+var _selected_server_url := OFFICIAL_SERVER_URL
 
 @onready var official_server_btn: Button = %OfficialServerBtn
+@onready var other_server_btn: Button = %OtherServerBtn
+@onready var server_url_field: LineEdit = %ServerUrlField
 @onready var username_field: LineEdit = %UsernameField
 @onready var password_field: LineEdit = %PasswordField
 @onready var login_btn: Button = %LoginBtn
@@ -22,6 +25,8 @@ var _menu_effect_bases := {}
 @onready var status_label: Label = %StatusLabel
 
 func _ready() -> void:
+	official_server_btn.pressed.connect(_select_official_server)
+	other_server_btn.pressed.connect(_toggle_other_server)
 	login_btn.pressed.connect(_on_login_pressed)
 	register_btn.pressed.connect(_on_register_pressed)
 	NetAPI.login_result.connect(_on_login_result)
@@ -52,8 +57,9 @@ func _maybe_connect() -> void:
 	set_buttons_enabled(false)
 	_connect_attempt_id += 1
 	var attempt_id: int = _connect_attempt_id
-	set_status("Connecting to official server...")
-	var err := NetworkManager.connect_to_url(OFFICIAL_SERVER_URL)
+	var server_url := _server_url()
+	set_status("Connecting to %s..." % _server_label(server_url))
+	var err := NetworkManager.connect_to_url(server_url)
 
 	if err != OK:
 		set_status("Connection error: " + error_string(err))
@@ -129,6 +135,9 @@ func _validate() -> bool:
 	if u.is_empty() or p.is_empty():
 		set_status("Username and password required.")
 		return false
+	if _server_url().is_empty():
+		set_status("Server URL required.")
+		return false
 	return true
 
 func _hash_password(password: String) -> String:
@@ -144,6 +153,38 @@ func set_buttons_enabled(enabled: bool) -> void:
 	login_btn.disabled = not enabled
 	register_btn.disabled = not enabled
 	official_server_btn.disabled = not enabled
+	other_server_btn.disabled = not enabled
+	server_url_field.editable = enabled
+
+func _select_official_server() -> void:
+	_selected_server_url = OFFICIAL_SERVER_URL
+	server_url_field.visible = false
+	official_server_btn.text = "Official Server - fishserver.dudeltron14.win"
+	other_server_btn.text = "Other Server"
+	set_status("")
+
+func _toggle_other_server() -> void:
+	var show_field := not server_url_field.visible
+	server_url_field.visible = show_field
+	if show_field:
+		if server_url_field.text.strip_edges().is_empty():
+			server_url_field.text = "wss://fishserver-staging.dudeltron14.win"
+		_selected_server_url = server_url_field.text.strip_edges()
+		official_server_btn.text = "Official Server"
+		other_server_btn.text = "Use Other Server"
+		server_url_field.grab_focus()
+	else:
+		_select_official_server()
+
+func _server_url() -> String:
+	if server_url_field.visible:
+		_selected_server_url = server_url_field.text.strip_edges()
+	return _selected_server_url.strip_edges()
+
+func _server_label(server_url: String) -> String:
+	if server_url == OFFICIAL_SERVER_URL:
+		return "official server"
+	return "custom server"
 
 func _capture_menu_effect_bases() -> void:
 	_menu_effect_bases.clear()
