@@ -5,7 +5,7 @@ Fish the island docks, upgrade your gear at the shop, and test your luck at the 
 Coin-affecting gameplay is server-authoritative; movement position is server-simulated from client input.
 
 > Runs in-browser at `https://fishgame.dudeltron14.win`.
-> Server auto-deploys to a Linux VPS via Docker + GitHub Actions.
+> Web client and server auto-deploy through GitHub Actions, Docker images, Cloudflare, and Watchtower.
 
 ---
 
@@ -23,7 +23,7 @@ Coin-affecting gameplay is server-authoritative; movement position is server-sim
 | 🌍 **World** | Pixel-art island. Walk to the Dock, Shop, or Casino — press E to interact. |
 | 👤 **Multiplayer** | WebSocket-based. Public clients connect to the official server at `wss://fishserver.dudeltron14.win`. |
 | 🔐 **Auth** | Username + password (double-hashed with per-user salt). SQLite persistence. 50 coin starting balance. |
-| 🚀 **Auto-deploy** | Push a `v*.*.*` tag → GitHub Actions exports + builds Docker image → Watchtower auto-pulls on VPS. |
+| 🚀 **Auto-deploy** | Push to `master` → GitHub Actions exports Web/server builds + pushes Docker images → Watchtower auto-pulls on VPS. |
 
 ---
 
@@ -123,18 +123,28 @@ git lfs pull
 ## Docker Deployment
 
 ```bash
-# On your VPS — pulls the latest image and starts with auto-updates
+# On your VPS — pulls the latest server + Web client images and starts with auto-updates
 docker compose up -d
 ```
+
+The Compose stack runs:
+
+- `game-server` from `ghcr.io/dudeltron14/fish-gamble-game:latest`
+- `web-client` from `ghcr.io/dudeltron14/fish-gamble-game-web:latest`
+- `watchtower` for automatic image updates
 
 SQLite database persists in `./data/` on the host.
 Watchtower checks for new images every 5 minutes and updates automatically.
 
-The current public route is `wss://fishserver.dudeltron14.win` through Cloudflare Tunnel. See [docs/SETUP.md](docs/SETUP.md) for the full deployment guide.
+The current public routes are `https://fishgame.dudeltron14.win` for the Web client and `wss://fishserver.dudeltron14.win` for the game server. See [docs/SETUP.md](docs/SETUP.md) for the full deployment guide.
 
 ---
 
-## Releasing a New Version
+## Deploying And Releasing
+
+Every push to `master` builds and pushes fresh `latest` Docker images for the game server and Web client. Watchtower on the VPS should pick those up automatically.
+
+Use a version tag when you also want a GitHub Release with attached Web export files:
 
 ```bash
 git tag v1.0.0
@@ -143,9 +153,18 @@ git push origin v1.0.0
 
 GitHub Actions will:
 1. Export Linux server binary + Web client (Godot CI)
-2. Build and push Docker image to `ghcr.io/dudeltron14/fish-gamble-game`
-3. Attach web export to the GitHub Release page
-4. Watchtower picks it up on the VPS within 5 minutes
+2. Build and push Docker images to `ghcr.io/dudeltron14/fish-gamble-game` and `ghcr.io/dudeltron14/fish-gamble-game-web`
+3. Deploy the Web client to Cloudflare Pages when the Cloudflare secrets are configured
+4. Attach Web export files to the GitHub Release page for version tags
+5. Watchtower picks up new Docker images on the VPS within 5 minutes
+
+---
+
+## Contributing And Playtesting
+
+New contributors should start with [CONTRIBUTING.md](CONTRIBUTING.md). Use one branch and one pull request per feedback item or bug so active fixes stay easy to review.
+
+Playtester reports should follow [docs/PLAYTEST_FEEDBACK.md](docs/PLAYTEST_FEEDBACK.md). Launch-blocking findings belong in [docs/SHIP_CHECKLIST.md](docs/SHIP_CHECKLIST.md); completed closed-beta status lives in [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
 
 ---
 
