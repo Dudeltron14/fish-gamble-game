@@ -29,3 +29,4 @@ These are intentionally deferred until after the first closed beta playtest star
 - [ ] Explore dead-broke recovery via shovel/worm-digging minigame.
 - [ ] Explore momentum-based fishing.
 - [ ] Consider new fish, rich-player skins, advanced upgrades, backpack/inventory slots, player trading, and multiplayer casino table spectators.
+- [ ] Consider admin panel, day/night cycle, main-menu server query, and dock social cosmetics after closed beta priorities are stable.

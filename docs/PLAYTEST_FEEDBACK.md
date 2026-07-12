@@ -98,12 +98,17 @@ These notes came from the first broader playtest pass. The items below are group
 
 ### Deferred Design / Post-Playtest Ideas
 
-- Explore momentum-based fishing.
-- Add a shovel minigame to dig up worms when dead broke.
-- Add old-school pipe cosmetic/social props.
-- Add new fish.
-- Give Ancient Key a purpose beyond direct money.
-- Add rich-player skins.
-- Add advanced upgrades such as harpoon or shotgun-style special tools.
-- Add backpack slots, an interactable inventory, and player trading.
+- Prototype momentum-based fishing as a separate system where the player bar has weight, drifts to one side, and gains momentum from opposite input. Fish difficulty should be reduced to account for harder rod control. GitHub issue #7.
+- Add a low-priority shovel/worm-digging recovery minigame inspired by Minesweeper: avoid rocks, earn worms if successful. GitHub issue #8.
+- Add old-school pipe dock social cosmetics/interactions if the team wants a more adult playtester-requested tone. GitHub issue #9.
+- Mock up new fish by identifying empty reward tiers, fish-behavior spaces, and thematic gaps. GitHub issue #10.
+- Give Ancient Key a purpose beyond direct money by unlocking a chest/case-opening reward flow. GitHub issue #11.
+- Add rich-player skins using the extra character sprite sheets and a possible hidden cosmetic vendor. GitHub issue #12.
+- Add a shotgun/shells special fishing upgrade that replaces the rod, skips the minigame, and targets uncommon fish. GitHub issue #13.
+- Add limited caught-fish inventory slots and player trading, starting from 5 fish slots. GitHub issue #14.
+- Add server-tracked multiplayer blackjack table spectator visuals with distinct table spots. GitHub issue #15.
+- Add a tracked 6-deck blackjack shoe with shuffle animation/audio. GitHub issue #16.
+- Add an authenticated admin panel for password resets, coin edits, item grants, database visibility, and admin promotion. GitHub issue #17.
+- Add a synced day/night cycle with night-only fish in each rarity tier. GitHub issue #18.
+- Add a main-menu server status query for online status, connected player count, and ping. GitHub issue #19.
 - Reorder Magic Bait in the shop so tiers read more clearly next to Golden Hook and Master Rod. This can be pulled into the shop PR if it is low-risk.
