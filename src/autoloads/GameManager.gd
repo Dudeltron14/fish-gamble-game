@@ -6,6 +6,7 @@ signal equipped_changed()
 signal owned_changed()
 @warning_ignore("unused_signal")
 signal hook_durability_changed(current: int, max_val: int)
+signal camera_zoom_changed(value: float)
 
 var current_player_name: String = ""
 var current_coins: int = 0
@@ -17,6 +18,7 @@ var is_hosting: bool = false
 var owned_items: Dictionary = {}  # item_id -> quantity
 var hook_durability: int = 0
 var hook_max_durability: int = 0
+var camera_zoom: float = 2.0
 
 const ZONE_HINTS := {
 	"DockZone":   "Press E to Fish",
@@ -62,3 +64,7 @@ func set_owned(item_id: String, qty: int) -> void:
 
 func get_owned(item_id: String) -> int:
 	return owned_items.get(item_id, 0)
+
+func set_camera_zoom(value: float) -> void:
+	camera_zoom = clampf(value, 1.0, 4.0)
+	camera_zoom_changed.emit(camera_zoom)
