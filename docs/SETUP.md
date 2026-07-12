@@ -361,7 +361,19 @@ wss://fishserver.dudeltron14.win
 
 ## Staging Server
 
-Use staging to test PR branches before anything reaches production `master`.
+Use staging to test merged PRs before anything reaches production `master`. The expected workflow is:
+
+```text
+feature/fix branch
+  -> PR into staging
+  -> merge after review
+  -> Staging GitHub Action auto-builds :staging images
+  -> VM pulls/recreates staging containers
+  -> playtest staging URLs
+  -> merge staging into master only after sign-off
+```
+
+Do not use `master` as the first place to test risky gameplay, networking, casino, or deployment changes. `master` should represent production-ready code.
 
 Staging uses separate Docker images, ports, database, and Cloudflare hostnames:
 
@@ -373,22 +385,50 @@ Web port:     8081 -> container 80
 Database:     ./data-staging/players.db
 ```
 
-### Build A Branch For Staging
+### Merge Work Into Staging
 
-In GitHub:
+Create PRs from feature/fix branches into `staging`:
 
-1. Go to **Actions**.
-2. Open the **Staging** workflow.
-3. Click **Run workflow**.
-4. Use:
-
-```text
-ref: pr-001-002-camera-zoom-blackjack
-image_tag: staging
-staging_server_url: wss://fishserver-staging.dudeltron14.win
+```bash
+git checkout -b feedback/shop-equipped-state
+# make and verify changes
+git push -u origin feedback/shop-equipped-state
 ```
 
-The workflow exports the requested ref, patches the Web client to use the staging WSS URL, and pushes `:staging` Docker images to GHCR.
+Open the PR with:
+
+```text
+base: staging
+compare: feedback/shop-equipped-state
+```
+
+After review, merge the PR into `staging`. Every push to `staging` automatically runs the **Staging** workflow and publishes:
+
+```text
+ghcr.io/dudeltron14/fish-gamble-game:staging
+ghcr.io/dudeltron14/fish-gamble-game-web:staging
+```
+
+The staging Web client includes explicit server choices on the login screen:
+
+```text
+Official Server -> wss://fishserver.dudeltron14.win
+Staging Server  -> wss://fishserver-staging.dudeltron14.win
+Other Server    -> custom URL field for local/manual testing
+```
+
+### Manual Staging Builds
+
+The **Staging** workflow can still be run manually from GitHub Actions for exceptional cases, such as testing a branch before merging it into `staging`.
+
+Use the manual inputs:
+
+```text
+ref: branch-name-or-sha
+image_tag: staging
+```
+
+Manual runs overwrite the shared `:staging` images, so coordinate before using them while another staging playtest is active.
 
 ### Start Staging On The VM
 
@@ -434,9 +474,38 @@ wss://fishserver-staging.dudeltron14.win
 
 ### Promote After Staging Passes
 
-When staging passes, merge the PR to `master`. Production will then build and deploy the normal `:latest` images.
+When staging passes, promote the tested staging branch to production:
 
-If staging fails, leave `master` alone, fix the PR branch, rerun the **Staging** workflow, and pull staging again.
+```bash
+git checkout master
+git pull --ff-only origin master
+git merge --ff-only origin/staging
+git push origin master
+```
+
+If a fast-forward merge is not possible, stop and inspect the divergence before proceeding. Do not force-push `master`.
+
+Production will then build and deploy the normal `:latest` images:
+
+```text
+ghcr.io/dudeltron14/fish-gamble-game:latest
+ghcr.io/dudeltron14/fish-gamble-game-web:latest
+```
+
+If staging fails, leave `master` alone. Fix the feature branch, merge the fix into `staging`, wait for the automatic staging workflow, pull staging on the VM, and test again.
+
+### Keeping Staging Current With Master
+
+After production hotfixes or release-only commits land on `master`, bring them back into `staging` before new feature testing:
+
+```bash
+git checkout staging
+git pull --ff-only origin staging
+git merge origin/master
+git push origin staging
+```
+
+Resolve conflicts carefully if they appear. The push to `staging` will rebuild the shared staging images.
 
 ---
 
