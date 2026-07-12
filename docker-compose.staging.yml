@@ -24,9 +24,29 @@ services:
       - ./data-staging2:/app/data
     environment:
       - GODOT_HEADLESS=1
+    labels:
+      - "fish-game.silo=staging2"
+      - "fish-game.role=game-server"
 
   web-client-staging2:
     image: ghcr.io/dudeltron14/fish-gamble-game-web:staging2
     restart: unless-stopped
     ports:
       - "8082:80"
+
+  admin-staging2:
+    image: amir20/dozzle:latest
+    restart: unless-stopped
+    ports:
+      - "8092:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      DOZZLE_AUTH_PROVIDER: forward-proxy
+      DOZZLE_AUTH_HEADER_USER: Cf-Access-Authenticated-User-Email
+      DOZZLE_AUTH_HEADER_EMAIL: Cf-Access-Authenticated-User-Email
+      DOZZLE_AUTH_HEADER_NAME: Cf-Access-Authenticated-User-Email
+      DOZZLE_FILTER: "label=fish-game.silo=staging2,label=fish-game.role=game-server"
+      DOZZLE_ENABLE_ACTIONS: "false"
+      DOZZLE_ENABLE_SHELL: "false"
+      DOZZLE_NO_ANALYTICS: "true"

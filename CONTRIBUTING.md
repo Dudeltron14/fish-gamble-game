@@ -71,6 +71,7 @@ feature branch
   -> PR into staging2
   -> staging2 auto-builds :staging2 images
   -> test https://fishgame-staging2.dudeltron14.win against wss://fishserver-staging2.dudeltron14.win
+  -> inspect live server logs at https://admin-staging2.dudeltron14.win
 ```
 
 Helpful commands:
@@ -104,8 +105,8 @@ The same compose file also runs the isolated staging2 services:
 
 ```bash
 cd ~/fish-game
-sudo docker compose -f docker-compose.staging.yml pull game-server-staging2 web-client-staging2
-sudo docker compose -f docker-compose.staging.yml up -d game-server-staging2 web-client-staging2
+sudo docker compose -f docker-compose.staging.yml pull game-server-staging2 web-client-staging2 admin-staging2
+sudo docker compose -f docker-compose.staging.yml up -d game-server-staging2 web-client-staging2 admin-staging2
 sudo docker compose -f docker-compose.staging.yml ps
 ```
 

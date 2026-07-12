@@ -393,6 +393,7 @@ Server image: ghcr.io/dudeltron14/fish-gamble-game:staging2
 Web image:    ghcr.io/dudeltron14/fish-gamble-game-web:staging2
 Server port:  7072 -> container 7070
 Web port:     8082 -> container 80
+Admin logs:   8092 -> Dozzle log viewer
 Database:     ./data-staging2/players.db
 Owner/use:    Alex or another contributor who needs an undisturbed feature test environment
 ```
@@ -481,6 +482,14 @@ Follow staging2 logs:
 sudo docker compose -f docker-compose.staging.yml logs -f game-server-staging2
 ```
 
+Open the staging2 log admin panel:
+
+```text
+https://admin-staging2.dudeltron14.win
+```
+
+This panel runs Dozzle and is filtered to the `game-server-staging2` container. It is intended for live troubleshooting logs only. Docker actions and shell access are disabled, and the Docker socket is mounted read-only.
+
 Local VM checks:
 
 ```bash
@@ -488,6 +497,7 @@ curl -I http://localhost:8081
 curl -I http://localhost:8081/index.pck
 curl -I http://localhost:8082
 curl -I http://localhost:8082/index.pck
+curl -I http://localhost:8092
 ```
 
 ### Cloudflare Tunnel Routes
@@ -499,7 +509,10 @@ fishserver-staging.dudeltron14.win -> http://172.17.0.1:7071
 fishgame-staging.dudeltron14.win   -> http://172.17.0.1:8081
 fishserver-staging2.dudeltron14.win -> http://172.17.0.1:7072
 fishgame-staging2.dudeltron14.win   -> http://172.17.0.1:8082
+admin-staging2.dudeltron14.win      -> http://172.17.0.1:8092
 ```
+
+Protect `admin-staging2.dudeltron14.win` with a Cloudflare Access application before sharing it with contributors. Dozzle has access to Docker logs through the Docker socket, so it must not be left publicly reachable without authentication.
 
 Then test:
 
@@ -508,6 +521,7 @@ https://fishgame-staging.dudeltron14.win
 wss://fishserver-staging.dudeltron14.win
 https://fishgame-staging2.dudeltron14.win
 wss://fishserver-staging2.dudeltron14.win
+https://admin-staging2.dudeltron14.win
 ```
 
 ### Promote After Staging Passes
