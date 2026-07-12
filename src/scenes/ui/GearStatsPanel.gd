@@ -115,8 +115,8 @@ func _build_settings_section() -> void:
 	var zoom_row := HBoxContainer.new()
 	zoom_row.add_theme_constant_override("separation", 8)
 	var zoom_lbl := Label.new()
-	zoom_lbl.text = "Zoom"
-	zoom_lbl.custom_minimum_size = Vector2(40, 0)
+	zoom_lbl.text = "View Zoom"
+	zoom_lbl.custom_minimum_size = Vector2(64, 0)
 	zoom_lbl.add_theme_font_size_override("font_size", 11)
 	_zoom_slider = HSlider.new()
 	_zoom_slider.name = "ZoomSlider"
@@ -164,6 +164,7 @@ func is_expanded() -> bool:
 
 func _save_settings() -> void:
 	var cfg := ConfigFile.new()
+	cfg.load(SETTINGS_FILE)
 	cfg.set_value("audio", "music_volume", _music_vol)
 	cfg.set_value("audio", "sfx_volume",   _sfx_vol)
 	cfg.set_value("gameplay", "camera_zoom", _camera_zoom)
