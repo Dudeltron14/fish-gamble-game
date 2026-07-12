@@ -29,6 +29,15 @@ These are not required for the current Web-client/Linux-Docker ship path unless 
 - Inventory panel.
 - Chat box.
 - VFX on catch.
-- Post-playtest fish economy pass: tune 17-catch roster payouts, bait pools, and Baby Kraken difficulty/reward after closed beta feedback.
+- Post-playtest fish economy pass: tune 17-catch roster payouts, bait pools, Pearl Clam frequency, Glow Grub value, and Baby Kraken difficulty/reward after closed beta feedback.
 - Stronger anti-cheat: server-validated fishing reel simulation beyond the current timing guardrails.
 - Optional Windows Desktop export preset, only if desktop clients become a release target.
+- Ancient Key feature beyond direct coin payout.
+- Dead-broke recovery: shovel/worm-digging minigame.
+- Momentum-based fishing prototype.
+- Old-school pipe cosmetic/social props.
+- New fish expansion.
+- Rich-player skins.
+- Advanced upgrades such as harpoon/shotgun-style special tools.
+- Backpack slots, interactable inventory, and player trading.
+- Multiplayer casino table spectator visuals.

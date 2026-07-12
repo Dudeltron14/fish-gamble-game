@@ -57,3 +57,53 @@ docs
 - Stronger fishing anti-cheat is deferred unless playtest feedback shows active abuse or obvious breakage.
 - Each feedback fix should stay in a dedicated PR, even if several bugs are discovered during the same session.
 
+## Playtest Intake - 2026-07-11
+
+These notes came from the first broader playtest pass. The items below are grouped into PR-sized work packages so contributors can see what is actively being fixed.
+
+### Active Pre-Launch PR Packages
+
+1. **Shop clarity and gear status** - GitHub issue #1
+   - Make the Gear Modifiers tab available from the shop.
+   - Make currently equipped items unmistakable in the shop UI.
+   - After purchase, remind the player to equip the item.
+   - If bait is empty, purchased bait should auto-equip.
+   - If hook/tackle is empty, purchased hook/tackle should auto-equip.
+   - Show red popup hints when bait runs out or tackle breaks.
+
+2. **Fishing bait and trash tuning** - GitHub issue #2
+   - Glow Grub should entirely prevent trash.
+   - Glow Grub should have much stronger uncommon/rare odds than Worm.
+   - Trash should not be part of the normal Common pool.
+   - Trash should scale from cast quality and whether the player has bait equipped.
+   - Pearl Clam appears too frequently and needs a weight check.
+
+3. **Chest reward icon** - GitHub issue #3
+   - Replace the current chest icon with an updated chest overflowing with gold coins.
+
+4. **Blackjack state and betting bugs** - GitHub issue #4
+   - Bet amount should become uneditable once a hand is dealt until the outcome resolves.
+   - If the player wins after betting all coins, the previous bet amount should be restored when the balance supports it again.
+   - If the bet is too high, show the correct bet/balance error instead of "not at a table".
+
+5. **Blackjack audio and fairness** - GitHub issue #5
+   - Add/verify win and loss sounds.
+   - Add deck count and shuffling.
+   - Use a standard 6-deck shoe.
+   - Decide how much "provably fair" transparency is appropriate for this friends-scale beta.
+
+6. **Blackjack polish follow-up** - GitHub issue #6
+   - Fix win effects and make emitter placement editable in the Godot scene.
+   - Add multiplayer visuals for other players' blackjack matches around the casino.
+
+### Deferred Design / Post-Playtest Ideas
+
+- Explore momentum-based fishing.
+- Add a shovel minigame to dig up worms when dead broke.
+- Add old-school pipe cosmetic/social props.
+- Add new fish.
+- Give Ancient Key a purpose beyond direct money.
+- Add rich-player skins.
+- Add advanced upgrades such as harpoon or shotgun-style special tools.
+- Add backpack slots, an interactable inventory, and player trading.
+- Reorder Magic Bait in the shop so tiers read more clearly next to Golden Hook and Master Rod. This can be pulled into the shop PR if it is low-risk.
