@@ -11,11 +11,6 @@ on:
         description: "GHCR tag to publish for staging"
         required: true
         default: "staging"
-      staging_server_url:
-        description: "WebSocket URL baked into the staging Web client"
-        required: true
-        default: "wss://fishserver-staging.dudeltron14.win"
-
 env:
   GODOT_VERSION: 4.6.3
   REGISTRY: ghcr.io
@@ -44,30 +39,6 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends fontconfig libfontconfig1 python3
-
-      - name: Set staging client server URL
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path("src/scenes/ui/LoginScreen.gd")
-          text = path.read_text()
-          old = 'const OFFICIAL_SERVER_URL := "wss://fishserver.dudeltron14.win"'
-          new = 'const OFFICIAL_SERVER_URL := "${{ inputs.staging_server_url }}"'
-          if old not in text:
-              raise SystemExit("OFFICIAL_SERVER_URL line not found")
-          path.write_text(text.replace(old, new))
-          PY
-
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path("src/scenes/ui/LoginScreen.tscn")
-          text = path.read_text()
-          text = text.replace(
-              'text = "Official Server - fishserver.dudeltron14.win"',
-              'text = "Staging Server - fishserver-staging.dudeltron14.win"',
-          )
-          path.write_text(text)
-          PY
 
       - name: Setup Godot export templates
         run: |
