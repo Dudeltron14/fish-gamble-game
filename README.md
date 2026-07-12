@@ -167,6 +167,8 @@ See [docs/FRAMEWORKS.md](docs/FRAMEWORKS.md) for the full guide.
 
 | Doc | Contents |
 |---|---|
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contributor setup, branch naming, PR expectations, and verification checklist |
+| [PLAYTEST_FEEDBACK.md](docs/PLAYTEST_FEEDBACK.md) | Playtester report template and triage flow for one-feedback-item-per-PR fixes |
 | [FISHING.md](docs/FISHING.md) | Complete fishing system reference — every value, formula, and mechanic |
 | [SHIP_CHECKLIST.md](docs/SHIP_CHECKLIST.md) | Current launch gate and deferred scope decisions |
 | [RELEASE_NOTES.md](docs/RELEASE_NOTES.md) | Launch-candidate completed work and current scope |
