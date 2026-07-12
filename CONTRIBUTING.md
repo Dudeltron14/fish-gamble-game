@@ -115,6 +115,8 @@ sudo docker compose -f docker-compose.staging.yml up -d game-server-staging2 web
 sudo docker compose -f docker-compose.staging.yml ps
 ```
 
+Use `https://admin-staging2.dudeltron14.win` for staging2 troubleshooting. The all-server dashboard at `https://admin-servers.dudeltron14.win` includes production logs and should be limited to owner/admin users.
+
 Only production release managers should promote a tested branch to master. For Noah's main lane, this usually means `staging -> master`:
 
 ```bash

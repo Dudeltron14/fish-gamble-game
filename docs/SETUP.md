@@ -489,6 +489,14 @@ Follow staging2 logs:
 sudo docker compose -f docker-compose.staging.yml logs -f game-server-staging2
 ```
 
+Open the all-server admin log panel:
+
+```text
+https://admin-servers.dudeltron14.win
+```
+
+This panel runs Dozzle and is filtered to all Fish game server containers: production, staging, and staging2. It is intended for owner/admin troubleshooting. Docker actions and shell access are disabled, and the Docker socket is mounted read-only.
+
 Open the staging2 log admin panel:
 
 ```text
@@ -504,6 +512,7 @@ curl -I http://localhost:8081
 curl -I http://localhost:8081/index.pck
 curl -I http://localhost:8082
 curl -I http://localhost:8082/index.pck
+curl -I http://localhost:8090
 curl -I http://localhost:8092
 ```
 
@@ -516,8 +525,11 @@ fishserver-staging.dudeltron14.win -> http://172.17.0.1:7071
 fishgame-staging.dudeltron14.win   -> http://172.17.0.1:8081
 fishserver-staging2.dudeltron14.win -> http://172.17.0.1:7072
 fishgame-staging2.dudeltron14.win   -> http://172.17.0.1:8082
+admin-servers.dudeltron14.win       -> http://172.17.0.1:8090
 admin-staging2.dudeltron14.win      -> http://172.17.0.1:8092
 ```
+
+Protect `admin-servers.dudeltron14.win` with a Cloudflare Access application restricted to owner/admin users only. It includes production server logs.
 
 Protect `admin-staging2.dudeltron14.win` with a Cloudflare Access application before sharing it with contributors. Dozzle has access to Docker logs through the Docker socket, so it must not be left publicly reachable without authentication.
 
@@ -528,6 +540,7 @@ https://fishgame-staging.dudeltron14.win
 wss://fishserver-staging.dudeltron14.win
 https://fishgame-staging2.dudeltron14.win
 wss://fishserver-staging2.dudeltron14.win
+https://admin-servers.dudeltron14.win
 https://admin-staging2.dudeltron14.win
 ```
 

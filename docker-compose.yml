@@ -8,6 +8,9 @@ services:
       - ./data:/app/data   # SQLite DB persists outside container
     environment:
       - GODOT_HEADLESS=1
+    labels:
+      - "fish-game.silo=production"
+      - "fish-game.role=game-server"
 
   web-client:
     image: ghcr.io/dudeltron14/fish-gamble-game-web:latest
@@ -20,4 +23,4 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 300 --cleanup
+    command: --interval 60 --cleanup
