@@ -10,11 +10,12 @@ const CARD_FLIP_HALF_TIME := 0.14
 const CARD_DEAL_ARC_HEIGHT := 54.0
 const COIN_BURST_SCENE := preload("res://src/scenes/vfx/CoinBurst.tscn")
 
-enum State { IDLE, PLAYER_TURN }
+enum State { IDLE, DEAL_PENDING, PLAYER_TURN }
 var _state := State.IDLE
 var _dealer_cards: Array = []
 var _dealer_hole_hidden := false
 var _player_value := 0
+var _preferred_bet := 10
 
 @onready var coins_label: Label     = %CoinsLabel
 @onready var status_label: Label    = %StatusLabel
@@ -55,14 +56,22 @@ func _ready() -> void:
 
 func _on_deal_pressed() -> void:
 	var amount := int(bet_spin.value)
-	if amount <= 0 or GameManager.current_coins <= 0 or amount > GameManager.current_coins:
+	if amount <= 0 or GameManager.current_coins <= 0:
 		status_label.text = "You need coins to play."
 		status_label.modulate = Color(1.0, 0.4, 0.4)
 		_refresh_betting_controls()
 		return
+	if amount > GameManager.current_coins:
+		status_label.text = "Not enough coins."
+		status_label.modulate = Color(1.0, 0.4, 0.4)
+		_refresh_betting_controls()
+		return
+	_state = State.DEAL_PENDING
+	_preferred_bet = amount
 	_clear_hands()
 	_set_actions(false)
 	deal_btn.disabled = true
+	bet_spin.editable = false
 	status_label.text = "Dealing…"
 	NetAPI.rpc_id(1, "c2s_bj_bet", amount)
 
@@ -70,6 +79,8 @@ func _on_deal_pressed() -> void:
 
 func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int) -> void:
 	_state = State.PLAYER_TURN
+	_preferred_bet = bet
+	bet_spin.value = bet
 	_clear_hands()
 	_dealer_cards = [dealer_visible]
 	_dealer_hole_hidden = true
@@ -155,6 +166,8 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 func _on_error(msg: String) -> void:
 	status_label.text = msg
 	status_label.modulate = Color(1.0, 0.4, 0.4)
+	if _state == State.DEAL_PENDING:
+		_state = State.IDLE
 	_refresh_betting_controls()
 
 # ── Card widgets ──────────────────────────────────────────────────────────────
@@ -336,6 +349,11 @@ func _on_coins_changed(new_amount: int) -> void:
 
 func _refresh_betting_controls() -> void:
 	var balance: int = maxi(0, GameManager.current_coins)
+	if _state != State.IDLE:
+		bet_spin.editable = false
+		deal_btn.disabled = true
+		return
+	bet_spin.editable = true
 	bet_spin.min_value = 1.0 if balance > 0 else 0.0
 	bet_spin.max_value = maxi(1, balance)
 	if balance <= 0:
@@ -345,7 +363,7 @@ func _refresh_betting_controls() -> void:
 			status_label.text = "You need coins to play."
 	else:
 		if int(bet_spin.value) <= 0 or int(bet_spin.value) > balance:
-			bet_spin.value = mini(10, balance)
+			bet_spin.value = mini(_preferred_bet, balance)
 		deal_btn.disabled = _state != State.IDLE
 
 func _clear_hands() -> void:
