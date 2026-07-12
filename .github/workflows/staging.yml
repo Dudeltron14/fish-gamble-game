@@ -1,0 +1,151 @@
+name: Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag, or SHA to build for staging"
+        required: true
+        default: "pr-001-002-camera-zoom-blackjack"
+      image_tag:
+        description: "GHCR tag to publish for staging"
+        required: true
+        default: "staging"
+      staging_server_url:
+        description: "WebSocket URL baked into the staging Web client"
+        required: true
+        default: "wss://fishserver-staging.dudeltron14.win"
+
+env:
+  GODOT_VERSION: 4.6.3
+  REGISTRY: ghcr.io
+  IMAGE_NAME: dudeltron14/fish-gamble-game
+  WEB_IMAGE_NAME: dudeltron14/fish-gamble-game-web
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  export:
+    name: Export staging builds
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.6.3
+
+    steps:
+      - name: Checkout requested ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          lfs: true
+
+      - name: Install Godot Linux runtime dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends fontconfig libfontconfig1
+
+      - name: Set staging client server URL
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("src/scenes/ui/LoginScreen.gd")
+          text = path.read_text()
+          old = 'const OFFICIAL_SERVER_URL := "wss://fishserver.dudeltron14.win"'
+          new = 'const OFFICIAL_SERVER_URL := "${{ inputs.staging_server_url }}"'
+          if old not in text:
+              raise SystemExit("OFFICIAL_SERVER_URL line not found")
+          path.write_text(text.replace(old, new))
+          PY
+
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("src/scenes/ui/LoginScreen.tscn")
+          text = path.read_text()
+          text = text.replace(
+              'text = "Official Server - fishserver.dudeltron14.win"',
+              'text = "Staging Server - fishserver-staging.dudeltron14.win"',
+          )
+          path.write_text(text)
+          PY
+
+      - name: Setup Godot export templates
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          cp -r /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable/* \
+                ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/ || true
+
+      - name: Export Linux server binary
+        run: |
+          mkdir -p export/server
+          godot --headless --export-release "Linux" export/server/FishGambleGame.x86_64
+
+      - name: Export Web client
+        run: |
+          mkdir -p export/web
+          godot --headless --export-release "Web" export/web/index.html
+
+      - name: Add Godot Web headers
+        run: |
+          cat > export/web/_headers <<'EOF'
+          /*
+            Cross-Origin-Opener-Policy: same-origin
+            Cross-Origin-Embedder-Policy: require-corp
+          EOF
+
+      - name: Upload server export artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-server-export
+          path: export/server/**
+
+      - name: Upload web export artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-web-export
+          path: export/web/**
+
+  docker:
+    name: Build & push staging Docker images
+    runs-on: ubuntu-latest
+    needs: export
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Download server export artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: staging-server-export
+          path: export/server
+
+      - name: Download web export artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: staging-web-export
+          path: export/web
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push staging server image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.image_tag }}
+
+      - name: Build and push staging Web client image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.web
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}:${{ inputs.image_tag }}

@@ -1,0 +1,17 @@
+services:
+  game-server-staging:
+    image: ghcr.io/dudeltron14/fish-gamble-game:staging
+    restart: unless-stopped
+    ports:
+      - "7071:7070"
+    volumes:
+      - ./data-staging:/app/data
+    environment:
+      - GODOT_HEADLESS=1
+
+  web-client-staging:
+    image: ghcr.io/dudeltron14/fish-gamble-game-web:staging
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+

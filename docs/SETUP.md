@@ -359,6 +359,87 @@ wss://fishserver.dudeltron14.win
 
 ---
 
+## Staging Server
+
+Use staging to test PR branches before anything reaches production `master`.
+
+Staging uses separate Docker images, ports, database, and Cloudflare hostnames:
+
+```text
+Server image: ghcr.io/dudeltron14/fish-gamble-game:staging
+Web image:    ghcr.io/dudeltron14/fish-gamble-game-web:staging
+Server port:  7071 -> container 7070
+Web port:     8081 -> container 80
+Database:     ./data-staging/players.db
+```
+
+### Build A Branch For Staging
+
+In GitHub:
+
+1. Go to **Actions**.
+2. Open the **Staging** workflow.
+3. Click **Run workflow**.
+4. Use:
+
+```text
+ref: pr-001-002-camera-zoom-blackjack
+image_tag: staging
+staging_server_url: wss://fishserver-staging.dudeltron14.win
+```
+
+The workflow exports the requested ref, patches the Web client to use the staging WSS URL, and pushes `:staging` Docker images to GHCR.
+
+### Start Staging On The VM
+
+From the VM:
+
+```bash
+cd ~/fish-game
+
+# after the Staging workflow finishes
+sudo docker compose -f docker-compose.staging.yml pull
+sudo docker compose -f docker-compose.staging.yml up -d
+sudo docker compose -f docker-compose.staging.yml ps
+```
+
+Follow staging logs:
+
+```bash
+sudo docker compose -f docker-compose.staging.yml logs -f game-server-staging
+```
+
+Local VM checks:
+
+```bash
+curl -I http://localhost:8081
+curl -I http://localhost:8081/index.pck
+```
+
+### Cloudflare Tunnel Routes
+
+Add two public hostname routes to the existing Cloudflare Tunnel:
+
+```text
+fishserver-staging.dudeltron14.win -> http://172.17.0.1:7071
+fishgame-staging.dudeltron14.win   -> http://172.17.0.1:8081
+```
+
+Then test:
+
+```text
+https://fishgame-staging.dudeltron14.win
+wss://fishserver-staging.dudeltron14.win
+```
+
+### Promote After Staging Passes
+
+When staging passes, merge the PR to `master`. Production will then build and deploy the normal `:latest` images.
+
+If staging fails, leave `master` alone, fix the PR branch, rerun the **Staging** workflow, and pull staging again.
+
+---
+
 ## Optional Nginx Config (WSS proxy + web client hosting)
 
 Cloudflare Tunnel is the active deployment path. Keep this Nginx example only if we later host the Web client and `/ws` proxy directly on the VPS.
