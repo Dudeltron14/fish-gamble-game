@@ -435,12 +435,12 @@ ghcr.io/dudeltron14/fish-gamble-game:staging2
 ghcr.io/dudeltron14/fish-gamble-game-web:staging2
 ```
 
-The staging Web client includes explicit server choices on the login screen:
+Each deployed Web client is locked to its matching server route. Players should not connect across silos:
 
 ```text
-Official Server -> wss://fishserver.dudeltron14.win
-Staging Server  -> wss://fishserver-staging.dudeltron14.win
-Other Server    -> custom URL field for local/manual testing
+Production Web -> wss://fishserver.dudeltron14.win
+Staging Web    -> wss://fishserver-staging.dudeltron14.win
+Staging2 Web   -> wss://fishserver-staging2.dudeltron14.win
 ```
 
 ### Manual Staging Builds

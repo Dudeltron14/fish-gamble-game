@@ -46,6 +46,32 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends fontconfig libfontconfig1 python3
 
+      - name: Lock client to staging lane server
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          build_ref = "${{ env.BUILD_REF }}"
+          server_by_ref = {
+              "staging": ("wss://fishserver-staging.dudeltron14.win", "Staging Server"),
+              "staging2": ("wss://fishserver-staging2.dudeltron14.win", "Staging2 Server"),
+          }
+          server_url, server_label = server_by_ref.get(build_ref, server_by_ref["staging"])
+
+          path = Path("src/scenes/ui/LoginScreen.gd")
+          text = path.read_text()
+          replacements = {
+              'const SERVER_URL := "wss://fishserver.dudeltron14.win"': f'const SERVER_URL := "{server_url}"',
+              'const SERVER_LABEL := "Production Server"': f'const SERVER_LABEL := "{server_label}"',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f"Expected line not found: {old}")
+              text = text.replace(old, new)
+          path.write_text(text)
+          print(f"Locked Web client to {server_label}: {server_url}")
+          PY
+
       - name: Setup Godot export templates
         run: |
           mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
