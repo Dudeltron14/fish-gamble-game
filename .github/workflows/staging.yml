@@ -43,7 +43,7 @@ jobs:
       - name: Install Godot Linux runtime dependencies
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends fontconfig libfontconfig1
+          apt-get install -y --no-install-recommends fontconfig libfontconfig1 python3
 
       - name: Set staging client server URL
         run: |
