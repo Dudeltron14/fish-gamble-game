@@ -365,7 +365,7 @@ Use staging to test merged PRs before anything reaches production `master`. The 
 
 ```text
 feature/fix branch
-  -> PR into staging
+  -> PR into staging for Noah's shared QA lane
   -> merge after review
   -> Staging GitHub Action auto-builds :staging images
   -> VM pulls/recreates staging containers
@@ -415,21 +415,28 @@ base: staging
 compare: feedback/shop-equipped-state
 ```
 
-For Alex's isolated lane, open the PR against `staging2` instead:
+For Alex's isolated lane, work directly on `staging2` so every push deploys to the isolated staging2 client/server:
 
-```text
-base: staging2
-compare: alex/<feature-name>
+```bash
+git fetch origin
+git checkout staging2
+git pull --ff-only origin staging2
+# make the change directly on staging2
+git add <changed-files>
+git commit -m "fix: short description"
+git push origin staging2
 ```
 
-After review, merge the PR into the correct staging branch. Every push to `staging` automatically runs the **Staging** workflow and publishes:
+Keep `staging2` focused on one shippable contributor change at a time. Because every push to `staging2` updates Alex's live environment, avoid piling unrelated experiments into that branch.
+
+After review, merge Noah's PRs into `staging`. Every push to `staging` automatically runs the **Staging** workflow and publishes:
 
 ```text
 ghcr.io/dudeltron14/fish-gamble-game:staging
 ghcr.io/dudeltron14/fish-gamble-game-web:staging
 ```
 
-Every push to `staging2` publishes:
+Every push directly to `staging2` publishes:
 
 ```text
 ghcr.io/dudeltron14/fish-gamble-game:staging2
@@ -526,7 +533,7 @@ https://admin-staging2.dudeltron14.win
 
 ### Promote After Staging Passes
 
-When staging passes, promote the tested staging branch to production:
+When Noah's main staging lane passes, promote the tested `staging` branch to production:
 
 ```bash
 git checkout master
@@ -537,6 +544,17 @@ git push origin master
 
 If a fast-forward merge is not possible, stop and inspect the divergence before proceeding. Do not force-push `master`.
 
+When Alex's isolated lane passes, promote the tested `staging2` branch to production:
+
+```bash
+git checkout master
+git pull --ff-only origin master
+git merge --ff-only origin/staging2
+git push origin master
+```
+
+Use this only when `staging2` contains a coherent, shippable change. If `staging2` contains unfinished experiments, clean it up before opening or merging the production PR.
+
 Production will then build and deploy the normal `:latest` images:
 
 ```text
@@ -544,11 +562,11 @@ ghcr.io/dudeltron14/fish-gamble-game:latest
 ghcr.io/dudeltron14/fish-gamble-game-web:latest
 ```
 
-If staging fails, leave `master` alone. Fix the feature branch, merge the fix into the same staging lane, wait for the automatic staging workflow, pull staging on the VM, and test again.
+If either staging lane fails, leave `master` alone. Fix the same lane, wait for the automatic staging workflow, pull the relevant containers on the VM, and test again.
 
 ### Keeping Staging Current With Master
 
-After production hotfixes or release-only commits land on `master`, bring them back into `staging` before new feature testing:
+After production hotfixes, Alex changes, or release-only commits land on `master`, bring them back into `staging` before Noah continues feature testing:
 
 ```bash
 git checkout staging
