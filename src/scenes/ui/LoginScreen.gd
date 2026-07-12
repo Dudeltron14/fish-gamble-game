@@ -3,6 +3,7 @@ extends Control
 const CONNECT_TIMEOUT := 5.0
 const AUTH_TIMEOUT := 5.0
 const OFFICIAL_SERVER_URL := "wss://fishserver.dudeltron14.win"
+const STAGING_SERVER_URL := "wss://fishserver-staging.dudeltron14.win"
 const MENU_EFFECT_REFERENCE_SIZE := Vector2(1280.0, 720.0)
 
 enum _Action { NONE, LOGIN, REGISTER }
@@ -16,6 +17,7 @@ var _menu_effect_bases := {}
 var _selected_server_url := OFFICIAL_SERVER_URL
 
 @onready var official_server_btn: Button = %OfficialServerBtn
+@onready var staging_server_btn: Button = %StagingServerBtn
 @onready var other_server_btn: Button = %OtherServerBtn
 @onready var server_url_field: LineEdit = %ServerUrlField
 @onready var username_field: LineEdit = %UsernameField
@@ -26,6 +28,7 @@ var _selected_server_url := OFFICIAL_SERVER_URL
 
 func _ready() -> void:
 	official_server_btn.pressed.connect(_select_official_server)
+	staging_server_btn.pressed.connect(_select_staging_server)
 	other_server_btn.pressed.connect(_toggle_other_server)
 	login_btn.pressed.connect(_on_login_pressed)
 	register_btn.pressed.connect(_on_register_pressed)
@@ -153,6 +156,7 @@ func set_buttons_enabled(enabled: bool) -> void:
 	login_btn.disabled = not enabled
 	register_btn.disabled = not enabled
 	official_server_btn.disabled = not enabled
+	staging_server_btn.disabled = not enabled
 	other_server_btn.disabled = not enabled
 	server_url_field.editable = enabled
 
@@ -160,6 +164,15 @@ func _select_official_server() -> void:
 	_selected_server_url = OFFICIAL_SERVER_URL
 	server_url_field.visible = false
 	official_server_btn.text = "Official Server - fishserver.dudeltron14.win"
+	staging_server_btn.text = "Staging Server"
+	other_server_btn.text = "Other Server"
+	set_status("")
+
+func _select_staging_server() -> void:
+	_selected_server_url = STAGING_SERVER_URL
+	server_url_field.visible = false
+	official_server_btn.text = "Official Server"
+	staging_server_btn.text = "Staging Server - fishserver-staging.dudeltron14.win"
 	other_server_btn.text = "Other Server"
 	set_status("")
 
@@ -171,7 +184,8 @@ func _toggle_other_server() -> void:
 			server_url_field.text = "wss://fishserver-staging.dudeltron14.win"
 		_selected_server_url = server_url_field.text.strip_edges()
 		official_server_btn.text = "Official Server"
-		other_server_btn.text = "Use Other Server"
+		staging_server_btn.text = "Staging Server"
+		other_server_btn.text = "Use Custom Server"
 		server_url_field.grab_focus()
 	else:
 		_select_official_server()
@@ -184,6 +198,8 @@ func _server_url() -> String:
 func _server_label(server_url: String) -> String:
 	if server_url == OFFICIAL_SERVER_URL:
 		return "official server"
+	if server_url == STAGING_SERVER_URL:
+		return "staging server"
 	return "custom server"
 
 func _capture_menu_effect_bases() -> void:
