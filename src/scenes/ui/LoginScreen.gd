@@ -4,6 +4,7 @@ const CONNECT_TIMEOUT := 5.0
 const AUTH_TIMEOUT := 5.0
 const SERVER_URL := "wss://fishserver.dudeltron14.win"
 const SERVER_LABEL := "Production Server"
+const OTHER_SERVER_DEFAULT_URL := "wss://fishserver-staging.dudeltron14.win"
 const MENU_EFFECT_REFERENCE_SIZE := Vector2(1280.0, 720.0)
 
 enum _Action { NONE, LOGIN, REGISTER }
@@ -14,8 +15,11 @@ var _pending_hash := ""
 var _connect_attempt_id := 0
 var _auth_attempt_id := 0
 var _menu_effect_bases := {}
+var _using_other_server := false
 
 @onready var official_server_btn: Button = %OfficialServerBtn
+@onready var other_server_btn: Button = %OtherServerBtn
+@onready var server_url_field: LineEdit = %ServerUrlField
 @onready var username_field: LineEdit = %UsernameField
 @onready var password_field: LineEdit = %PasswordField
 @onready var login_btn: Button = %LoginBtn
@@ -24,7 +28,12 @@ var _menu_effect_bases := {}
 
 func _ready() -> void:
 	official_server_btn.text = "%s - %s" % [SERVER_LABEL, SERVER_URL.replace("wss://", "")]
-	official_server_btn.tooltip_text = "This client is locked to %s." % SERVER_URL
+	official_server_btn.tooltip_text = "Use the official production server."
+	official_server_btn.pressed.connect(_select_official_server)
+	other_server_btn.pressed.connect(_select_other_server)
+	server_url_field.text = OTHER_SERVER_DEFAULT_URL
+	server_url_field.visible = false
+	server_url_field.text_submitted.connect(func(_text: String): _on_login_pressed())
 	login_btn.pressed.connect(_on_login_pressed)
 	register_btn.pressed.connect(_on_register_pressed)
 	NetAPI.login_result.connect(_on_login_result)
@@ -55,8 +64,9 @@ func _maybe_connect() -> void:
 	set_buttons_enabled(false)
 	_connect_attempt_id += 1
 	var attempt_id: int = _connect_attempt_id
-	set_status("Connecting to %s..." % SERVER_LABEL.to_lower())
-	var err := NetworkManager.connect_to_url(SERVER_URL)
+	var server_url := _selected_server_url()
+	set_status("Connecting to %s..." % _selected_server_label().to_lower())
+	var err := NetworkManager.connect_to_url(server_url)
 
 	if err != OK:
 		set_status("Connection error: " + error_string(err))
@@ -132,7 +142,44 @@ func _validate() -> bool:
 	if u.is_empty() or p.is_empty():
 		set_status("Username and password required.")
 		return false
+	if _using_other_server and _selected_server_url().is_empty():
+		set_status("Server URL required.")
+		return false
 	return true
+
+func _select_official_server() -> void:
+	_using_other_server = false
+	server_url_field.visible = false
+	official_server_btn.button_pressed = true
+	other_server_btn.button_pressed = false
+	set_status("")
+
+func _select_other_server() -> void:
+	_using_other_server = true
+	server_url_field.visible = true
+	official_server_btn.button_pressed = false
+	other_server_btn.button_pressed = true
+	server_url_field.grab_focus()
+	server_url_field.select_all()
+	set_status("Enter a ws:// or wss:// server URL.")
+
+func _selected_server_url() -> String:
+	if not _using_other_server:
+		return SERVER_URL
+	return _normalize_server_url(server_url_field.text)
+
+func _selected_server_label() -> String:
+	return "custom server" if _using_other_server else SERVER_LABEL
+
+func _normalize_server_url(raw_url: String) -> String:
+	var url := raw_url.strip_edges()
+	if url.is_empty():
+		return ""
+	if url.begins_with("ws://") or url.begins_with("wss://"):
+		return url
+	if url.begins_with("localhost") or url.begins_with("127.0.0.1") or url.find(":") >= 0:
+		return "ws://" + url
+	return "wss://" + url
 
 func _hash_password(password: String) -> String:
 	var ctx := HashingContext.new()
@@ -147,6 +194,8 @@ func set_buttons_enabled(enabled: bool) -> void:
 	login_btn.disabled = not enabled
 	register_btn.disabled = not enabled
 	official_server_btn.disabled = not enabled
+	other_server_btn.disabled = not enabled
+	server_url_field.editable = enabled
 
 func _capture_menu_effect_bases() -> void:
 	_menu_effect_bases.clear()

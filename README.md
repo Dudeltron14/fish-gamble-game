@@ -171,12 +171,13 @@ staging2 branch
   -> after production is confirmed, sync master back into staging
 ```
 
-Each deployed Web client is locked to its own game server route:
+The login screen defaults to the official production server. For staging, staging2, or local testing, choose **Other Server** and enter one of these routes:
 
 ```text
 Production client -> wss://fishserver.dudeltron14.win
 Staging client    -> wss://fishserver-staging.dudeltron14.win
 Staging2 client   -> wss://fishserver-staging2.dudeltron14.win
+Local server      -> ws://127.0.0.1:7070
 ```
 
 Use a version tag when you also want a GitHub Release with attached Web export files:
