@@ -46,8 +46,10 @@ services:
       - "8092:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./dozzle-staging2:/data
     environment:
-      DOZZLE_AUTH_PROVIDER: none
+      DOZZLE_AUTH_PROVIDER: simple
+      DOZZLE_AUTH_TTL: 168h
       DOZZLE_FILTER: "label=fish-game.silo=staging2,label=fish-game.role=game-server"
       DOZZLE_ENABLE_ACTIONS: "false"
       DOZZLE_ENABLE_SHELL: "false"
