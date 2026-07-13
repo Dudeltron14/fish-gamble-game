@@ -9,6 +9,7 @@ The intended ship path is the Web client at `https://fishgame.dudeltron14.win`, 
 - [x] Core Web-client/Linux-Docker closed-beta scope is implemented.
 - [x] README, framework docs, fishing docs, architecture notes, screenshots, and release notes are aligned with the exported blackjack and final world pass.
 - [x] Completed launch items have been moved into `docs/RELEASE_NOTES.md`.
+- [x] Isolated `staging2` contributor environment is live with dedicated client/server routes and Dozzle login for staging2 troubleshooting.
 
 ## Pre-Launch Scope Decisions
 
