@@ -503,7 +503,7 @@ Open the staging2 log admin panel:
 https://admin-staging2.dudeltron14.win
 ```
 
-This panel runs Dozzle and is filtered to the `game-server-staging2` container. It is intended for live troubleshooting logs only. Docker actions and shell access are disabled, and the Docker socket is mounted read-only.
+This panel runs Dozzle and is filtered to the `game-server-staging2` container. It is intentionally reachable without Cloudflare Access so the staging2 contributor can troubleshoot directly. Docker actions and shell access are disabled, and the Docker socket is mounted read-only.
 
 Local VM checks:
 
@@ -531,7 +531,7 @@ admin-staging2.dudeltron14.win      -> http://172.17.0.1:8092
 
 Protect `admin-servers.dudeltron14.win` with a Cloudflare Access application restricted to owner/admin users only. It includes production server logs and Watchtower update logs.
 
-Protect `admin-staging2.dudeltron14.win` with a Cloudflare Access application before sharing it with contributors. Dozzle has access to Docker logs through the Docker socket, so it must not be left publicly reachable without authentication.
+`admin-staging2.dudeltron14.win` is intentionally not protected by Cloudflare Access. It is filtered to the staging2 game server logs only and has Docker actions and shell access disabled.
 
 Then test:
 

@@ -47,10 +47,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
-      DOZZLE_AUTH_PROVIDER: forward-proxy
-      DOZZLE_AUTH_HEADER_USER: Cf-Access-Authenticated-User-Email
-      DOZZLE_AUTH_HEADER_EMAIL: Cf-Access-Authenticated-User-Email
-      DOZZLE_AUTH_HEADER_NAME: Cf-Access-Authenticated-User-Email
       DOZZLE_FILTER: "label=fish-game.silo=staging2,label=fish-game.role=game-server"
       DOZZLE_ENABLE_ACTIONS: "false"
       DOZZLE_ENABLE_SHELL: "false"
