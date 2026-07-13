@@ -19,9 +19,15 @@ func handle_buy(peer_id: int, item_id: String) -> void:
 	session.coins -= item.buy_price
 	var qty: int = (item as BaitData).uses_per_stack if item is BaitData else 1
 	session.add_owned(item_id, qty)
+	var auto_equipped := _auto_equip_if_empty(peer_id, session, item, item_id)
 	_persist_buy(session, item_id, qty)
 	NetAPI.rpc_id(peer_id, "notify_inventory_updated", item_id, session.get_owned(item_id))
-	NetAPI.rpc_id(peer_id, "notify_shop_result", true, "Purchased %s!" % item.display_name, session.coins)
+	var result_msg := "Purchased %s!" % item.display_name
+	if auto_equipped:
+		result_msg += " Auto-equipped."
+	elif item is BaitData or item is TackleData:
+		result_msg += " Equip it before fishing."
+	NetAPI.rpc_id(peer_id, "notify_shop_result", true, result_msg, session.coins)
 
 func handle_equip(peer_id: int, item_id: String) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
@@ -85,3 +91,19 @@ func _persist_equipment(session: PlayerSession) -> void:
 	var auth := GameServer.get_node_or_null("AuthServer")
 	if auth != null and auth.has_method("save_equipment"):
 		auth.save_equipment(session)
+
+func _auto_equip_if_empty(peer_id: int, session: PlayerSession, item: ItemData, item_id: String) -> bool:
+	if item is BaitData and session.equipped_bait_id.is_empty():
+		session.equipped_bait_id = item_id
+		_persist_equipment(session)
+		NetAPI.rpc_id(peer_id, "notify_equip_result", true, item_id, "bait")
+		return true
+	if item is TackleData and session.equipped_tackle_id.is_empty():
+		session.equipped_tackle_id = item_id
+		var tackle := item as TackleData
+		session.hook_durability = tackle.durability
+		_persist_equipment(session)
+		NetAPI.rpc_id(peer_id, "notify_hook_durability", session.hook_durability, tackle.durability)
+		NetAPI.rpc_id(peer_id, "notify_equip_result", true, item_id, "tackle")
+		return true
+	return false

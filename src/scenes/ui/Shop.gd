@@ -30,6 +30,8 @@ func _populate() -> void:
 
 func _make_row(item: ItemData) -> Control:
 	var owned := GameManager.get_owned(item.id)
+	var slot := _slot_for_item(item)
+	var equipped := _is_equipped(item)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 
@@ -47,7 +49,10 @@ func _make_row(item: ItemData) -> Control:
 
 	var name_lbl := Label.new()
 	var qty := (item as BaitData).uses_per_stack if item is BaitData else 1
-	name_lbl.text = "%s ×%d" % [item.display_name, qty] if qty > 1 else item.display_name
+	var name_text := "%s ×%d" % [item.display_name, qty] if qty > 1 else item.display_name
+	if equipped:
+		name_text += "  [Equipped]"
+	name_lbl.text = name_text
 	info.add_child(name_lbl)
 
 	var desc_lbl := Label.new()
@@ -58,9 +63,9 @@ func _make_row(item: ItemData) -> Control:
 	info.add_child(desc_lbl)
 
 	var owned_lbl := Label.new()
-	owned_lbl.text = "Owned: %d" % owned
+	owned_lbl.text = "%s  Owned: %d" % [slot, owned] if not slot.is_empty() else "Owned: %d" % owned
 	owned_lbl.add_theme_font_size_override("font_size", 10)
-	owned_lbl.modulate = Color(0.55, 0.85, 0.55) if owned > 0 else Color(0.55, 0.55, 0.55)
+	owned_lbl.modulate = Color(0.95, 0.84, 0.45) if equipped else (Color(0.55, 0.85, 0.55) if owned > 0 else Color(0.55, 0.55, 0.55))
 	info.add_child(owned_lbl)
 
 	row.add_child(info)
@@ -81,9 +86,9 @@ func _make_row(item: ItemData) -> Control:
 
 	if item is RodData or item is BaitData or item is TackleData:
 		var equip_btn := Button.new()
-		equip_btn.text = "Equip"
+		equip_btn.text = "Equipped" if equipped else "Equip"
 		equip_btn.custom_minimum_size = Vector2(52, 0)
-		equip_btn.disabled = owned <= 0
+		equip_btn.disabled = owned <= 0 or equipped
 		equip_btn.pressed.connect(_on_equip_pressed.bind(item.id))
 		row.add_child(equip_btn)
 
@@ -113,6 +118,7 @@ func _on_equip_result(ok: bool, item_id: String, slot: String) -> void:
 			"tackle": GameManager.equipped_tackle_id = item_id
 		GameManager.equipped_changed.emit()
 		AudioManager.sfx("sfx_equip")
+		_populate.call_deferred()
 	else:
 		status_label.text = "You don't own that item."
 		status_label.modulate = Color(1.0, 0.4, 0.4)
@@ -127,6 +133,24 @@ func _on_shop_result(ok: bool, reason: String, new_balance: int) -> void:
 	else:
 		AudioManager.sfx("sfx_not_enough_coins")
 	_populate.call_deferred()
+
+func _slot_for_item(item: ItemData) -> String:
+	if item is RodData:
+		return "Rod"
+	if item is BaitData:
+		return "Bait"
+	if item is TackleData:
+		return "Hook"
+	return ""
+
+func _is_equipped(item: ItemData) -> bool:
+	if item is RodData:
+		return GameManager.equipped_rod_id == item.id
+	if item is BaitData:
+		return GameManager.equipped_bait_id == item.id
+	if item is TackleData:
+		return GameManager.equipped_tackle_id == item.id
+	return false
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
