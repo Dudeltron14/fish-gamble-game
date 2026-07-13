@@ -227,25 +227,25 @@ The server selects a rarity tier, then picks a random catch of that rarity. A fi
 4. Apply rod `rarity_bonus` shift
 5. Apply cast quality bonus/penalty
 6. Normalise weights to sum to 1.0
-7. Weighted random pick
+7. Weighted random pick; junk is excluded from normal rarity pools and only appears through explicit no-bait/Worm trash rolls
 
 ### Default Pool (No Bait)
 
 | Catch type | Probability |
 |---|---|
-| Junk | **50%** |
-| Common starter fish | **50%** |
+| Junk | **35–65%**, based on cast quality |
+| Common starter fish | **35–65%**, inverse of junk chance |
 | Uncommon / Rare / Legendary | 0% |
 
 ### Bait Weights
 
 | Bait | Cost | Common | Uncommon | Rare | Legendary | Wait modifier |
 |---|---|---|---|---|---|---|
-| Worm | 5c | 85% | 15% | 0% | 0% | ×0.90 |
-| Glow Grub | 25c | 45% | 40% | 14% | 1% | ×0.75 |
+| Worm | 5c | 69–70% | 18–28% | 0% | 0% | ×0.90 |
+| Glow Grub | 25c | 30% | 48% | 20% | 2% | ×0.75 |
 | Magic Bait | 60c | 2.5% | 42.5% | 40% | 15% | ×0.55 |
 
-Magic Bait almost eliminates junk and common fish, but keeps a 2.5% common miss chance.
+Glow Grub and Magic Bait prevent junk because junk is not part of the normal dynamic rarity picker.
 
 ### Rod Rarity Bonus
 
@@ -263,11 +263,11 @@ weights["legendary"] += rarity_bonus × 0.3
 
 No bait and Worm intentionally use curated starter pools instead of the full dynamic rarity picker.
 
-**No bait:** 50% junk, 50% common starter fish. It does not use rod/cast rarity bonuses to enter higher rarity pools.
+**No bait:** 35–65% junk based on cast quality, otherwise common starter fish. It does not use rod/cast rarity bonuses to enter higher rarity pools.
 
-**Worm:** 8% junk, 70% common starter fish, 22% uncommon starter fish. It does not use rod/cast rarity bonuses to enter the normal Rare/Legendary pool.
+**Worm:** 3–12% junk based on cast quality, 18–28% uncommon starter fish based on cast quality, otherwise common starter fish. It does not use rod/cast rarity bonuses to enter the normal Rare/Legendary pool.
 
-**Magic Bait:** Uses the normal dynamic rarity picker, so any registered fish in the selected rarity can appear.
+**Glow Grub / Magic Bait:** Use the normal dynamic rarity picker with junk excluded from candidate pools.
 
 ---
 

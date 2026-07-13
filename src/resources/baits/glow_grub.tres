@@ -7,10 +7,10 @@
 script = ExtResource("1")
 id = "glow_grub"
 display_name = "Glow Grub"
-description = "A lively mid-tier bait. Better odds than worms, without the full magic-bait price."
+description = "A lively mid-tier bait. Prevents trash and leans into uncommon and rare catches."
 icon = ExtResource("2_icon")
 buy_price = 25
 sell_price = 8
-rarity_weights = {"common": 0.45, "uncommon": 0.40, "rare": 0.14, "legendary": 0.01}
+rarity_weights = {"common": 0.30, "uncommon": 0.48, "rare": 0.20, "legendary": 0.02}
 uses_per_stack = 10
 wait_modifier = 0.75

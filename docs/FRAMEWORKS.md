@@ -154,13 +154,13 @@ The full wait time = `randf_range(cast_min, cast_max) × wait_modifier`
 ### Rarity Weights Reference
 
 ```
-Default (no bait): 50% junk, 50% starter common fish; no uncommon/rare/legendary pool
-Worm data:         {common:0.85, uncommon:0.15, rare:0.00, legendary:0.00}
-Glow Grub:         {common:0.45, uncommon:0.40, rare:0.14, legendary:0.01}
+Default (no bait): 35-65% junk based on cast quality, otherwise starter common fish
+Worm data:         3-12% junk and 18-28% starter uncommon based on cast quality; otherwise starter common
+Glow Grub:         {common:0.30, uncommon:0.48, rare:0.20, legendary:0.02}
 Magic Bait:        {common:0.025, uncommon:0.425, rare:0.40, legendary:0.15}
 ```
 
-Runtime note: No bait and Worm currently use curated server-side pools instead of the dynamic rarity picker. No bait is capped to junk/common starter catches. Worm is capped to junk/common/uncommon starter catches. Glow Grub and Magic Bait use the normal dynamic picker.
+Runtime note: No bait and Worm currently use curated server-side pools instead of the dynamic rarity picker. No bait is capped to junk/common starter catches. Worm is capped to junk/common/uncommon starter catches. Glow Grub and Magic Bait use the normal dynamic picker with junk excluded from candidate pools.
 
 ---
 

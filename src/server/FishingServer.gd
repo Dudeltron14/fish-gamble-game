@@ -10,6 +10,23 @@ const DEFAULT_WEIGHTS := {
 const MIN_AUTO_RESULT_MS := 350
 const MIN_REEL_RESULT_MS := 1000
 
+const JUNK_IDS := ["junk_boot", "junk_can", "junk_seaweed"]
+const STARTER_COMMON_IDS := [
+	"common_perch",
+	"common_tropical_bluegill",
+	"common_freshwater_snail",
+	"common_mossback_bass",
+]
+const STARTER_UNCOMMON_IDS := [
+	"uncommon_bass",
+	"uncommon_silver_shad",
+	"uncommon_red_dock_crab",
+	"uncommon_sunset_conch",
+]
+const RARE_CATCH_WEIGHTS := {
+	"rare_pearl_clam": 0.35,
+}
+
 func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 	cast_quality = clampf(cast_quality, 0.0, 1.0)
 	var session := GameServer.get_authenticated_session(peer_id)
@@ -100,10 +117,10 @@ func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 	var bait := ItemRegistry.get_item(session.equipped_bait_id) as BaitData
 	if bait:
 		if bait.id == "worm":
-			return _pick_worm_fish()
+			return _pick_worm_fish(cast_quality)
 		weights = bait.rarity_weights.duplicate()
 	else:
-		return _pick_no_bait_fish()
+		return _pick_no_bait_fish(cast_quality)
 
 	# Apply rod rarity_bonus
 	var rod := ItemRegistry.get_item(session.equipped_rod_id) as RodData
@@ -137,56 +154,69 @@ func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 
 	var rarity := _weighted_rarity(weights)
 	var candidates: Array = ItemRegistry.fish.values().filter(
-		func(f: FishData) -> bool: return f.rarity == rarity
+		func(f: FishData) -> bool: return f.rarity == rarity and not _is_junk(f.id)
 	)
 	if candidates.is_empty():
-		candidates = ItemRegistry.fish.values()
+		candidates = ItemRegistry.fish.values().filter(
+			func(f: FishData) -> bool: return not _is_junk(f.id)
+		)
 	if candidates.is_empty():
 		return null
-	return candidates[randi() % candidates.size()]
+	return _pick_weighted_candidate(candidates)
 
-func _pick_no_bait_fish() -> FishData:
+func _pick_no_bait_fish(cast_quality: float) -> FishData:
 	var roll := randf()
-	if roll < 0.50:
-		var junk := _fish_candidates(["junk_boot", "junk_can", "junk_seaweed"])
+	var junk_chance := lerpf(0.65, 0.35, clampf(cast_quality, 0.0, 1.0))
+	if roll < junk_chance:
+		var junk := _fish_candidates(JUNK_IDS)
 		if not junk.is_empty():
 			return junk[randi() % junk.size()]
-	var common := _fish_candidates([
-		"common_perch",
-		"common_tropical_bluegill",
-		"common_freshwater_snail",
-		"common_mossback_bass",
-	])
+	var common := _fish_candidates(STARTER_COMMON_IDS)
 	if not common.is_empty():
 		return common[randi() % common.size()]
-	var fallback := _fish_candidates(["junk_boot", "junk_can", "junk_seaweed"])
+	var fallback := _fish_candidates(JUNK_IDS)
 	return fallback[randi() % fallback.size()] if not fallback.is_empty() else null
 
-func _pick_worm_fish() -> FishData:
+func _pick_worm_fish(cast_quality: float) -> FishData:
 	var roll := randf()
-	if roll < 0.08:
-		var junk := _fish_candidates(["junk_boot", "junk_can", "junk_seaweed"])
+	var quality := clampf(cast_quality, 0.0, 1.0)
+	var junk_chance := lerpf(0.12, 0.03, quality)
+	var uncommon_chance := lerpf(0.18, 0.28, quality)
+	if roll < junk_chance:
+		var junk := _fish_candidates(JUNK_IDS)
 		if not junk.is_empty():
 			return junk[randi() % junk.size()]
-	if roll < 0.78:
-		var common := _fish_candidates([
-			"common_perch",
-			"common_tropical_bluegill",
-			"common_freshwater_snail",
-			"common_mossback_bass",
-		])
+	if roll < 1.0 - uncommon_chance:
+		var common := _fish_candidates(STARTER_COMMON_IDS)
 		if not common.is_empty():
 			return common[randi() % common.size()]
-	var uncommon := _fish_candidates([
-		"uncommon_bass",
-		"uncommon_silver_shad",
-		"uncommon_red_dock_crab",
-		"uncommon_sunset_conch",
-	])
+	var uncommon := _fish_candidates(STARTER_UNCOMMON_IDS)
 	if not uncommon.is_empty():
 		return uncommon[randi() % uncommon.size()]
 	var fallback := _fish_candidates(["common_perch", "common_mossback_bass", "uncommon_bass", "uncommon_silver_shad"])
 	return fallback[randi() % fallback.size()] if not fallback.is_empty() else null
+
+func _pick_weighted_candidate(candidates: Array) -> FishData:
+	var total := 0.0
+	for fish: FishData in candidates:
+		total += _candidate_weight(fish)
+	if total <= 0.0:
+		return candidates[randi() % candidates.size()]
+	var roll := randf() * total
+	var cumulative := 0.0
+	for fish: FishData in candidates:
+		cumulative += _candidate_weight(fish)
+		if roll <= cumulative:
+			return fish
+	return candidates.back()
+
+func _candidate_weight(fish: FishData) -> float:
+	if fish.rarity == "rare":
+		return float(RARE_CATCH_WEIGHTS.get(fish.id, 1.0))
+	return 1.0
+
+func _is_junk(fish_id: String) -> bool:
+	return fish_id.begins_with("junk_")
 
 func _fish_candidates(ids: Array[String]) -> Array[FishData]:
 	var candidates: Array[FishData] = []
