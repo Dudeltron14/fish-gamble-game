@@ -19,7 +19,7 @@ These are not blockers for a trusted friends-and-family closed beta unless you w
 - [ ] Shop UX playtest pass: gear modifiers available in shop, equipped items clearly marked, post-purchase equip reminders, auto-equip bait/hook when empty, and red warnings when bait runs out or tackle breaks.
 - [x] Fishing economy playtest pass: Glow Grub should prevent trash, trash should not be treated as a normal Common catch, and Pearl Clam frequency should be checked.
 - [ ] Blackjack playtest pass: win/loss sounds, bet field lock during active hands, invalid high-bet/table-state bug, 6-deck shoe/shuffle/deck count, and bet reset behavior after all-in wins.
-- [ ] Decide whether current fishing timing guardrails are sufficient, or promote stronger server-side reel validation into pre-launch scope.
+- [x] Current fishing timing guardrails are sufficient for trusted closed beta; stronger server-side reel validation stays deferred unless playtest shows active abuse or obvious breakage.
 
 ## Post-Playtest
 
