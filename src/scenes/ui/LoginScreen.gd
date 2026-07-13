@@ -2,7 +2,8 @@ extends Control
 
 const CONNECT_TIMEOUT := 5.0
 const AUTH_TIMEOUT := 5.0
-const OFFICIAL_SERVER_URL := "wss://fishserver.dudeltron14.win"
+const SERVER_URL := "wss://fishserver.dudeltron14.win"
+const SERVER_LABEL := "Production Server"
 const MENU_EFFECT_REFERENCE_SIZE := Vector2(1280.0, 720.0)
 
 enum _Action { NONE, LOGIN, REGISTER }
@@ -22,6 +23,8 @@ var _menu_effect_bases := {}
 @onready var status_label: Label = %StatusLabel
 
 func _ready() -> void:
+	official_server_btn.text = "%s - %s" % [SERVER_LABEL, SERVER_URL.replace("wss://", "")]
+	official_server_btn.tooltip_text = "This client is locked to %s." % SERVER_URL
 	login_btn.pressed.connect(_on_login_pressed)
 	register_btn.pressed.connect(_on_register_pressed)
 	NetAPI.login_result.connect(_on_login_result)
@@ -52,8 +55,8 @@ func _maybe_connect() -> void:
 	set_buttons_enabled(false)
 	_connect_attempt_id += 1
 	var attempt_id: int = _connect_attempt_id
-	set_status("Connecting to official server...")
-	var err := NetworkManager.connect_to_url(OFFICIAL_SERVER_URL)
+	set_status("Connecting to %s..." % SERVER_LABEL.to_lower())
+	var err := NetworkManager.connect_to_url(SERVER_URL)
 
 	if err != OK:
 		set_status("Connection error: " + error_string(err))

@@ -365,7 +365,7 @@ Use staging to test merged PRs before anything reaches production `master`. The 
 
 ```text
 feature/fix branch
-  -> PR into staging
+  -> PR into staging for Noah's shared QA lane
   -> merge after review
   -> Staging GitHub Action auto-builds :staging images
   -> VM pulls/recreates staging containers
@@ -385,9 +385,22 @@ Web port:     8081 -> container 80
 Database:     ./data-staging/players.db
 ```
 
+There is also a second isolated staging lane for contributor work that should not disturb the main staging environment:
+
+```text
+Branch:       staging2
+Server image: ghcr.io/dudeltron14/fish-gamble-game:staging2
+Web image:    ghcr.io/dudeltron14/fish-gamble-game-web:staging2
+Server port:  7072 -> container 7070
+Web port:     8082 -> container 80
+Admin logs:   8092 -> Dozzle log viewer
+Database:     ./data-staging2/players.db
+Owner/use:    Alex or another contributor who needs an undisturbed feature test environment
+```
+
 ### Merge Work Into Staging
 
-Create PRs from feature/fix branches into `staging`:
+Create PRs from feature/fix branches into `staging` for Noah's shared QA lane:
 
 ```bash
 git checkout -b feedback/shop-equipped-state
@@ -402,19 +415,40 @@ base: staging
 compare: feedback/shop-equipped-state
 ```
 
-After review, merge the PR into `staging`. Every push to `staging` automatically runs the **Staging** workflow and publishes:
+For Alex's isolated lane, work directly on `staging2` so every push deploys to the isolated staging2 client/server:
+
+```bash
+git fetch origin
+git checkout staging2
+git pull --ff-only origin staging2
+# make the change directly on staging2
+git add <changed-files>
+git commit -m "fix: short description"
+git push origin staging2
+```
+
+Keep `staging2` focused on one shippable contributor change at a time. Because every push to `staging2` updates Alex's live environment, avoid piling unrelated experiments into that branch.
+
+After review, merge Noah's PRs into `staging`. Every push to `staging` automatically runs the **Staging** workflow and publishes:
 
 ```text
 ghcr.io/dudeltron14/fish-gamble-game:staging
 ghcr.io/dudeltron14/fish-gamble-game-web:staging
 ```
 
-The staging Web client includes explicit server choices on the login screen:
+Every push directly to `staging2` publishes:
 
 ```text
-Official Server -> wss://fishserver.dudeltron14.win
-Staging Server  -> wss://fishserver-staging.dudeltron14.win
-Other Server    -> custom URL field for local/manual testing
+ghcr.io/dudeltron14/fish-gamble-game:staging2
+ghcr.io/dudeltron14/fish-gamble-game-web:staging2
+```
+
+Each deployed Web client is locked to its matching server route. Players should not connect across silos:
+
+```text
+Production Web -> wss://fishserver.dudeltron14.win
+Staging Web    -> wss://fishserver-staging.dudeltron14.win
+Staging2 Web   -> wss://fishserver-staging2.dudeltron14.win
 ```
 
 ### Manual Staging Builds
@@ -428,7 +462,7 @@ ref: branch-name-or-sha
 image_tag: staging
 ```
 
-Manual runs overwrite the shared `:staging` images, so coordinate before using them while another staging playtest is active.
+Manual runs overwrite whichever tag you provide. Use `image_tag: staging` for the main staging lane or `image_tag: staging2` for Alex's lane. Coordinate before using manual runs while someone else is actively playtesting that lane.
 
 ### Start Staging On The VM
 
@@ -449,11 +483,37 @@ Follow staging logs:
 sudo docker compose -f docker-compose.staging.yml logs -f game-server-staging
 ```
 
+Follow staging2 logs:
+
+```bash
+sudo docker compose -f docker-compose.staging.yml logs -f game-server-staging2
+```
+
+Open the all-server admin log panel:
+
+```text
+https://admin-servers.dudeltron14.win
+```
+
+This panel runs Dozzle and is filtered to all Fish game server containers: production, staging, and staging2. It is intended for owner/admin troubleshooting. Docker actions and shell access are disabled, and the Docker socket is mounted read-only.
+
+Open the staging2 log admin panel:
+
+```text
+https://admin-staging2.dudeltron14.win
+```
+
+This panel runs Dozzle and is filtered to the `game-server-staging2` container. It is intended for live troubleshooting logs only. Docker actions and shell access are disabled, and the Docker socket is mounted read-only.
+
 Local VM checks:
 
 ```bash
 curl -I http://localhost:8081
 curl -I http://localhost:8081/index.pck
+curl -I http://localhost:8082
+curl -I http://localhost:8082/index.pck
+curl -I http://localhost:8090
+curl -I http://localhost:8092
 ```
 
 ### Cloudflare Tunnel Routes
@@ -463,18 +523,30 @@ Add two public hostname routes to the existing Cloudflare Tunnel:
 ```text
 fishserver-staging.dudeltron14.win -> http://172.17.0.1:7071
 fishgame-staging.dudeltron14.win   -> http://172.17.0.1:8081
+fishserver-staging2.dudeltron14.win -> http://172.17.0.1:7072
+fishgame-staging2.dudeltron14.win   -> http://172.17.0.1:8082
+admin-servers.dudeltron14.win       -> http://172.17.0.1:8090
+admin-staging2.dudeltron14.win      -> http://172.17.0.1:8092
 ```
+
+Protect `admin-servers.dudeltron14.win` with a Cloudflare Access application restricted to owner/admin users only. It includes production server logs.
+
+Protect `admin-staging2.dudeltron14.win` with a Cloudflare Access application before sharing it with contributors. Dozzle has access to Docker logs through the Docker socket, so it must not be left publicly reachable without authentication.
 
 Then test:
 
 ```text
 https://fishgame-staging.dudeltron14.win
 wss://fishserver-staging.dudeltron14.win
+https://fishgame-staging2.dudeltron14.win
+wss://fishserver-staging2.dudeltron14.win
+https://admin-servers.dudeltron14.win
+https://admin-staging2.dudeltron14.win
 ```
 
 ### Promote After Staging Passes
 
-When staging passes, promote the tested staging branch to production:
+When Noah's main staging lane passes, promote the tested `staging` branch to production:
 
 ```bash
 git checkout master
@@ -485,6 +557,17 @@ git push origin master
 
 If a fast-forward merge is not possible, stop and inspect the divergence before proceeding. Do not force-push `master`.
 
+When Alex's isolated lane passes, promote the tested `staging2` branch to production:
+
+```bash
+git checkout master
+git pull --ff-only origin master
+git merge --ff-only origin/staging2
+git push origin master
+```
+
+Use this only when `staging2` contains a coherent, shippable change. If `staging2` contains unfinished experiments, clean it up before opening or merging the production PR.
+
 Production will then build and deploy the normal `:latest` images:
 
 ```text
@@ -492,11 +575,11 @@ ghcr.io/dudeltron14/fish-gamble-game:latest
 ghcr.io/dudeltron14/fish-gamble-game-web:latest
 ```
 
-If staging fails, leave `master` alone. Fix the feature branch, merge the fix into `staging`, wait for the automatic staging workflow, pull staging on the VM, and test again.
+If either staging lane fails, leave `master` alone. Fix the same lane, wait for the automatic staging workflow, pull the relevant containers on the VM, and test again.
 
 ### Keeping Staging Current With Master
 
-After production hotfixes or release-only commits land on `master`, bring them back into `staging` before new feature testing:
+After production hotfixes, Alex changes, or release-only commits land on `master`, bring them back into `staging` before Noah continues feature testing:
 
 ```bash
 git checkout staging
@@ -506,6 +589,17 @@ git push origin staging
 ```
 
 Resolve conflicts carefully if they appear. The push to `staging` will rebuild the shared staging images.
+
+Keep `staging2` current the same way when Alex needs a fresh base:
+
+```bash
+git checkout staging2
+git pull --ff-only origin staging2
+git merge origin/master
+git push origin staging2
+```
+
+The push to `staging2` will rebuild the `:staging2` images.
 
 ---
 
