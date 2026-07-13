@@ -204,9 +204,9 @@ All catchables are `.tres` files in `src/resources/fish/`. Most new fish only re
 | Sunken Chest | legendary | 2.2 | 150c | **330c** | 429c |
 | Ancient Key | legendary | 2.5 | 150c | **375c** | 487c |
 
-### Junk (Common Rarity — 0 Coins)
+### Junk (Separate Trash Pool — 0 Coins)
 
-Without bait, the server uses a curated starter pool: 50% junk and 50% common starter fish. This still nudges players toward buying worms, but is less punishing after gambling everything away.
+Without bait, the server uses a curated starter pool: 50% junk and 50% common starter fish. This still nudges players toward buying worms, but is less punishing after gambling everything away. Junk resources use the fish data format for reward popups, but runtime selection treats `junk_*` ids as a separate trash pool, not as normal Common catches.
 
 | Item | Rarity | Payout | Note |
 |---|---|---|---|
@@ -246,6 +246,8 @@ The server selects a rarity tier, then picks a random catch of that rarity. A fi
 | Magic Bait | 60c | 2.5% | 42.5% | 40% | 15% | ×0.55 |
 
 Glow Grub and Magic Bait prevent junk because junk is not part of the normal dynamic rarity picker.
+
+Pearl Clam is intentionally down-weighted inside the Rare pool. When a Rare catch is selected, Pearl Clam has a `0.35` candidate weight while the other Rare fish currently have `1.0` each, so it appears less often than normal Rare fish before any later playtest tuning.
 
 ### Rod Rarity Bonus
 
@@ -329,6 +331,6 @@ Press **Tab** in-game for the full Gear Modifiers panel showing exact multiplier
 All item types are data-driven. See `docs/FRAMEWORKS.md` for field-by-field guides and templates.
 
 **Fish:** `src/resources/fish/_template.tres`
-**Junk:** Same as fish — set `base_coin_value = 0` and `rarity = "common"`
+**Junk:** Same resource format as fish, with `base_coin_value = 0` and ids prefixed `junk_`. Runtime selection treats those ids as a separate trash pool and excludes them from normal dynamic rarity candidates.
 **Chest/Key:** Same as fish — set `rarity = "legendary"` and high `base_coin_value`
 **Sprites:** Prefer a transparent 64×64 `icon` texture. `sprite_frame` remains available for the old atlas fallback.
