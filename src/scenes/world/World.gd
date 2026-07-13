@@ -15,14 +15,18 @@ var _local_zone := ""
 var _overlay: Node = null
 var _overlay_scene: PackedScene = null
 var _disconnect_dialog: ConfirmationDialog = null
+var _server_update_dialog: AcceptDialog = null
 var _debug_menu: CanvasLayer = null
 var _stats_panel: CanvasLayer = null
 var _overlay_hides_player := false
 var _overlay_entry_position := Vector2.ZERO
+var _intentional_disconnect := false
 
 func _ready() -> void:
 	add_to_group("world")
 	AudioManager.set_music_context("world")
+	if not NetworkManager.server_disconnected.is_connected(_on_server_disconnected):
+		NetworkManager.server_disconnected.connect(_on_server_disconnected)
 	for zone in $Zones.get_children():
 		if zone is Area2D:
 			zone.collision_mask = 4
@@ -319,7 +323,27 @@ func _is_stats_panel_open() -> bool:
 		and _stats_panel.is_expanded()
 
 func _disconnect_to_login() -> void:
+	_intentional_disconnect = true
 	NetworkManager.disconnect_from_server()
+	_reset_session_and_go_to_login()
+
+func _on_server_disconnected() -> void:
+	if _intentional_disconnect or multiplayer.is_server():
+		return
+	if _server_update_dialog != null and is_instance_valid(_server_update_dialog):
+		_server_update_dialog.popup_centered()
+		return
+	_server_update_dialog = AcceptDialog.new()
+	_server_update_dialog.title = "Server Update"
+	_server_update_dialog.dialog_text = "The server closed for a quick update. Please reconnect in a moment."
+	_server_update_dialog.ok_button_text = "Back to Login"
+	_server_update_dialog.confirmed.connect(_reset_session_and_go_to_login)
+	_server_update_dialog.close_requested.connect(_reset_session_and_go_to_login)
+	_server_update_dialog.tree_exited.connect(func(): _server_update_dialog = null)
+	add_child(_server_update_dialog)
+	_server_update_dialog.popup_centered()
+
+func _reset_session_and_go_to_login() -> void:
 	GameManager.is_hosting = false
 	GameManager.current_player_name = ""
 	GameManager.set_coins(0)

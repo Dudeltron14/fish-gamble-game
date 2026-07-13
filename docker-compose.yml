@@ -11,6 +11,7 @@ services:
     labels:
       - "fish-game.silo=production"
       - "fish-game.role=game-server"
+      - "fish-game.logs=admin"
 
   web-client:
     image: ghcr.io/dudeltron14/fish-gamble-game-web:latest
@@ -24,3 +25,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --interval 60 --cleanup
+    labels:
+      - "fish-game.silo=ops"
+      - "fish-game.role=watchtower"
+      - "fish-game.logs=admin"
