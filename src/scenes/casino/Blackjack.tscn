@@ -85,6 +85,12 @@ texture = ExtResource("3_card_back")
 expand_mode = 1
 stretch_mode = 5
 
+[node name="DeckCountLabel" type="Label" parent="Center/Panel/Margin/VBox/DeckRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 0)
+text = "Cards left: —"
+vertical_alignment = 1
+
 [node name="Sep2" type="HSeparator" parent="Center/Panel/Margin/VBox"]
 
 [node name="PlayerLabel" type="Label" parent="Center/Panel/Margin/VBox"]

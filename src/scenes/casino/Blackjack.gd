@@ -15,6 +15,7 @@ var _state := State.IDLE
 var _dealer_cards: Array = []
 var _dealer_hole_hidden := false
 var _player_value := 0
+var _active_bet := 0
 
 @onready var coins_label: Label     = %CoinsLabel
 @onready var status_label: Label    = %StatusLabel
@@ -23,6 +24,7 @@ var _player_value := 0
 @onready var deck_stack: TextureRect = %DeckStack
 @onready var dealer_hand: HBoxContainer = %DealerHand
 @onready var dealer_info_label: Label = %DealerInfoLabel
+@onready var deck_count_label: Label = %DeckCountLabel
 @onready var bet_spin: SpinBox      = %BetSpin
 @onready var deal_btn: Button       = %DealBtn
 @onready var hit_btn: Button        = %HitBtn
@@ -48,6 +50,7 @@ func _ready() -> void:
 	stand_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_stand"))
 	double_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_double"))
 	coins_label.text = "Coins: %d" % GameManager.current_coins
+	_update_deck_count(0)
 	_refresh_betting_controls()
 	_set_actions(false)
 
@@ -56,7 +59,7 @@ func _ready() -> void:
 func _on_deal_pressed() -> void:
 	var amount := int(bet_spin.value)
 	if amount <= 0 or GameManager.current_coins <= 0 or amount > GameManager.current_coins:
-		status_label.text = "You need coins to play."
+		status_label.text = "Bet exceeds your coins." if amount > GameManager.current_coins else "You need coins to play."
 		status_label.modulate = Color(1.0, 0.4, 0.4)
 		_refresh_betting_controls()
 		return
@@ -68,9 +71,11 @@ func _on_deal_pressed() -> void:
 
 # ── NetAPI callbacks ──────────────────────────────────────────────────────────
 
-func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int) -> void:
+func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int, deck_remaining: int) -> void:
 	_state = State.PLAYER_TURN
+	_active_bet = bet
 	_clear_hands()
+	_update_deck_count(deck_remaining)
 	_dealer_cards = [dealer_visible]
 	_dealer_hole_hidden = true
 	_update_dealer_info()
@@ -88,12 +93,14 @@ func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance
 	coins_label.text = "Coins: %d  (bet: %d)" % [balance, bet]
 	GameManager.set_coins(balance)
 	_set_actions(true)
-	double_btn.disabled = player_cards.size() != 2
+	double_btn.disabled = player_cards.size() != 2 or balance < bet
+	_refresh_betting_controls()
 
-func _on_hit(card: Dictionary, new_val: int) -> void:
+func _on_hit(card: Dictionary, new_val: int, deck_remaining: int) -> void:
 	_deal_card_animated(player_hand, _card_widget(card), 0.0, true)
 	_player_value = new_val
 	_update_player_value()
+	_update_deck_count(deck_remaining)
 	if new_val > 21:
 		status_label.text = "Bust!"
 		status_label.modulate = Color(1.0, 0.4, 0.4)
@@ -102,11 +109,12 @@ func _on_hit(card: Dictionary, new_val: int) -> void:
 		status_label.text = "Hit or Stand?"
 	double_btn.disabled = true
 
-func _on_dealer_reveal(full_hand: Array, value: int) -> void:
+func _on_dealer_reveal(full_hand: Array, value: int, deck_remaining: int) -> void:
 	_clear_node(dealer_hand)
 	_dealer_cards = full_hand.duplicate()
 	_dealer_hole_hidden = false
 	_update_dealer_info(value)
+	_update_deck_count(deck_remaining)
 	# Flip the hole card with stagger
 	var delay := 0.0
 	for c in full_hand:
@@ -114,10 +122,11 @@ func _on_dealer_reveal(full_hand: Array, value: int) -> void:
 	status_label.text = "Dealer: %d — playing…" % value
 	_set_actions(false)
 
-func _on_dealer_card(card: Dictionary, value: int) -> void:
+func _on_dealer_card(card: Dictionary, value: int, deck_remaining: int) -> void:
 	_dealer_cards.append(card)
 	_dealer_hole_hidden = false
 	_update_dealer_info(value)
+	_update_deck_count(deck_remaining)
 	_deal_card_animated(dealer_hand, _card_widget(card), 0.0, true)
 	status_label.text = "Dealer: %d" % value
 
@@ -125,6 +134,8 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 	_dealer_cards = dh.duplicate()
 	_dealer_hole_hidden = false
 	_update_dealer_info(_val(dh))
+	_state = State.IDLE
+	_active_bet = 0
 	GameManager.set_coins(new_balance)
 	coins_label.text = "Coins: %d" % new_balance
 	var messages := {
@@ -149,7 +160,7 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 	status_label.modulate = Color(0.3, 1.0, 0.4) if outcome == "win" \
 		else Color(1.0, 0.4, 0.4) if outcome in ["bust", "lose"] \
 		else Color.WHITE
-	_state = State.IDLE
+	_reset_bet_after_hand(new_balance)
 	_refresh_betting_controls()
 
 func _on_error(msg: String) -> void:
@@ -336,6 +347,11 @@ func _on_coins_changed(new_amount: int) -> void:
 
 func _refresh_betting_controls() -> void:
 	var balance: int = maxi(0, GameManager.current_coins)
+	if _state != State.IDLE:
+		_set_bet_input_enabled(false)
+		deal_btn.disabled = true
+		return
+	_set_bet_input_enabled(balance > 0)
 	bet_spin.min_value = 1.0 if balance > 0 else 0.0
 	bet_spin.max_value = maxi(1, balance)
 	if balance <= 0:
@@ -348,12 +364,26 @@ func _refresh_betting_controls() -> void:
 			bet_spin.value = mini(10, balance)
 		deal_btn.disabled = _state != State.IDLE
 
+func _set_bet_input_enabled(enabled: bool) -> void:
+	bet_spin.editable = enabled
+	bet_spin.get_line_edit().editable = enabled
+
+func _reset_bet_after_hand(balance: int) -> void:
+	if balance <= 0:
+		bet_spin.value = 0
+	else:
+		bet_spin.value = mini(10, balance)
+
+func _update_deck_count(deck_remaining: int) -> void:
+	deck_count_label.text = "Cards left: %d" % deck_remaining if deck_remaining > 0 else "Cards left: —"
+
 func _clear_hands() -> void:
 	_clear_node(player_hand)
 	_clear_node(dealer_hand)
 	_dealer_cards.clear()
 	_dealer_hole_hidden = false
 	_player_value = 0
+	_active_bet = 0
 	player_value_label.text = ""
 	dealer_info_label.text = ""
 
