@@ -51,8 +51,8 @@ services:
       DOZZLE_AUTH_PROVIDER: simple
       DOZZLE_AUTH_TTL: 168h
       DOZZLE_FILTER: "label=fish-game.silo=staging2,label=fish-game.role=game-server"
-      DOZZLE_ENABLE_ACTIONS: "false"
-      DOZZLE_ENABLE_SHELL: "false"
+      DOZZLE_ENABLE_ACTIONS: "true"
+      DOZZLE_ENABLE_SHELL: "true"
       DOZZLE_NO_ANALYTICS: "true"
 
   admin-servers:

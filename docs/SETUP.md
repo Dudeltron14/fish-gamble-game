@@ -503,7 +503,7 @@ Open the staging2 log admin panel:
 https://admin-staging2.dudeltron14.win
 ```
 
-This panel runs Dozzle and is filtered to the `game-server-staging2` container. It uses Dozzle's simple file-based login instead of Cloudflare Access so the staging2 contributor can troubleshoot directly. Docker actions and shell access are disabled, and the Docker socket is mounted read-only.
+This panel runs Dozzle and is filtered to the `game-server-staging2` container. It uses Dozzle's simple file-based login instead of Cloudflare Access so the staging2 contributor can troubleshoot directly. Container actions and shell access are enabled for the staging2 game server only, and the Docker socket is mounted read-only.
 
 Local VM checks:
 
@@ -531,7 +531,7 @@ admin-staging2.dudeltron14.win      -> http://172.17.0.1:8092
 
 Protect `admin-servers.dudeltron14.win` with a Cloudflare Access application restricted to owner/admin users only. It includes production server logs and Watchtower update logs.
 
-`admin-staging2.dudeltron14.win` is intentionally not protected by Cloudflare Access. It uses Dozzle's `simple` auth provider with credentials stored in `~/fish-game/dozzle-staging2/users.yml`, is filtered to the staging2 game server logs only, and has Docker actions and shell access disabled.
+`admin-staging2.dudeltron14.win` is intentionally not protected by Cloudflare Access. It uses Dozzle's `simple` auth provider with credentials stored in `~/fish-game/dozzle-staging2/users.yml`, is filtered to the staging2 game server only, and allows log downloads, actions, and shell access for that staging2 container.
 
 Create or rotate the staging2 Dozzle login directly on the VM:
 
@@ -548,7 +548,7 @@ sudo docker run --rm amir20/dozzle:latest generate "$DOZZLE_USER" \
   --password "$DOZZLE_PASSWORD" \
   --email "$DOZZLE_EMAIL" \
   --name "$DOZZLE_NAME" \
-  --user-roles none \
+  --user-roles download,actions,shell \
   > dozzle-staging2/users.yml
 
 sudo docker compose -f docker-compose.staging.yml up -d --force-recreate admin-staging2
