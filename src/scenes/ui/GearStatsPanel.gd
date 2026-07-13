@@ -45,6 +45,7 @@ var _expanded := false
 var _music_vol := 80.0
 var _sfx_vol   := 80.0
 var _vbox: VBoxContainer
+var _shop_mode := false
 
 func _ready() -> void:
 	_vbox = $Panel/Margin/VBox
@@ -64,6 +65,8 @@ func _ready() -> void:
 	GameManager.hook_durability_changed.connect(func(_c, _m): _refresh())
 	GameManager.owned_changed.connect(_refresh)
 	_refresh()
+	if _shop_mode:
+		_apply_shop_mode.call_deferred()
 
 func _build_volume_section() -> void:
 	var sep := HSeparator.new()
@@ -125,6 +128,23 @@ func _set_expanded(expand: bool) -> void:
 
 func is_expanded() -> bool:
 	return _expanded
+
+func set_expanded(expand: bool) -> void:
+	_set_expanded(expand)
+
+func configure_for_shop() -> void:
+	_shop_mode = true
+	layer = 11
+	if is_node_ready():
+		_apply_shop_mode()
+
+func _apply_shop_mode() -> void:
+	panel.offset_left = -258.0
+	panel.offset_top = 16.0
+	panel.offset_right = -8.0
+	panel.offset_bottom = 16.0
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_set_expanded(get_viewport().get_visible_rect().size.x >= 980.0)
 
 func _save_settings() -> void:
 	var cfg := ConfigFile.new()

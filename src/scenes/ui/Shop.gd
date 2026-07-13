@@ -2,9 +2,13 @@ extends CanvasLayer
 
 signal completed
 
+const GEAR_STATS_SCENE := preload("res://src/scenes/ui/GearStatsPanel.tscn")
+
 @onready var coins_label: Label = %CoinsLabel
 @onready var item_list: VBoxContainer = %ItemList
 @onready var status_label: Label = %StatusLabel
+
+var _gear_stats_panel: CanvasLayer = null
 
 func _ready() -> void:
 	NetAPI.shop_result.connect(_on_shop_result)
@@ -13,6 +17,7 @@ func _ready() -> void:
 	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_close)
 	AudioManager.set_music_context("shop")
 	coins_label.text = "Coins: %d" % GameManager.current_coins
+	_add_gear_stats_panel()
 	_populate()
 
 func _populate() -> void:
@@ -161,3 +166,9 @@ func _close() -> void:
 	AudioManager.set_music_context("world")
 	completed.emit()
 	queue_free()
+
+func _add_gear_stats_panel() -> void:
+	_gear_stats_panel = GEAR_STATS_SCENE.instantiate()
+	add_child(_gear_stats_panel)
+	if _gear_stats_panel.has_method("configure_for_shop"):
+		_gear_stats_panel.configure_for_shop()

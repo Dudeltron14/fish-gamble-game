@@ -21,6 +21,7 @@ var _stats_panel: CanvasLayer = null
 var _overlay_hides_player := false
 var _overlay_entry_position := Vector2.ZERO
 var _intentional_disconnect := false
+var _stats_panel_was_visible := true
 
 func _ready() -> void:
 	add_to_group("world")
@@ -266,6 +267,9 @@ func _open_overlay(scene: PackedScene) -> void:
 	add_child(_overlay)
 	AudioManager.sfx("sfx_menu_open")
 	_overlay_hides_player = scene == SHOP_SCENE or scene == BJ_SCENE
+	if scene == SHOP_SCENE and _stats_panel != null and is_instance_valid(_stats_panel):
+		_stats_panel_was_visible = _stats_panel.visible
+		_stats_panel.visible = false
 	var player := _get_local_player()
 	if player:
 		_overlay_entry_position = player.global_position
@@ -284,6 +288,8 @@ func _on_overlay_closed() -> void:
 	if _overlay_scene == FISHING_SCENE:
 		if player:
 			player.stop_fishing()
+	if _overlay_scene == SHOP_SCENE and _stats_panel != null and is_instance_valid(_stats_panel):
+		_stats_panel.visible = _stats_panel_was_visible
 	_overlay = null
 	_overlay_scene = null
 	_overlay_hides_player = false
