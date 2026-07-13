@@ -443,13 +443,12 @@ ghcr.io/dudeltron14/fish-gamble-game:staging2
 ghcr.io/dudeltron14/fish-gamble-game-web:staging2
 ```
 
-The login screen defaults to the official production server. For staging, staging2, or local testing, choose **Other Server** and enter the matching route:
+Each deployed Web client is locked to its matching server route. Players should not connect across silos:
 
 ```text
 Production Web -> wss://fishserver.dudeltron14.win
 Staging Web    -> wss://fishserver-staging.dudeltron14.win
 Staging2 Web   -> wss://fishserver-staging2.dudeltron14.win
-Local server   -> ws://127.0.0.1:7070
 ```
 
 ### Manual Staging Builds
