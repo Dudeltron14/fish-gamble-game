@@ -24,7 +24,7 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 60 --cleanup
+    command: --interval 60 --cleanup --api-version 1.40
     labels:
       - "fish-game.silo=ops"
       - "fish-game.role=watchtower"

@@ -307,7 +307,7 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 300 --cleanup
+    command: --interval 60 --cleanup --api-version 1.40
 ```
 
 Pull and start:
