@@ -35,21 +35,6 @@ func _on_peer_disconnected(peer_id: int) -> void:
 	for world in get_tree().get_nodes_in_group("world"):
 		world._despawn_player(peer_id)
 
-func init_host_session(username: String) -> void:
-	var session := PlayerSession.new(1)
-	session.authenticated = true
-	session.username = username
-	apply_starter_loadout(session)
-	sessions[1] = session
-
-func apply_starter_loadout(session: PlayerSession) -> void:
-	session.coins = STARTER_COINS
-	session.equipped_rod_id = STARTER_ROD_ID
-	session.equipped_bait_id = STARTER_BAIT_ID
-	session.equipped_tackle_id = STARTER_TACKLE_ID
-	session.owned_items = get_starter_items()
-	session.hook_durability = get_starter_hook_durability()
-
 func get_starter_items() -> Dictionary:
 	var items := {}
 	items[STARTER_ROD_ID] = 1

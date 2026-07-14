@@ -29,9 +29,6 @@ func start_server(port: int = DEFAULT_PORT) -> Error:
 	print("NetworkManager: server listening on port %d" % port)
 	return OK
 
-func connect_to_server(address: String, port: int = DEFAULT_PORT) -> Error:
-	return connect_to_url("ws://%s:%d" % [address, port])
-
 func connect_to_url(url: String) -> Error:
 	disconnect_from_server()
 	_peer = WebSocketMultiplayerPeer.new()
@@ -51,12 +48,6 @@ func disconnect_from_server() -> void:
 	multiplayer.multiplayer_peer = null
 	if had_peer:
 		AudioManager.clear_music_context()
-
-func is_server() -> bool:
-	return multiplayer.is_server()
-
-func get_my_id() -> int:
-	return multiplayer.get_unique_id()
 
 func _on_connected_to_server() -> void:
 	connected_to_server.emit()
