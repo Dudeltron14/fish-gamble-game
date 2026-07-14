@@ -54,6 +54,7 @@ func _ready() -> void:
 	stand_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_stand"))
 	double_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_double"))
 	coins_label.text = "Coins: %d" % GameManager.current_coins
+	deck_count_label.tooltip_text = "6-deck shoe. Shuffles when 156 cards remain."
 	_update_deck_count(0)
 	_refresh_betting_controls()
 	_set_actions(false)
@@ -390,7 +391,7 @@ func _reset_bet_after_hand(balance: int, last_bet: int) -> void:
 		bet_spin.value = last_bet
 
 func _update_deck_count(deck_remaining: int) -> void:
-	deck_count_label.text = "Cards left: %d" % deck_remaining if deck_remaining > 0 else "Cards left: —"
+	deck_count_label.text = "Cards left: %d / 312" % deck_remaining if deck_remaining > 0 else "Cards left: — / 312"
 
 func _clear_hands() -> void:
 	_clear_node(player_hand)
