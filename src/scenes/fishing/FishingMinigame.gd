@@ -300,7 +300,7 @@ func _finish_reel(success: bool) -> void:
 
 func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float, hook_react_bonus: float, auto_catch: bool) -> void:
 	if not ok:
-		_show_result(false, "No fish nearby.")
+		_show_result(false, "No treasure nearby." if GameManager.equipped_tackle_id == "treasure_magnet" else "No fish nearby.")
 		return
 	_fish_id = fish_id
 	_difficulty = difficulty

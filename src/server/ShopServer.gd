@@ -46,9 +46,14 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 	if item is RodData:
 		session.equipped_rod_id = item_id;    slot = "rod"
 	elif item is BaitData:
+		if session.equipped_tackle_id == "treasure_magnet":
+			NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
+			return
 		session.equipped_bait_id = item_id;   slot = "bait"
 	elif item is TackleData:
 		session.equipped_tackle_id = item_id
+		if item_id == "treasure_magnet":
+			session.equipped_bait_id = ""
 		var tackle := item as TackleData
 		session.hook_durability = tackle.durability
 		slot = "tackle"
@@ -60,6 +65,8 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 	# Equipping is free — bait/hook counts only decrease when fishing, not when swapping
 	_persist_equipment(session)
 	NetAPI.rpc_id(peer_id, "notify_equip_result", true, item_id, slot)
+	if item_id == "treasure_magnet":
+		NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, session.hook_durability, (item as TackleData).durability)
 
 # ── Persistence (DB only, session is authoritative) ───────────────────────────
 
@@ -100,10 +107,14 @@ func _auto_equip_if_empty(peer_id: int, session: PlayerSession, item: ItemData, 
 		return true
 	if item is TackleData and session.equipped_tackle_id.is_empty():
 		session.equipped_tackle_id = item_id
+		if item_id == "treasure_magnet":
+			session.equipped_bait_id = ""
 		var tackle := item as TackleData
 		session.hook_durability = tackle.durability
 		_persist_equipment(session)
 		NetAPI.rpc_id(peer_id, "notify_hook_durability", session.hook_durability, tackle.durability)
 		NetAPI.rpc_id(peer_id, "notify_equip_result", true, item_id, "tackle")
+		if item_id == "treasure_magnet":
+			NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, session.hook_durability, tackle.durability)
 		return true
 	return false

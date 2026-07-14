@@ -9,6 +9,7 @@ const DEFAULT_WEIGHTS := {
 
 const MIN_AUTO_RESULT_MS := 350
 const MIN_REEL_RESULT_MS := 1000
+const TREASURE_MAGNET_PROFIT_CHANCE := 0.45
 
 const JUNK_IDS := ["junk_boot", "junk_can", "junk_seaweed"]
 const STARTER_COMMON_IDS := [
@@ -36,6 +37,9 @@ func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 
 	var fish := _pick_fish(session, cast_quality)
 	if fish == null:
+		var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
+		if tackle and tackle.id == "treasure_magnet":
+			_consume_gear(peer_id, session)
 		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0, 1.0, 1.0)
 		return
 
@@ -106,12 +110,16 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	NetAPI.rpc("notify_player_catch", peer_id, fish_id)
 
 func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
-	# Treasure Magnet adds a chest-only roll for testing; normal legendary rolls stay equal.
+	# Treasure Magnet searches only for a chest; one chest covers its 200c price.
 	var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
-	if tackle and tackle.chest_chance_multiplier > 1.0 and randf() < 0.01 * tackle.chest_chance_multiplier:
+	if tackle and tackle.id == "treasure_magnet":
+		var chest_chance := 1.0 - pow(1.0 - TREASURE_MAGNET_PROFIT_CHANCE, 1.0 / maxi(tackle.durability, 1))
+		if randf() >= chest_chance:
+			return null
 		var chest := ItemRegistry.get_item("legendary_chest") as FishData
 		if chest:
 			return chest
+		return null
 
 	# Apply bait rarity_weights
 	var weights := DEFAULT_WEIGHTS.duplicate()
@@ -176,7 +184,7 @@ func _pick_no_bait_fish(cast_quality: float) -> FishData:
 	if not common.is_empty():
 		return common[randi() % common.size()]
 	var fallback := _fish_candidates(JUNK_IDS)
-	return fallback[randi() % fallback.size()] if not fallback.is_empty() else null
+	return fallback[randi() % fallback.size()] if not fallback.is_empty() else ItemRegistry.get_item("common_perch") as FishData
 
 func _pick_worm_fish(cast_quality: float) -> FishData:
 	var roll := randf()

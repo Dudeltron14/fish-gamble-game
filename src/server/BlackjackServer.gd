@@ -6,6 +6,11 @@ const SHUFFLE_CUT_CARD := 52 * 3
 
 var _shoe: Array = []
 
+func handle_shoe_count(peer_id: int) -> void:
+	if _shoe.is_empty():
+		_shuffle_shoe()
+	NetAPI.rpc_id(peer_id, "notify_bj_shoe_count", _shoe.size())
+
 func handle_bet(peer_id: int, amount: int) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
 	if session == null or session.current_zone != "CasinoZone":
@@ -28,6 +33,7 @@ func handle_bet(peer_id: int, amount: int) -> void:
 		NetAPI.rpc_id(peer_id, "notify_bj_shuffled", _shoe.size())
 	var ph: Array = [_shoe.pop_back(), _shoe.pop_back()]
 	var dh: Array = [_shoe.pop_back(), _shoe.pop_back()]
+	_broadcast_shoe_count()
 	session.set_meta("bj_state", State.PLAYER_TURN)
 	session.set_meta("bj_ph",    ph)
 	session.set_meta("bj_dh",    dh)
@@ -43,6 +49,7 @@ func handle_hit(peer_id: int) -> void:
 	var ph: Array   = session.get_meta("bj_ph")
 	var card: Dictionary = _shoe.pop_back()
 	ph.append(card)
+	_broadcast_shoe_count()
 	session.set_meta("bj_ph",   ph)
 	NetAPI.rpc_id(peer_id, "notify_bj_hit", card, _val(ph), _shoe.size())
 	if _val(ph) > 21:
@@ -68,6 +75,7 @@ func handle_double(peer_id: int) -> void:
 	session.set_meta("bj_bet", bet + extra)
 	var card: Dictionary = _shoe.pop_back()
 	ph.append(card)
+	_broadcast_shoe_count()
 	session.set_meta("bj_ph",   ph)
 	NetAPI.rpc_id(peer_id, "notify_bj_hit", card, _val(ph), _shoe.size())
 	if _val(ph) > 21:
@@ -94,6 +102,7 @@ func _run_dealer(peer_id: int, session: PlayerSession) -> void:
 	while _val(dh) < 17:
 		var card: Dictionary = _shoe.pop_back()
 		dh.append(card)
+		_broadcast_shoe_count()
 		NetAPI.rpc_id(peer_id, "notify_bj_dealer_card", card, _val(dh), _shoe.size())
 
 	session.set_meta("bj_dh",   dh)
@@ -139,6 +148,9 @@ func _make_shoe() -> Array:
 func _shuffle_shoe() -> void:
 	_shoe = _make_shoe()
 	_shoe.shuffle()
+
+func _broadcast_shoe_count() -> void:
+	NetAPI.rpc("notify_bj_shoe_count", _shoe.size())
 
 func _val(hand: Array) -> int:
 	var total := 0

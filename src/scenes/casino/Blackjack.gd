@@ -39,6 +39,7 @@ func _ready() -> void:
 	AudioManager.sfx("sfx_cards_pack_take_out")
 	NetAPI.bj_deal.connect(_on_deal)
 	NetAPI.bj_shuffled.connect(_on_shuffled)
+	NetAPI.bj_shoe_count.connect(_update_deck_count)
 	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_on_leave_pressed)
 	NetAPI.bj_hit.connect(_on_hit)
 	NetAPI.bj_dealer_reveal.connect(_on_dealer_reveal)
@@ -56,6 +57,7 @@ func _ready() -> void:
 	coins_label.text = "Coins: %d" % GameManager.current_coins
 	deck_count_label.tooltip_text = "6-deck shoe. Shuffles when 156 cards remain."
 	_update_deck_count(0)
+	NetAPI.rpc_id(1, "c2s_bj_shoe_count")
 	_refresh_betting_controls()
 	_set_actions(false)
 

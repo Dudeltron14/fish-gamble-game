@@ -71,7 +71,7 @@ func _make_row(item: ItemData) -> Control:
 	var owned_lbl := Label.new()
 	owned_lbl.text = "%s  Owned: %d" % [slot, owned] if not slot.is_empty() else "Owned: %d" % owned
 	owned_lbl.add_theme_font_size_override("font_size", 10)
-	owned_lbl.modulate = Color(0.95, 0.84, 0.45) if equipped else (Color(0.55, 0.85, 0.55) if item is BaitData or owned > 0 else Color(0.55, 0.55, 0.55))
+	owned_lbl.modulate = Color(0.55, 0.85, 0.55) if item is BaitData and equipped else (Color(0.95, 0.84, 0.45) if item is BaitData or equipped else (Color(0.55, 0.85, 0.55) if owned > 0 else Color(0.55, 0.55, 0.55)))
 	info.add_child(owned_lbl)
 
 	row.add_child(info)
