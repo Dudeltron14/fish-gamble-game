@@ -36,6 +36,7 @@ func _ready() -> void:
 	AudioManager.sfx("sfx_cards_pack_open")
 	AudioManager.sfx("sfx_cards_pack_take_out")
 	NetAPI.bj_deal.connect(_on_deal)
+	NetAPI.bj_shuffled.connect(_on_shuffled)
 	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_on_leave_pressed)
 	NetAPI.bj_hit.connect(_on_hit)
 	NetAPI.bj_dealer_reveal.connect(_on_dealer_reveal)
@@ -95,6 +96,9 @@ func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance
 	_set_actions(true)
 	double_btn.disabled = player_cards.size() != 2 or balance < bet
 	_refresh_betting_controls()
+
+func _on_shuffled(_deck_remaining: int) -> void:
+	AudioManager.sfx("sfx_card_shuffle")
 
 func _on_hit(card: Dictionary, new_val: int, deck_remaining: int) -> void:
 	_deal_card_animated(player_hand, _card_widget(card), 0.0, true)

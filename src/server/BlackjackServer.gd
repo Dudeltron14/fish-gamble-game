@@ -2,6 +2,9 @@ extends Node
 
 enum State { PLAYER_TURN, DEALER_TURN }
 const SHOE_DECKS := 6
+const SHUFFLE_CUT_CARD := 52
+
+var _shoe: Array = []
 
 func handle_bet(peer_id: int, amount: int) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
@@ -20,16 +23,16 @@ func handle_bet(peer_id: int, amount: int) -> void:
 	session.coins -= amount
 	session.set_meta("bj_bet", amount)
 
-	var deck := _make_shoe()
-	deck.shuffle()
-	var ph: Array = [deck.pop_back(), deck.pop_back()]
-	var dh: Array = [deck.pop_back(), deck.pop_back()]
+	if _shoe.size() < SHUFFLE_CUT_CARD + 4:
+		_shuffle_shoe()
+		NetAPI.rpc_id(peer_id, "notify_bj_shuffled", _shoe.size())
+	var ph: Array = [_shoe.pop_back(), _shoe.pop_back()]
+	var dh: Array = [_shoe.pop_back(), _shoe.pop_back()]
 	session.set_meta("bj_state", State.PLAYER_TURN)
-	session.set_meta("bj_deck",  deck)
 	session.set_meta("bj_ph",    ph)
 	session.set_meta("bj_dh",    dh)
 
-	NetAPI.rpc_id(peer_id, "notify_bj_deal", ph, dh[0], amount, session.coins, deck.size())
+	NetAPI.rpc_id(peer_id, "notify_bj_deal", ph, dh[0], amount, session.coins, _shoe.size())
 
 	if _val(ph) == 21:
 		_run_dealer(peer_id, session)
@@ -37,15 +40,11 @@ func handle_bet(peer_id: int, amount: int) -> void:
 func handle_hit(peer_id: int) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
 	if not _in_player_turn(session): return
-	var deck: Array = session.get_meta("bj_deck")
 	var ph: Array   = session.get_meta("bj_ph")
-	if deck.is_empty():
-		deck = _reshuffled_shoe()
-	var card: Dictionary = deck.pop_back()
+	var card: Dictionary = _shoe.pop_back()
 	ph.append(card)
-	session.set_meta("bj_deck", deck)
 	session.set_meta("bj_ph",   ph)
-	NetAPI.rpc_id(peer_id, "notify_bj_hit", card, _val(ph), deck.size())
+	NetAPI.rpc_id(peer_id, "notify_bj_hit", card, _val(ph), _shoe.size())
 	if _val(ph) > 21:
 		_resolve(peer_id, session)
 	elif _val(ph) == 21:
@@ -67,14 +66,10 @@ func handle_double(peer_id: int) -> void:
 	var extra := bet
 	session.coins -= extra
 	session.set_meta("bj_bet", bet + extra)
-	var deck: Array = session.get_meta("bj_deck")
-	if deck.is_empty():
-		deck = _reshuffled_shoe()
-	var card: Dictionary = deck.pop_back()
+	var card: Dictionary = _shoe.pop_back()
 	ph.append(card)
-	session.set_meta("bj_deck", deck)
 	session.set_meta("bj_ph",   ph)
-	NetAPI.rpc_id(peer_id, "notify_bj_hit", card, _val(ph), deck.size())
+	NetAPI.rpc_id(peer_id, "notify_bj_hit", card, _val(ph), _shoe.size())
 	if _val(ph) > 21:
 		_resolve(peer_id, session)
 	else:
@@ -83,7 +78,7 @@ func handle_double(peer_id: int) -> void:
 func handle_forfeit(peer_id: int) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
 	if session == null: return
-	for key in ["bj_state", "bj_deck", "bj_ph", "bj_dh", "bj_bet"]:
+	for key in ["bj_state", "bj_ph", "bj_dh", "bj_bet"]:
 		if session.has_meta(key):
 			session.remove_meta(key)
 	_save_coins(session)  # persist — bet was already deducted, no refund
@@ -92,20 +87,16 @@ func handle_forfeit(peer_id: int) -> void:
 
 func _run_dealer(peer_id: int, session: PlayerSession) -> void:
 	session.set_meta("bj_state", State.DEALER_TURN)
-	var deck: Array = session.get_meta("bj_deck")
 	var dh: Array   = session.get_meta("bj_dh")
 
-	NetAPI.rpc_id(peer_id, "notify_bj_dealer_reveal", dh, _val(dh), deck.size())
+	NetAPI.rpc_id(peer_id, "notify_bj_dealer_reveal", dh, _val(dh), _shoe.size())
 
 	while _val(dh) < 17:
-		if deck.is_empty():
-			deck = _reshuffled_shoe()
-		var card: Dictionary = deck.pop_back()
+		var card: Dictionary = _shoe.pop_back()
 		dh.append(card)
-		NetAPI.rpc_id(peer_id, "notify_bj_dealer_card", card, _val(dh), deck.size())
+		NetAPI.rpc_id(peer_id, "notify_bj_dealer_card", card, _val(dh), _shoe.size())
 
 	session.set_meta("bj_dh",   dh)
-	session.set_meta("bj_deck", deck)
 	_resolve(peer_id, session)
 
 func _resolve(peer_id: int, session: PlayerSession) -> void:
@@ -131,7 +122,7 @@ func _resolve(peer_id: int, session: PlayerSession) -> void:
 	session.coins += payout
 	_save_coins(session)
 
-	for key in ["bj_state", "bj_deck", "bj_ph", "bj_dh", "bj_bet"]:
+	for key in ["bj_state", "bj_ph", "bj_dh", "bj_bet"]:
 		if session.has_meta(key):
 			session.remove_meta(key)
 
@@ -145,10 +136,9 @@ func _make_shoe() -> Array:
 				d.append({"suit": s, "rank": r})
 	return d
 
-func _reshuffled_shoe() -> Array:
-	var deck := _make_shoe()
-	deck.shuffle()
-	return deck
+func _shuffle_shoe() -> void:
+	_shoe = _make_shoe()
+	_shoe.shuffle()
 
 func _val(hand: Array) -> int:
 	var total := 0
