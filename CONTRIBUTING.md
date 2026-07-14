@@ -34,6 +34,12 @@ Open `project.godot` in Godot for client work. Server and Web deployment details
 - Do not commit local databases, temporary exports, or unrelated generated files.
 - Include screenshots or server logs when the bug is visual, networked, or hard to reproduce.
 
+## Issue Lifecycle
+
+Keep an issue open after its PR merges into `staging`. Add a comment with the staging commit/PR and apply the `status: staging` label so contributors know it is awaiting QA, not done.
+
+Close the issue only after the tested `staging` change is promoted to `master` and production is verified. If staging testing finds a regression, keep the issue open, update the same comment thread, and fix it on `staging`.
+
 Recommended branch names:
 
 ```text
