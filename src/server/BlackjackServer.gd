@@ -1,8 +1,8 @@
 extends Node
 
 enum State { PLAYER_TURN, DEALER_TURN }
-const SHOE_DECKS := 3
-const SHUFFLE_CUT_CARD := 52
+const SHOE_DECKS := 6
+const SHUFFLE_CUT_CARD := 52 * 3
 
 var _shoe: Array = []
 

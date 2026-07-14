@@ -26,9 +26,6 @@ const STARTER_UNCOMMON_IDS := [
 const RARE_CATCH_WEIGHTS := {
 	"rare_pearl_clam": 0.75,
 }
-const LEGENDARY_CATCH_WEIGHTS := {
-	"legendary_kraken": 0.15,
-}
 
 func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 	cast_quality = clampf(cast_quality, 0.0, 1.0)
@@ -109,10 +106,9 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	NetAPI.rpc("notify_player_catch", peer_id, fish_id)
 
 func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
-	# Sunken Chest: Treasure Magnet raises the normal 1% chest roll to 20%.
+	# Treasure Magnet adds a chest-only roll for testing; normal legendary rolls stay equal.
 	var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
-	var chest_chance := 0.01 * (tackle.chest_chance_multiplier if tackle else 1.0)
-	if randf() < chest_chance:
+	if tackle and tackle.chest_chance_multiplier > 1.0 and randf() < 0.01 * tackle.chest_chance_multiplier:
 		var chest := ItemRegistry.get_item("legendary_chest") as FishData
 		if chest:
 			return chest
@@ -218,8 +214,6 @@ func _pick_weighted_candidate(candidates: Array) -> FishData:
 func _candidate_weight(fish: FishData) -> float:
 	if fish.rarity == "rare":
 		return float(RARE_CATCH_WEIGHTS.get(fish.id, 1.0))
-	if fish.rarity == "legendary":
-		return float(LEGENDARY_CATCH_WEIGHTS.get(fish.id, 1.0))
 	return 1.0
 
 func _is_junk(fish_id: String) -> bool:
