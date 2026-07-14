@@ -14,6 +14,7 @@ func _ready() -> void:
 	NetAPI.shop_result.connect(_on_shop_result)
 	NetAPI.equip_result.connect(_on_equip_result)
 	GameManager.owned_changed.connect(_populate.call_deferred)
+	GameManager.coins_changed.connect(_on_coins_changed)
 	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_close)
 	AudioManager.set_music_context("shop")
 	coins_label.text = "Coins: %d" % GameManager.current_coins
@@ -70,7 +71,7 @@ func _make_row(item: ItemData) -> Control:
 	var owned_lbl := Label.new()
 	owned_lbl.text = "%s  Owned: %d" % [slot, owned] if not slot.is_empty() else "Owned: %d" % owned
 	owned_lbl.add_theme_font_size_override("font_size", 10)
-	owned_lbl.modulate = Color(0.95, 0.84, 0.45) if equipped else (Color(0.55, 0.85, 0.55) if owned > 0 else Color(0.55, 0.55, 0.55))
+	owned_lbl.modulate = Color(0.95, 0.84, 0.45) if equipped else (Color(0.55, 0.85, 0.55) if item is BaitData or owned > 0 else Color(0.55, 0.55, 0.55))
 	info.add_child(owned_lbl)
 
 	row.add_child(info)
@@ -86,6 +87,7 @@ func _make_row(item: ItemData) -> Control:
 		var btn := Button.new()
 		btn.text = "Buy"
 		btn.custom_minimum_size = Vector2(52, 0)
+		btn.disabled = GameManager.current_coins < item.buy_price
 		btn.pressed.connect(_on_buy_pressed.bind(item.id, btn))
 		row.add_child(btn)
 
@@ -137,6 +139,10 @@ func _on_shop_result(ok: bool, reason: String, new_balance: int) -> void:
 		AudioManager.sfx("sfx_buy")
 	else:
 		AudioManager.sfx("sfx_not_enough_coins")
+	_populate.call_deferred()
+
+func _on_coins_changed(new_balance: int) -> void:
+	coins_label.text = "Coins: %d" % new_balance
 	_populate.call_deferred()
 
 func _slot_for_item(item: ItemData) -> String:

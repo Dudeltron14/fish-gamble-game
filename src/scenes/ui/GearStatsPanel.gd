@@ -187,19 +187,26 @@ func _save_settings() -> void:
 	cfg.load(SETTINGS_FILE)
 	cfg.set_value("audio", "music_volume", _music_vol)
 	cfg.set_value("audio", "sfx_volume",   _sfx_vol)
-	cfg.set_value("gameplay", "camera_zoom", _camera_zoom)
 	cfg.save(SETTINGS_FILE)
+	var zoom_cfg := ConfigFile.new()
+	zoom_cfg.set_value("gameplay", "camera_zoom", _camera_zoom)
+	zoom_cfg.save(_zoom_settings_file())
 
 func _load_settings() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(SETTINGS_FILE) == OK:
 		_music_vol = cfg.get_value("audio", "music_volume", 80.0)
 		_sfx_vol   = cfg.get_value("audio", "sfx_volume",   80.0)
-		_camera_zoom = cfg.get_value("gameplay", "camera_zoom", 2.0)
+	var zoom_cfg := ConfigFile.new()
+	if zoom_cfg.load(_zoom_settings_file()) == OK:
+		_camera_zoom = zoom_cfg.get_value("gameplay", "camera_zoom", 2.0)
 	AudioManager.set_music_volume(_music_vol / 100.0)
 	AudioManager.set_sfx_volume(_sfx_vol / 100.0)
 	GameManager.set_camera_zoom(_camera_zoom)
 	_sync_settings_controls()
+
+func _zoom_settings_file() -> String:
+	return "user://zoom_%s.cfg" % GameManager.current_player_name
 
 func _sync_settings_controls() -> void:
 	if _music_slider:

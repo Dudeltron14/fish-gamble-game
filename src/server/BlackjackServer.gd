@@ -1,7 +1,7 @@
 extends Node
 
 enum State { PLAYER_TURN, DEALER_TURN }
-const SHOE_DECKS := 6
+const SHOE_DECKS := 3
 const SHUFFLE_CUT_CARD := 52
 
 var _shoe: Array = []
@@ -23,7 +23,7 @@ func handle_bet(peer_id: int, amount: int) -> void:
 	session.coins -= amount
 	session.set_meta("bj_bet", amount)
 
-	if _shoe.size() < SHUFFLE_CUT_CARD + 4:
+	if _shoe.size() < SHUFFLE_CUT_CARD:
 		_shuffle_shoe()
 		NetAPI.rpc_id(peer_id, "notify_bj_shuffled", _shoe.size())
 	var ph: Array = [_shoe.pop_back(), _shoe.pop_back()]

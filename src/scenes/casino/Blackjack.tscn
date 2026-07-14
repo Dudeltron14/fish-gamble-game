@@ -132,24 +132,33 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(80, 0)
 text = "Deal"
 
+[node name="AllInBtn" type="Button" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+theme_override_font_sizes/font_size = 18
+text = "ALL IN"
+
 [node name="ActionRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
 theme_override_constants/separation = 8
 
 [node name="HitBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionRow"]
 unique_name_in_owner = true
 size_flags_horizontal = 3
+custom_minimum_size = Vector2(140, 0)
 disabled = true
 text = "Hit"
 
 [node name="StandBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionRow"]
 unique_name_in_owner = true
 size_flags_horizontal = 3
+custom_minimum_size = Vector2(140, 0)
 disabled = true
 text = "Stand"
 
 [node name="DoubleBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionRow"]
 unique_name_in_owner = true
 size_flags_horizontal = 3
+custom_minimum_size = Vector2(140, 0)
 disabled = true
 text = "Double Down"
 

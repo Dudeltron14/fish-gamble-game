@@ -8,6 +8,7 @@ const CARD_SIZE := Vector2(48, 70)
 const CARD_DEAL_FLY_TIME := 0.32
 const CARD_FLIP_HALF_TIME := 0.14
 const CARD_DEAL_ARC_HEIGHT := 54.0
+const MAX_BET := 999999
 const COIN_BURST_SCENE := preload("res://src/scenes/vfx/CoinBurst.tscn")
 
 enum State { IDLE, PLAYER_TURN }
@@ -27,6 +28,7 @@ var _active_bet := 0
 @onready var deck_count_label: Label = %DeckCountLabel
 @onready var bet_spin: SpinBox      = %BetSpin
 @onready var deal_btn: Button       = %DealBtn
+@onready var all_in_btn: Button     = %AllInBtn
 @onready var hit_btn: Button        = %HitBtn
 @onready var stand_btn: Button      = %StandBtn
 @onready var double_btn: Button     = %DoubleBtn
@@ -47,6 +49,7 @@ func _ready() -> void:
 		GameManager.coins_changed.connect(_on_coins_changed)
 	# CloseBtn now connected to _on_leave_pressed in _ready() above
 	deal_btn.pressed.connect(_on_deal_pressed)
+	all_in_btn.pressed.connect(_on_all_in_pressed)
 	hit_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_hit"))
 	stand_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_stand"))
 	double_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_double"))
@@ -67,15 +70,20 @@ func _on_deal_pressed() -> void:
 	_clear_hands()
 	_set_actions(false)
 	deal_btn.disabled = true
+	all_in_btn.disabled = true
 	status_label.text = "Dealing…"
 	NetAPI.rpc_id(1, "c2s_bj_bet", amount)
+
+func _on_all_in_pressed() -> void:
+	bet_spin.value = GameManager.current_coins
+	_on_deal_pressed()
 
 # ── NetAPI callbacks ──────────────────────────────────────────────────────────
 
 func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int, deck_remaining: int) -> void:
 	_state = State.PLAYER_TURN
-	_active_bet = bet
 	_clear_hands()
+	_active_bet = bet
 	_update_deck_count(deck_remaining)
 	_dealer_cards = [dealer_visible]
 	_dealer_hole_hidden = true
@@ -139,6 +147,7 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 	_dealer_hole_hidden = false
 	_update_dealer_info(_val(dh))
 	_state = State.IDLE
+	var last_bet := _active_bet
 	_active_bet = 0
 	GameManager.set_coins(new_balance)
 	coins_label.text = "Coins: %d" % new_balance
@@ -164,7 +173,7 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 	status_label.modulate = Color(0.3, 1.0, 0.4) if outcome == "win" \
 		else Color(1.0, 0.4, 0.4) if outcome in ["bust", "lose"] \
 		else Color.WHITE
-	_reset_bet_after_hand(new_balance)
+	_reset_bet_after_hand(new_balance, last_bet)
 	_refresh_betting_controls()
 
 func _on_error(msg: String) -> void:
@@ -354,17 +363,19 @@ func _refresh_betting_controls() -> void:
 	if _state != State.IDLE:
 		_set_bet_input_enabled(false)
 		deal_btn.disabled = true
+		all_in_btn.disabled = true
 		return
 	_set_bet_input_enabled(balance > 0)
 	bet_spin.min_value = 1.0 if balance > 0 else 0.0
-	bet_spin.max_value = maxi(1, balance)
+	bet_spin.max_value = MAX_BET
+	all_in_btn.disabled = balance <= 0
 	if balance <= 0:
 		bet_spin.value = 0.0
 		deal_btn.disabled = true
 		if _state == State.IDLE:
 			status_label.text = "You need coins to play."
 	else:
-		if int(bet_spin.value) <= 0 or int(bet_spin.value) > balance:
+		if int(bet_spin.value) <= 0:
 			bet_spin.value = mini(10, balance)
 		deal_btn.disabled = _state != State.IDLE
 
@@ -372,11 +383,11 @@ func _set_bet_input_enabled(enabled: bool) -> void:
 	bet_spin.editable = enabled
 	bet_spin.get_line_edit().editable = enabled
 
-func _reset_bet_after_hand(balance: int) -> void:
+func _reset_bet_after_hand(balance: int, last_bet: int) -> void:
 	if balance <= 0:
 		bet_spin.value = 0
 	else:
-		bet_spin.value = mini(10, balance)
+		bet_spin.value = last_bet
 
 func _update_deck_count(deck_remaining: int) -> void:
 	deck_count_label.text = "Cards left: %d" % deck_remaining if deck_remaining > 0 else "Cards left: —"
