@@ -1,6 +1,5 @@
 extends Node
 
-signal scene_changed(scene_path: String)
 signal coins_changed(new_amount: int)
 signal zone_hint_changed(hint: String)
 signal equipped_changed()
@@ -37,7 +36,6 @@ func _on_quit_requested() -> void:
 
 func go_to_scene(path: String) -> void:
 	get_tree().change_scene_to_file.call_deferred(path)
-	scene_changed.emit(path)
 
 func set_player_data(player_name: String, coins: int) -> void:
 	current_player_name = player_name
@@ -46,15 +44,6 @@ func set_player_data(player_name: String, coins: int) -> void:
 func set_coins(amount: int) -> void:
 	current_coins = amount
 	coins_changed.emit(current_coins)
-
-func add_coins(amount: int) -> void:
-	set_coins(current_coins + amount)
-
-func spend_coins(amount: int) -> bool:
-	if current_coins < amount:
-		return false
-	set_coins(current_coins - amount)
-	return true
 
 func set_zone(zone_name: String) -> void:
 	current_zone = zone_name
