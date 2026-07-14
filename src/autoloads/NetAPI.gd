@@ -13,6 +13,7 @@ signal bait_empty()
 signal hook_broken()
 signal hook_durability_changed(current: int, max_val: int)
 signal bj_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int, deck_remaining: int)
+signal bj_shuffled(deck_remaining: int)
 signal bj_hit(card: Dictionary, new_val: int, deck_remaining: int)
 signal bj_dealer_reveal(full_hand: Array, value: int, deck_remaining: int)
 signal bj_dealer_card(card: Dictionary, value: int, deck_remaining: int)
@@ -216,6 +217,11 @@ func notify_equipment_loaded(rod_id: String, bait_id: String, tackle_id: String,
 	GameManager.equipped_changed.emit()
 	GameManager.hook_durability_changed.emit(hook_durability, hook_max_durability)
 	equipment_loaded.emit(rod_id, bait_id, tackle_id, hook_durability, hook_max_durability)
+
+@rpc("authority", "call_local", "reliable")
+func notify_bj_shuffled(deck_remaining: int) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	bj_shuffled.emit(deck_remaining)
 
 @rpc("authority", "call_local", "reliable")
 func notify_bj_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int, deck_remaining: int) -> void:
