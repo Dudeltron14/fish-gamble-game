@@ -60,7 +60,7 @@ func c2s_world_ready() -> void:
 	for world in get_tree().get_nodes_in_group("world"):
 		world.spawn_player(peer_id, session.username)
 
-@rpc("any_peer", "call_local", "unreliable")
+@rpc("any_peer", "call_local", "unreliable_ordered")
 func c2s_player_input(input_dir: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = -1.0) -> void:
 	if not multiplayer.is_server(): return
 	var peer_id := _peer_id()
@@ -162,7 +162,7 @@ func notify_world_player_despawned(peer_id: int) -> void:
 		if world.has_method("despawn_remote_player"):
 			world.despawn_remote_player(peer_id)
 
-@rpc("authority", "call_local", "unreliable")
+@rpc("authority", "call_local", "unreliable_ordered")
 func notify_player_state(peer_id: int, pos: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = -1.0) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	for world in get_tree().get_nodes_in_group("world"):

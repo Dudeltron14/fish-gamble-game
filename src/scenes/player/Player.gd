@@ -1,7 +1,7 @@
 extends CharacterBody2D
 
 const SPEED := 100.0
-const STATE_SEND_INTERVAL := 0.08
+const STATE_SEND_INTERVAL := 0.05
 const REMOTE_LERP_SPEED := 12.0
 const CATCH_DISPLAY_SECONDS := 2.0
 const CATCH_DISPLAY_SIZE := 32.0
@@ -57,7 +57,8 @@ func _update_local_control() -> void:
 func _process(delta: float) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting:
 		return
-	if _is_local_authority() and multiplayer.multiplayer_peer == null:
+	if _is_local_authority():
+		# ponytail: snap only large drift; add sequence/replay reconciliation if collision mismatches are visible.
 		return
 	position = position.lerp(_remote_target_position, minf(1.0, REMOTE_LERP_SPEED * delta))
 
@@ -68,9 +69,8 @@ func _physics_process(delta: float) -> void:
 	if not _is_local_authority():
 		return
 	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	if _uses_local_movement():
-		velocity = dir * SPEED
-		move_and_slide()
+	velocity = dir * SPEED
+	move_and_slide()
 	_update_animation(dir)
 	_last_input_dir = dir
 	_send_input_if_due(delta)
@@ -208,9 +208,6 @@ func _is_local_authority() -> bool:
 
 func _is_dedicated_server_player() -> bool:
 	return multiplayer.is_server() and not GameManager.is_hosting
-
-func _uses_local_movement() -> bool:
-	return multiplayer.multiplayer_peer == null or (multiplayer.is_server() and GameManager.is_hosting)
 
 func _on_camera_zoom_changed(value: float) -> void:
 	if _is_local_authority():
