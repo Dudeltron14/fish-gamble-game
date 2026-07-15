@@ -265,7 +265,20 @@ func _refresh() -> void:
 
 	# ── Bait ─────────────────────────────────────────────────────────────────
 	_tip(bait_icon, bait_header_lbl, "Your equipped bait.\nControls which fish rarities can appear and reduces bite wait time.\nConsumed once per bite regardless of outcome.")
-	if bait:
+	if tackle and tackle.id == "treasure_magnet":
+		bait_header_lbl.text = "MAGNET MODE: Bait incompatible"
+		bite_lbl.text = "Treasure search  10 uses"
+		common_lbl.text    = "Trash  94%"
+		uncommon_lbl.text  = "Treasure (Chest/Key)  6%"
+		rare_lbl.text      = "Legendary fish  0%"
+		legendary_lbl.text = "Bait  incompatible"
+		_tip(bait_icon, bait_header_lbl, "Treasure Magnet unequips bait and searches only for trash, Sunken Chests, or Ancient Keys.")
+		_tip(bite_icon, bite_lbl, "One magnet durability is used per search. A full 10-use Magnet has a 45%% chance to find at least one Chest or Key.")
+		_tip(common_icon, common_lbl, "Trash: Old Boot, Tin Can, or Seaweed. This is the normal result when a treasure roll misses.")
+		_tip(uncommon_icon, uncommon_lbl, "Treasure: each search has about a 6%% chance to find a Sunken Chest or Ancient Key. Chest and Key are equally likely.")
+		_tip(rare_icon, rare_lbl, "Legendary fish cannot be caught while the Treasure Magnet is equipped.")
+		_tip(legendary_icon, legendary_lbl, "Bait cannot be equipped with the Treasure Magnet. Equip another hook to fish normally.")
+	elif bait:
 		var owned    := GameManager.get_owned(bait.id)
 		var wait_pct := int((1.0 - bait.wait_modifier) * 100.0)
 		bait_header_lbl.text = "BAIT: %s  x%d" % [bait.display_name, owned]
@@ -311,10 +324,16 @@ func _refresh() -> void:
 		hook_header_lbl.text = "HOOK: %s" % tackle.display_name
 		durability_lbl.text = "Durability  %d / %d" % [cur, max_v]
 		_tip(durability_icon, durability_lbl, "Durability  %d / %d\nUses remaining before this hook breaks.\nOne use lost per bite (win or lose).\nWhen it reaches 0, one hook is consumed from inventory and the next auto-equips at full durability." % [cur, max_v])
-		coin_lbl.text = "Coins  x%.1f" % tackle.coin_multiplier
-		_tip(coin_icon, coin_lbl, "Coin Multiplier  x%.1f\nAll fish payouts are multiplied by this value.\nExample: Kraken (650c base) → %dc with this hook." % [tackle.coin_multiplier, int(650.0 * tackle.coin_multiplier)])
-		react_lbl.text = "React window  +%d%%" % int(tackle.escape_reduction * 100)
-		_tip(react_icon, react_lbl, "React Window  +%d%%\nExtends the time you have to press E when a fish bites.\nCritical on hard fish — Kraken base react time is only 0.74s.\nWith this hook: %.2fs react window on Kraken." % [int(tackle.escape_reduction * 100), 0.74 * (1.0 + tackle.escape_reduction)])
+		if tackle.id == "treasure_magnet":
+			coin_lbl.text = "Treasure  45% / 10 uses"
+			react_lbl.text = "Trash 94%  •  Chest/Key 6%"
+			_tip(coin_icon, coin_lbl, "Across its 10 uses, the Treasure Magnet has a 45%% chance to find at least one Chest or Key.")
+			_tip(react_icon, react_lbl, "Each search yields either trash or an equal-odds Sunken Chest / Ancient Key. It cannot catch legendary fish.")
+		else:
+			coin_lbl.text = "Coins  x%.1f" % tackle.coin_multiplier
+			_tip(coin_icon, coin_lbl, "Coin Multiplier  x%.1f\nAll fish payouts are multiplied by this value.\nExample: Kraken (650c base) → %dc with this hook." % [tackle.coin_multiplier, int(650.0 * tackle.coin_multiplier)])
+			react_lbl.text = "React window  +%d%%" % int(tackle.escape_reduction * 100)
+			_tip(react_icon, react_lbl, "React Window  +%d%%\nExtends the time you have to press E when a fish bites.\nCritical on hard fish — Kraken base react time is only 0.74s.\nWith this hook: %.2fs react window on Kraken." % [int(tackle.escape_reduction * 100), 0.74 * (1.0 + tackle.escape_reduction)])
 	else:
 		hook_header_lbl.text = "HOOK: None"
 		durability_lbl.text = "Durability  —"

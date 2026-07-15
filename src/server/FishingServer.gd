@@ -12,7 +12,15 @@ const MIN_REEL_RESULT_MS := 1000
 const TREASURE_MAGNET_PROFIT_CHANCE := 0.45
 
 const JUNK_IDS := ["junk_boot", "junk_can", "junk_seaweed"]
-const MAGNET_TREASURE_IDS := ["legendary_chest", "legendary_key"]
+const MAGNET_JUNK := [
+	preload("res://src/resources/fish/junk_boot.tres"),
+	preload("res://src/resources/fish/junk_can.tres"),
+	preload("res://src/resources/fish/junk_seaweed.tres"),
+]
+const MAGNET_TREASURES := [
+	preload("res://src/resources/fish/legendary_chest.tres"),
+	preload("res://src/resources/fish/legendary_key.tres"),
+]
 const STARTER_COMMON_IDS := [
 	"common_perch",
 	"common_tropical_bluegill",
@@ -116,11 +124,8 @@ func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 	if tackle and tackle.id == "treasure_magnet":
 		var treasure_chance := 1.0 - pow(1.0 - TREASURE_MAGNET_PROFIT_CHANCE, 1.0 / maxi(tackle.durability, 1))
 		if randf() < treasure_chance:
-			var treasures := _fish_candidates(MAGNET_TREASURE_IDS)
-			if not treasures.is_empty():
-				return treasures[randi() % treasures.size()]
-		var junk := _fish_candidates(JUNK_IDS)
-		return junk[randi() % junk.size()] if not junk.is_empty() else ItemRegistry.get_item("junk_boot") as FishData
+			return MAGNET_TREASURES.pick_random() as FishData
+		return MAGNET_JUNK.pick_random() as FishData
 
 	# Apply bait rarity_weights
 	var weights := DEFAULT_WEIGHTS.duplicate()
