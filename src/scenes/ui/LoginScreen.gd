@@ -13,9 +13,12 @@ var _pending_username := ""
 var _pending_hash := ""
 var _connect_attempt_id := 0
 var _auth_attempt_id := 0
+var _status_attempt_id := 0
+var _checking_server_status := false
 var _menu_effect_bases := {}
 
 @onready var official_server_btn: Button = %OfficialServerBtn
+@onready var server_status_label: Label = %ServerStatusLabel
 @onready var username_field: LineEdit = %UsernameField
 @onready var password_field: LineEdit = %PasswordField
 @onready var login_btn: Button = %LoginBtn
@@ -29,11 +32,13 @@ func _ready() -> void:
 	register_btn.pressed.connect(_on_register_pressed)
 	NetAPI.login_result.connect(_on_login_result)
 	NetAPI.register_result.connect(_on_register_result)
+	NetAPI.server_status.connect(_on_server_status)
 	NetworkManager.connected_to_server.connect(_on_network_connected)
 	NetworkManager.connection_failed.connect(_on_connection_failed)
 	NetworkManager.server_disconnected.connect(_on_server_disconnected)
 	resized.connect(_layout_menu_effects)
 	call_deferred("_capture_menu_effect_bases")
+	_request_server_status()
 
 func _on_login_pressed() -> void:
 	if not _validate():
@@ -53,6 +58,13 @@ func _on_register_pressed() -> void:
 
 func _maybe_connect() -> void:
 	set_buttons_enabled(false)
+	var peer: MultiplayerPeer = multiplayer.multiplayer_peer
+	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		_execute_pending()
+		return
+	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTING:
+		set_status("Connecting to %s..." % SERVER_LABEL.to_lower())
+		return
 	_connect_attempt_id += 1
 	var attempt_id: int = _connect_attempt_id
 	set_status("Connecting to %s..." % SERVER_LABEL.to_lower())
@@ -80,7 +92,10 @@ func _execute_pending() -> void:
 	_pending = _Action.NONE
 
 func _on_network_connected() -> void:
-	_execute_pending()
+	if _pending == _Action.NONE:
+		NetAPI.rpc_id(1, "c2s_server_status", Time.get_ticks_msec())
+	else:
+		_execute_pending()
 
 func _on_login_result(ok: bool, reason: String, coins: int) -> void:
 	_auth_attempt_id += 1
@@ -97,11 +112,17 @@ func _on_register_result(ok: bool, reason: String) -> void:
 	set_buttons_enabled(true)
 
 func _on_connection_failed() -> void:
+	_checking_server_status = false
+	_set_server_status("Offline", false)
 	set_status("Connection failed.")
 	set_buttons_enabled(true)
 	_pending = _Action.NONE
 
 func _on_server_disconnected() -> void:
+	if _pending == _Action.NONE:
+		_checking_server_status = false
+		_set_server_status("Offline", false)
+		return
 	set_status("Disconnected.")
 	set_buttons_enabled(true)
 	_pending = _Action.NONE
@@ -125,6 +146,34 @@ func _check_auth_timeout(attempt_id: int) -> void:
 	set_status("Login timed out. The server did not answer.")
 	set_buttons_enabled(true)
 	_pending = _Action.NONE
+
+func _request_server_status() -> void:
+	_checking_server_status = true
+	_status_attempt_id += 1
+	var attempt_id := _status_attempt_id
+	_set_server_status("Checking server…", true)
+	if NetworkManager.connect_to_url(SERVER_URL) != OK:
+		_checking_server_status = false
+		_set_server_status("Offline", false)
+		return
+	_check_server_status_timeout(attempt_id)
+
+func _check_server_status_timeout(attempt_id: int) -> void:
+	await get_tree().create_timer(CONNECT_TIMEOUT).timeout
+	if attempt_id != _status_attempt_id or not _checking_server_status:
+		return
+	_checking_server_status = false
+	NetworkManager.disconnect_from_server()
+	_set_server_status("Offline", false)
+
+func _on_server_status(player_count: int, sent_ms: int) -> void:
+	_checking_server_status = false
+	var ping_ms := maxi(0, Time.get_ticks_msec() - sent_ms)
+	_set_server_status("Online • %d %s • %d ms" % [player_count, "player" if player_count == 1 else "players", ping_ms], true)
+
+func _set_server_status(text: String, online: bool) -> void:
+	server_status_label.text = text
+	server_status_label.modulate = Color(0.35, 1.0, 0.5) if online else Color(1.0, 0.45, 0.45)
 
 func _validate() -> bool:
 	var u := username_field.text.strip_edges()

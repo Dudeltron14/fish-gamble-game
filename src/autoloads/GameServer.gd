@@ -56,3 +56,10 @@ func get_session(peer_id: int) -> PlayerSession:
 func get_authenticated_session(peer_id: int) -> PlayerSession:
 	var s: PlayerSession = sessions.get(peer_id, null)
 	return s if (s != null and s.authenticated) else null
+
+func get_authenticated_player_count() -> int:
+	var count := 0
+	for session in sessions.values():
+		if session.authenticated:
+			count += 1
+	return count

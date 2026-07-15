@@ -2,6 +2,7 @@ extends Node
 
 signal login_result(ok: bool, reason: String, coins: int)
 signal register_result(ok: bool, reason: String)
+signal server_status(player_count: int, sent_ms: int)
 signal fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float, hook_react_bonus: float, auto_catch: bool)
 signal fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int)
 signal shop_result(ok: bool, reason: String, new_balance: int)
@@ -59,6 +60,18 @@ func c2s_world_ready() -> void:
 		return
 	for world in get_tree().get_nodes_in_group("world"):
 		world.spawn_player(peer_id, session.username)
+
+@rpc("any_peer", "call_local", "reliable")
+func c2s_server_status(sent_ms: int) -> void:
+	if not multiplayer.is_server(): return
+	var peer_id := _peer_id()
+	var session := GameServer.get_session(peer_id)
+	var now := Time.get_ticks_msec()
+	if session and now - int(session.get_meta("status_query_ms", 0)) < 1000:
+		return
+	if session:
+		session.set_meta("status_query_ms", now)
+	NetAPI.rpc_id(peer_id, "notify_server_status", GameServer.get_authenticated_player_count(), sent_ms)
 
 @rpc("any_peer", "call_local", "unreliable_ordered")
 func c2s_player_input(input_dir: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = -1.0) -> void:
@@ -180,6 +193,11 @@ func notify_player_catch(peer_id: int, fish_id: String) -> void:
 func notify_register(ok: bool, reason: String) -> void:
 	if multiplayer.is_server(): return
 	register_result.emit(ok, reason)
+
+@rpc("authority", "call_local", "reliable")
+func notify_server_status(player_count: int, sent_ms: int) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	server_status.emit(player_count, sent_ms)
 
 @rpc("authority", "call_local", "reliable")
 func notify_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float = 1.0, hook_react_bonus: float = 0.0, auto_catch: bool = false) -> void:
