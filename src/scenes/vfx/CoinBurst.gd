@@ -1,4 +1,5 @@
 extends Node2D
+class_name CoinBurst
 
 const FRAME_SIZE := Vector2i(64, 64)
 const FRAME_COUNT := 31
@@ -8,6 +9,15 @@ const FPS := 30.0
 
 var _elapsed := 0.0
 var _frame := -1
+var _cycles := 1
+var _fall_distance := 0.0
+
+func configure(cycles: int, fall_distance: float = 0.0) -> void:
+	_cycles = maxi(1, cycles)
+	_fall_distance = fall_distance
+
+func total_duration() -> float:
+	return float(FRAME_COUNT * _cycles) / FPS
 
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -17,11 +27,12 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_elapsed += delta
+	position.y += _fall_distance / total_duration() * delta
 	var next_frame := int(_elapsed * FPS)
-	if next_frame >= FRAME_COUNT:
+	if next_frame >= FRAME_COUNT * _cycles:
 		queue_free()
 		return
-	_set_frame(next_frame)
+	_set_frame(next_frame % FRAME_COUNT)
 
 func _set_frame(frame: int) -> void:
 	if frame == _frame:

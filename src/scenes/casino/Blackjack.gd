@@ -32,6 +32,7 @@ var _active_bet := 0
 @onready var hit_btn: Button        = %HitBtn
 @onready var stand_btn: Button      = %StandBtn
 @onready var double_btn: Button     = %DoubleBtn
+@onready var win_effect_emitters: Node2D = $WinEffectEmitters
 
 func _ready() -> void:
 	AudioManager.set_music_context("casino")
@@ -410,33 +411,28 @@ func _update_player_value() -> void:
 
 func _spawn_coin_bursts(payout: int) -> void:
 	var bursts_per_corner := 1
+	var loops := 1
 	if payout >= 500:
 		bursts_per_corner = 7
+		loops = 3
 	elif payout >= 100:
 		bursts_per_corner = 4
+		loops = 2
 	elif payout >= 50:
 		bursts_per_corner = 2
 
 	var viewport_size := get_viewport().get_visible_rect().size
-	var center := viewport_size * 0.5
-	var edge_inset := 24.0
-	var emitters := [
-		{"position": Vector2(center.x, edge_inset), "rotation": deg_to_rad(90.0)},
-		{"position": Vector2(viewport_size.x - edge_inset, center.y), "rotation": 0.0},
-		{"position": Vector2(center.x, viewport_size.y - edge_inset), "rotation": deg_to_rad(90.0)},
-		{"position": Vector2(edge_inset, center.y), "rotation": 0.0},
-	]
 
 	var burst_index := 0
-	for emitter: Dictionary in emitters:
-		var emitter_position: Vector2 = emitter["position"]
+	for emitter: Marker2D in win_effect_emitters.get_children():
 		for i in bursts_per_corner:
-			var burst := COIN_BURST_SCENE.instantiate() as Node2D
+			var burst := COIN_BURST_SCENE.instantiate() as CoinBurst
 			add_child(burst)
 			var jitter := Vector2(randf_range(-42.0, 42.0), randf_range(-42.0, 42.0))
-			burst.global_position = emitter_position + jitter
-			burst.rotation = emitter["rotation"]
+			burst.global_position = emitter.global_position + jitter
+			burst.rotation = emitter.global_rotation
 			burst.scale *= 3.0
+			burst.configure(loops, viewport_size.y - burst.global_position.y + 96.0)
 			if burst_index > 0:
 				burst.modulate.a = 0.0
 				var tween := create_tween()
