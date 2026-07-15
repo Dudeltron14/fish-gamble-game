@@ -432,7 +432,7 @@ func _spawn_coin_bursts(payout: int) -> void:
 			burst.global_position = emitter.global_position + jitter
 			burst.rotation = emitter.global_rotation
 			burst.scale *= 3.0
-			burst.configure(loops, viewport_size.y - burst.global_position.y + 96.0)
+			burst.configure(loops)
 			if burst_index > 0:
 				burst.modulate.a = 0.0
 				var tween := create_tween()
