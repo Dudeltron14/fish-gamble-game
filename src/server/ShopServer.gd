@@ -47,7 +47,7 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 		session.equipped_rod_id = item_id;    slot = "rod"
 	elif item is BaitData:
 		if session.equipped_tackle_id == "treasure_magnet":
-			NetAPI.rpc_id(peer_id, "notify_equip_result", false, item_id, "")
+			NetAPI.rpc_id(peer_id, "notify_shop_result", false, "Cannot equip bait and Treasure Magnet at the same time.", session.coins)
 			return
 		session.equipped_bait_id = item_id;   slot = "bait"
 	elif item is TackleData:

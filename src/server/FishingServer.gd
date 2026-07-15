@@ -110,12 +110,13 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	NetAPI.rpc("notify_player_catch", peer_id, fish_id)
 
 func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
-	# Treasure Magnet searches only for a chest; one chest covers its 200c price.
+	# Treasure Magnet finds a chest often enough to profit across one 10-use hook.
 	var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
 	if tackle and tackle.id == "treasure_magnet":
 		var chest_chance := 1.0 - pow(1.0 - TREASURE_MAGNET_PROFIT_CHANCE, 1.0 / maxi(tackle.durability, 1))
 		if randf() >= chest_chance:
-			return null
+			var junk := _fish_candidates(JUNK_IDS)
+			return junk[randi() % junk.size()] if not junk.is_empty() else null
 		var chest := ItemRegistry.get_item("legendary_chest") as FishData
 		if chest:
 			return chest
