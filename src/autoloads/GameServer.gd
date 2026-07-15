@@ -63,3 +63,9 @@ func get_authenticated_player_count() -> int:
 		if session.authenticated:
 			count += 1
 	return count
+
+func is_username_authenticated(username: String) -> bool:
+	for session: PlayerSession in sessions.values():
+		if session.authenticated and session.username == username:
+			return true
+	return false

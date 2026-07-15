@@ -12,6 +12,7 @@ const MIN_REEL_RESULT_MS := 1000
 const TREASURE_MAGNET_PROFIT_CHANCE := 0.45
 
 const JUNK_IDS := ["junk_boot", "junk_can", "junk_seaweed"]
+const MAGNET_TREASURE_IDS := ["legendary_chest", "legendary_key"]
 const STARTER_COMMON_IDS := [
 	"common_perch",
 	"common_tropical_bluegill",
@@ -110,17 +111,16 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	NetAPI.rpc("notify_player_catch", peer_id, fish_id)
 
 func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
-	# Treasure Magnet finds a chest often enough to profit across one 10-use hook.
+	# Treasure Magnet finds a chest or key often enough to profit across one 10-use hook.
 	var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
 	if tackle and tackle.id == "treasure_magnet":
-		var chest_chance := 1.0 - pow(1.0 - TREASURE_MAGNET_PROFIT_CHANCE, 1.0 / maxi(tackle.durability, 1))
-		if randf() >= chest_chance:
-			var junk := _fish_candidates(JUNK_IDS)
-			return junk[randi() % junk.size()] if not junk.is_empty() else null
-		var chest := ItemRegistry.get_item("legendary_chest") as FishData
-		if chest:
-			return chest
-		return null
+		var treasure_chance := 1.0 - pow(1.0 - TREASURE_MAGNET_PROFIT_CHANCE, 1.0 / maxi(tackle.durability, 1))
+		if randf() < treasure_chance:
+			var treasures := _fish_candidates(MAGNET_TREASURE_IDS)
+			if not treasures.is_empty():
+				return treasures[randi() % treasures.size()]
+		var junk := _fish_candidates(JUNK_IDS)
+		return junk[randi() % junk.size()] if not junk.is_empty() else ItemRegistry.get_item("junk_boot") as FishData
 
 	# Apply bait rarity_weights
 	var weights := DEFAULT_WEIGHTS.duplicate()

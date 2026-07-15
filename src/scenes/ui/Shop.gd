@@ -44,7 +44,7 @@ func _make_row(item: ItemData) -> Control:
 	if item.icon:
 		var icon := TextureRect.new()
 		icon.texture = item.icon
-		icon.custom_minimum_size = Vector2(24, 24)
+		icon.custom_minimum_size = Vector2(32, 32)
 		icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -71,7 +71,7 @@ func _make_row(item: ItemData) -> Control:
 	var owned_lbl := Label.new()
 	owned_lbl.text = "%s  Owned: %d" % [slot, owned] if not slot.is_empty() else "Owned: %d" % owned
 	owned_lbl.add_theme_font_size_override("font_size", 10)
-	owned_lbl.modulate = Color(0.55, 0.85, 0.55)
+	owned_lbl.modulate = Color(0.55, 0.85, 0.55) if owned > 0 else Color(0.65, 0.65, 0.65)
 	info.add_child(owned_lbl)
 
 	row.add_child(info)

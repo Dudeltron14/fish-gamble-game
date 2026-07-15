@@ -53,6 +53,10 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 	if _db == null:
 		NetAPI.rpc_id(peer_id, "notify_login", false, "Server database unavailable.", 0)
 		return
+	var session := GameServer.get_session(peer_id)
+	if session == null or session.authenticated:
+		NetAPI.rpc_id(peer_id, "notify_login", false, "Already logged in.", 0)
+		return
 
 	_db.query_with_bindings("SELECT * FROM players WHERE username = ?", [username])
 	var rows: Array = _db.query_result
@@ -66,18 +70,19 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 		push_warning("AuthServer: login failed bad password username=%s" % username)
 		NetAPI.rpc_id(peer_id, "notify_login", false, "Incorrect password.", 0)
 		return
+	if GameServer.is_username_authenticated(username):
+		NetAPI.rpc_id(peer_id, "notify_login", false, "This account is already logged in.", 0)
+		return
 
 	_db.query_with_bindings(
 		"UPDATE players SET last_login = ? WHERE id = ?",
 		[int(Time.get_unix_time_from_system()), row.id]
 	)
 
-	var session := GameServer.get_session(peer_id)
-	if session:
-		session.authenticated = true
-		session.username = username
-		session.coins = int(row.coins)
-		_load_equipped(session, int(row.id))
+	session.authenticated = true
+	session.username = username
+	session.coins = int(row.coins)
+	_load_equipped(session, int(row.id))
 
 	# Send full inventory before login confirmation
 	_db.query_with_bindings(
