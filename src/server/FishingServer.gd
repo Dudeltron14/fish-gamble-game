@@ -158,6 +158,8 @@ func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 		weights["rare"]      = maxf(0.0, weights.get("rare", 0.0)      - penalty * 0.7)
 		weights["legendary"] = maxf(0.0, weights.get("legendary", 0.0) - penalty * 0.3)
 		weights["common"]    = weights.get("common", 0.0) + penalty
+	if bait and bait.id == "magic_bait":
+		weights["common"] = 0.0
 
 	# Normalize weights so they always sum to 1.0.
 	# Needed when common=0 (Magic Bait) absorbs rod/cast bonuses without a pool to draw from.
