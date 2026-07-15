@@ -5,7 +5,6 @@ const FISHING_SCENE := preload("res://src/scenes/fishing/FishingMinigame.tscn")
 const SHOP_SCENE    := preload("res://src/scenes/ui/Shop.tscn")
 const BJ_SCENE      := preload("res://src/scenes/casino/Blackjack.tscn")
 const HUD_SCENE     := preload("res://src/scenes/ui/HUD.tscn")
-const DEBUG_SCENE   := preload("res://src/scenes/ui/DebugMenu.tscn")
 const STATS_SCENE   := preload("res://src/scenes/ui/GearStatsPanel.tscn")
 
 @onready var players: Node2D       = $Players
@@ -16,7 +15,6 @@ var _overlay: Node = null
 var _overlay_scene: PackedScene = null
 var _disconnect_dialog: ConfirmationDialog = null
 var _server_update_dialog: AcceptDialog = null
-var _debug_menu: CanvasLayer = null
 var _stats_panel: CanvasLayer = null
 var _overlay_hides_player := false
 var _overlay_entry_position := Vector2.ZERO
@@ -35,9 +33,7 @@ func _ready() -> void:
 			zone.body_exited.connect(_on_zone_exited.bind(zone.name))
 	if not multiplayer.is_server():
 		add_child(HUD_SCENE.instantiate())
-		_debug_menu = DEBUG_SCENE.instantiate()
 		_stats_panel = STATS_SCENE.instantiate()
-		add_child(_debug_menu)
 		add_child(_stats_panel)
 		NetAPI.fishing_result.connect(_on_fishing_result_received)
 		NetAPI.bait_empty.connect(func(): AudioManager.sfx("sfx_bait_empty"))
@@ -48,9 +44,7 @@ func _ready() -> void:
 		NetAPI.hook_broken.connect(func(): AudioManager.sfx("sfx_hook_break"))
 		# Host plays in the same instance — spawn host player directly
 		add_child(HUD_SCENE.instantiate())
-		_debug_menu = DEBUG_SCENE.instantiate()
 		_stats_panel = STATS_SCENE.instantiate()
-		add_child(_debug_menu)
 		add_child(_stats_panel)
 		NetAPI.fishing_result.connect(_on_fishing_result_received)
 		var host_session := GameServer.get_session(1)
@@ -313,14 +307,10 @@ func _show_disconnect_dialog() -> void:
 func _can_show_disconnect_dialog() -> bool:
 	return _overlay == null \
 		and not _is_disconnect_dialog_open() \
-		and not _is_debug_menu_open() \
 		and not _is_stats_panel_open()
 
 func _is_disconnect_dialog_open() -> bool:
 	return _disconnect_dialog != null and is_instance_valid(_disconnect_dialog) and _disconnect_dialog.visible
-
-func _is_debug_menu_open() -> bool:
-	return _debug_menu != null and is_instance_valid(_debug_menu) and _debug_menu.visible
 
 func _is_stats_panel_open() -> bool:
 	return _stats_panel != null \
