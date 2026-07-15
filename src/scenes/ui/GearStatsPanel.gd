@@ -41,6 +41,13 @@ extends CanvasLayer
 @onready var cast_hint_lbl:  Label       = %CastHintLabel
 
 const SETTINGS_FILE := "user://settings.cfg"
+const TIER_COMMON_ICON := preload("res://assets/ui_icons/icon_tier_common.png")
+const TIER_UNCOMMON_ICON := preload("res://assets/ui_icons/icon_tier_uncommon.png")
+const TIER_RARE_ICON := preload("res://assets/ui_icons/icon_tier_rare.png")
+const TIER_LEGENDARY_ICON := preload("res://assets/ui_icons/icon_tier_legendary.png")
+const MAGNET_TRASH_ICON := preload("res://assets/User_Gen_ChatGPT/Fish/junk_boot.png")
+const MAGNET_CHEST_ICON := preload("res://assets/User_Gen_ChatGPT/Fish/overflowing_gold_chest.png")
+const MAGNET_KEY_ICON := preload("res://assets/User_Gen_ChatGPT/Fish/ancient_key.png")
 var _expanded := false
 var _music_vol := 80.0
 var _sfx_vol   := 80.0
@@ -266,55 +273,76 @@ func _refresh() -> void:
 	# ── Bait ─────────────────────────────────────────────────────────────────
 	_tip(bait_icon, bait_header_lbl, "Your equipped bait.\nControls which fish rarities can appear and reduces bite wait time.\nConsumed once per bite regardless of outcome.")
 	if tackle and tackle.id == "treasure_magnet":
+		common_icon.texture = MAGNET_TRASH_ICON
+		uncommon_icon.texture = MAGNET_CHEST_ICON
+		rare_icon.texture = MAGNET_KEY_ICON
+		legendary_icon.texture = TIER_LEGENDARY_ICON
+		for icon: TextureRect in [common_icon, uncommon_icon, rare_icon, legendary_icon]:
+			icon.modulate = Color.WHITE
+		for label: Label in [common_lbl, uncommon_lbl, rare_lbl, legendary_lbl]:
+			label.modulate = Color.WHITE
 		bait_header_lbl.text = "MAGNET MODE: Bait incompatible"
-		bite_lbl.text = "Treasure search  10 uses"
-		common_lbl.text    = "Trash  94%"
-		uncommon_lbl.text  = "Treasure (Chest/Key)  6%"
-		rare_lbl.text      = "Legendary fish  0%"
-		legendary_lbl.text = "Bait  incompatible"
+		bite_lbl.text = "Trash / Chest / Key / Legend."
+		common_lbl.text    = "92%"
+		uncommon_lbl.text  = "4%"
+		rare_lbl.text      = "4%"
+		legendary_lbl.text = "0%"
 		_tip(bait_icon, bait_header_lbl, "Treasure Magnet unequips bait and searches only for trash, Sunken Chests, or Ancient Keys.")
-		_tip(bite_icon, bite_lbl, "One magnet durability is used per search. A full 10-use Magnet has a 45%% chance to find at least one Chest or Key.")
+		_tip(bite_icon, bite_lbl, "One magnet durability is used per search. A full 10-use Magnet has a 55%% chance to find at least one Chest or Key.")
 		_tip(common_icon, common_lbl, "Trash: Old Boot, Tin Can, or Seaweed. This is the normal result when a treasure roll misses.")
-		_tip(uncommon_icon, uncommon_lbl, "Treasure: each search has about a 6%% chance to find a Sunken Chest or Ancient Key. Chest and Key are equally likely.")
-		_tip(rare_icon, rare_lbl, "Legendary fish cannot be caught while the Treasure Magnet is equipped.")
-		_tip(legendary_icon, legendary_lbl, "Bait cannot be equipped with the Treasure Magnet. Equip another hook to fish normally.")
-	elif bait:
-		var owned    := GameManager.get_owned(bait.id)
-		var wait_pct := int((1.0 - bait.wait_modifier) * 100.0)
-		bait_header_lbl.text = "BAIT: %s  x%d" % [bait.display_name, owned]
-		bite_lbl.text = "Bite wait  -%d%%" % wait_pct
-		_tip(bite_icon, bite_lbl, "Bite Wait  -%d%%\nReduces how long you wait after casting before a fish bites.\nStacks with cast quality — a perfect cast reduces it further.\nConsumed on every bite, win or lose." % wait_pct)
-		if bait.id == "worm":
-			common_lbl.text    = "69-70%"
-			uncommon_lbl.text  = "18-28%"
+		_tip(uncommon_icon, uncommon_lbl, "Sunken Chest: each search has about a 4%% chance to find one.")
+		_tip(rare_icon, rare_lbl, "Ancient Key: each search has about a 4%% chance to find one. Chest and Key are equally likely.")
+		_tip(legendary_icon, legendary_lbl, "Legendary fish cannot be caught while the Treasure Magnet is equipped.")
+	else:
+		common_icon.texture = TIER_COMMON_ICON
+		uncommon_icon.texture = TIER_UNCOMMON_ICON
+		rare_icon.texture = TIER_RARE_ICON
+		legendary_icon.texture = TIER_LEGENDARY_ICON
+		common_icon.modulate = Color(0.7, 0.7, 0.7)
+		uncommon_icon.modulate = Color(0.4, 0.9, 0.4)
+		rare_icon.modulate = Color(0.4, 0.6, 1.0)
+		legendary_icon.modulate = Color(1.0, 0.8, 0.2)
+		common_lbl.modulate = Color(0.7, 0.7, 0.7)
+		uncommon_lbl.modulate = Color(0.4, 0.9, 0.4)
+		rare_lbl.modulate = Color(0.4, 0.6, 1.0)
+		legendary_lbl.modulate = Color(1.0, 0.8, 0.2)
+		if bait:
+			var owned    := GameManager.get_owned(bait.id)
+			var wait_pct := int((1.0 - bait.wait_modifier) * 100.0)
+			bait_header_lbl.text = "BAIT: %s  x%d" % [bait.display_name, owned]
+			bite_lbl.text = "Bite wait  -%d%%" % wait_pct
+			_tip(bite_icon, bite_lbl, "Bite Wait  -%d%%\nReduces how long you wait after casting before a fish bites.\nStacks with cast quality — a perfect cast reduces it further.\nConsumed on every bite, win or lose." % wait_pct)
+			if bait.id == "worm":
+				common_lbl.text    = "69-70%"
+				uncommon_lbl.text  = "18-28%"
+				rare_lbl.text      = "0%"
+				legendary_lbl.text = "0%"
+				_tip(common_icon,    common_lbl,    "Starter Common fish: 69-70%%\nWorms can still find 3-12%% junk depending on cast quality.")
+				_tip(uncommon_icon,  uncommon_lbl,  "Starter Uncommon fish: 18-28%%\nBetter casts improve these odds.")
+				_tip(rare_icon,      rare_lbl,      "Rare fish: 0%%\nUse Glow Grub or better bait.")
+				_tip(legendary_icon, legendary_lbl, "Legendary fish: 0%%\nNeeds Magic Bait for a meaningful chance.")
+			else:
+				var w := bait.rarity_weights
+				common_lbl.text    = "%d%%" % int(w.get("common",    0.0) * 100)
+				uncommon_lbl.text  = "%d%%" % int(w.get("uncommon",  0.0) * 100)
+				rare_lbl.text      = "%d%%" % int(w.get("rare",      0.0) * 100)
+				legendary_lbl.text = "%d%%" % int(w.get("legendary", 0.0) * 100)
+				_tip(common_icon,    common_lbl,    "Common fish chance: %d%%\nLowest payout (9c base). Wide catch zone, slow fish, forgiving.\nJunk is excluded when bait uses normal rarity pools." % int(w.get("common", 0.0) * 100))
+				_tip(uncommon_icon,  uncommon_lbl,  "Uncommon fish chance: %d%%\nModerate payout (20c base). Slightly harder minigame." % int(w.get("uncommon", 0.0) * 100))
+				_tip(rare_icon,      rare_lbl,      "Rare fish chance: %d%%\nGood payout (56-73c). Smaller zone, faster fish, tighter escape timer." % int(w.get("rare", 0.0) * 100))
+				_tip(legendary_icon, legendary_lbl, "Legendary fish chance: %d%%\nHighest payout (280c+). Tiny zone, max speed, brutal escape timer.\nRequires skill and good gear." % int(w.get("legendary", 0.0) * 100))
+		else:
+			bait_header_lbl.text = "BAIT: None"
+			bite_lbl.text = "Bite wait  —"
+			_tip(bite_icon, bite_lbl, "No bait equipped.\nWithout bait: 35-65%% junk depending on cast quality; otherwise starter Common fish.\nNo Uncommon, Rare, or Legendary fish are possible without bait.")
+			common_lbl.text    = "35-65%"
+			uncommon_lbl.text  = "0%"
 			rare_lbl.text      = "0%"
 			legendary_lbl.text = "0%"
-			_tip(common_icon,    common_lbl,    "Starter Common fish: 69-70%%\nWorms can still find 3-12%% junk depending on cast quality.")
-			_tip(uncommon_icon,  uncommon_lbl,  "Starter Uncommon fish: 18-28%%\nBetter casts improve these odds.")
-			_tip(rare_icon,      rare_lbl,      "Rare fish: 0%%\nUse Glow Grub or better bait.")
+			_tip(common_icon,    common_lbl,    "Starter Common fish: 35-65%% (no bait)\nBetter casts reduce junk and increase this range.\nBuy a Worm to unlock starter Uncommon fish.")
+			_tip(uncommon_icon,  uncommon_lbl,  "Uncommon fish: 0%% (no bait)\nBuy a Worm to unlock starter Uncommon fish.")
+			_tip(rare_icon,      rare_lbl,      "Rare fish: 0%%\nNeeds Glow Grub or better bait.")
 			_tip(legendary_icon, legendary_lbl, "Legendary fish: 0%%\nNeeds Magic Bait for a meaningful chance.")
-		else:
-			var w := bait.rarity_weights
-			common_lbl.text    = "%d%%" % int(w.get("common",    0.0) * 100)
-			uncommon_lbl.text  = "%d%%" % int(w.get("uncommon",  0.0) * 100)
-			rare_lbl.text      = "%d%%" % int(w.get("rare",      0.0) * 100)
-			legendary_lbl.text = "%d%%" % int(w.get("legendary", 0.0) * 100)
-			_tip(common_icon,    common_lbl,    "Common fish chance: %d%%\nLowest payout (9c base). Wide catch zone, slow fish, forgiving.\nJunk is excluded when bait uses normal rarity pools." % int(w.get("common", 0.0) * 100))
-			_tip(uncommon_icon,  uncommon_lbl,  "Uncommon fish chance: %d%%\nModerate payout (20c base). Slightly harder minigame." % int(w.get("uncommon", 0.0) * 100))
-			_tip(rare_icon,      rare_lbl,      "Rare fish chance: %d%%\nGood payout (56-73c). Smaller zone, faster fish, tighter escape timer." % int(w.get("rare", 0.0) * 100))
-			_tip(legendary_icon, legendary_lbl, "Legendary fish chance: %d%%\nHighest payout (280c+). Tiny zone, max speed, brutal escape timer.\nRequires skill and good gear." % int(w.get("legendary", 0.0) * 100))
-	else:
-		bait_header_lbl.text = "BAIT: None"
-		bite_lbl.text = "Bite wait  —"
-		_tip(bite_icon, bite_lbl, "No bait equipped.\nWithout bait: 35-65%% junk depending on cast quality; otherwise starter Common fish.\nNo Uncommon, Rare, or Legendary fish are possible without bait.")
-		common_lbl.text    = "35-65%"
-		uncommon_lbl.text  = "0%"
-		rare_lbl.text      = "0%"
-		legendary_lbl.text = "0%"
-		_tip(common_icon,    common_lbl,    "Starter Common fish: 35-65%% (no bait)\nBetter casts reduce junk and increase this range.\nBuy a Worm to unlock Uncommon starter fish.")
-		_tip(uncommon_icon,  uncommon_lbl,  "Uncommon fish: 0%% (no bait)\nBuy a Worm to unlock starter Uncommon fish.")
-		_tip(rare_icon,      rare_lbl,      "Rare fish: 0%%\nNeeds Glow Grub or better bait.")
-		_tip(legendary_icon, legendary_lbl, "Legendary fish: 0%%\nNeeds Magic Bait for a meaningful chance.")
 
 	# ── Hook ─────────────────────────────────────────────────────────────────
 	_tip(hook_icon, hook_header_lbl, "Your equipped hook.\nMultiplies coin payouts, extends your react window, and has limited durability.\nLoses 1 durability per bite. Breaks when depleted — next owned hook auto-equips.")
@@ -325,10 +353,10 @@ func _refresh() -> void:
 		durability_lbl.text = "Durability  %d / %d" % [cur, max_v]
 		_tip(durability_icon, durability_lbl, "Durability  %d / %d\nUses remaining before this hook breaks.\nOne use lost per bite (win or lose).\nWhen it reaches 0, one hook is consumed from inventory and the next auto-equips at full durability." % [cur, max_v])
 		if tackle.id == "treasure_magnet":
-			coin_lbl.text = "Treasure  45% / 10 uses"
-			react_lbl.text = "Trash 94%  •  Chest/Key 6%"
-			_tip(coin_icon, coin_lbl, "Across its 10 uses, the Treasure Magnet has a 45%% chance to find at least one Chest or Key.")
-			_tip(react_icon, react_lbl, "Each search yields either trash or an equal-odds Sunken Chest / Ancient Key. It cannot catch legendary fish.")
+			coin_lbl.text = "Treasure  55% / 10 uses"
+			react_lbl.text = "Trash 92%  •  Chest/Key 4%"
+			_tip(coin_icon, coin_lbl, "Across its 10 uses, the Treasure Magnet has a 55%% chance to find at least one Chest or Key.")
+			_tip(react_icon, react_lbl, "Each search yields trash, a Sunken Chest, or an Ancient Key. Chest and Key are equally likely; it cannot catch legendary fish.")
 		else:
 			coin_lbl.text = "Coins  x%.1f" % tackle.coin_multiplier
 			_tip(coin_icon, coin_lbl, "Coin Multiplier  x%.1f\nAll fish payouts are multiplied by this value.\nExample: Kraken (650c base) → %dc with this hook." % [tackle.coin_multiplier, int(650.0 * tackle.coin_multiplier)])

@@ -9,7 +9,7 @@ const DEFAULT_WEIGHTS := {
 
 const MIN_AUTO_RESULT_MS := 350
 const MIN_REEL_RESULT_MS := 1000
-const TREASURE_MAGNET_PROFIT_CHANCE := 0.45
+const TREASURE_MAGNET_PROFIT_CHANCE := 0.55
 
 const JUNK_IDS := ["junk_boot", "junk_can", "junk_seaweed"]
 const MAGNET_JUNK := [
@@ -122,7 +122,7 @@ func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 	# Treasure Magnet finds a chest or key often enough to profit across one 10-use hook.
 	var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
 	if tackle and tackle.id == "treasure_magnet":
-		var treasure_chance := 1.0 - pow(1.0 - TREASURE_MAGNET_PROFIT_CHANCE, 1.0 / maxi(tackle.durability, 1))
+		var treasure_chance := _magnet_treasure_chance(tackle.durability)
 		if randf() < treasure_chance:
 			return MAGNET_TREASURES.pick_random() as FishData
 		return MAGNET_JUNK.pick_random() as FishData
@@ -240,6 +240,9 @@ func _fish_candidates(ids: Array[String]) -> Array[FishData]:
 		if fish:
 			candidates.append(fish)
 	return candidates
+
+func _magnet_treasure_chance(durability: int) -> float:
+	return 1.0 - pow(1.0 - TREASURE_MAGNET_PROFIT_CHANCE, 1.0 / maxi(durability, 1))
 
 func _weighted_rarity(weights: Dictionary) -> String:
 	var roll := randf()
