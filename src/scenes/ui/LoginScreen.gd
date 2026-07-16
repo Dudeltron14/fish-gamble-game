@@ -27,7 +27,8 @@ var _menu_effect_bases := {}
 
 func _ready() -> void:
 	official_server_btn.text = "%s - %s" % [SERVER_LABEL, SERVER_URL.replace("wss://", "")]
-	official_server_btn.tooltip_text = "This client is locked to %s." % SERVER_URL
+	official_server_btn.tooltip_text = "Click to refresh server status. This client is locked to %s." % SERVER_URL
+	official_server_btn.pressed.connect(_request_server_status)
 	login_btn.pressed.connect(_on_login_pressed)
 	register_btn.pressed.connect(_on_register_pressed)
 	NetAPI.login_result.connect(_on_login_result)
@@ -152,6 +153,14 @@ func _request_server_status() -> void:
 	_status_attempt_id += 1
 	var attempt_id := _status_attempt_id
 	_set_server_status("Checking server…", true)
+	var peer: MultiplayerPeer = multiplayer.multiplayer_peer
+	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		NetAPI.rpc_id(1, "c2s_server_status", Time.get_ticks_msec())
+		_check_server_status_timeout(attempt_id)
+		return
+	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTING:
+		_check_server_status_timeout(attempt_id)
+		return
 	if NetworkManager.connect_to_url(SERVER_URL) != OK:
 		_checking_server_status = false
 		_set_server_status("Offline", false)
