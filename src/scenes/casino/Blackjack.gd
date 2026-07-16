@@ -11,7 +11,7 @@ const CARD_DEAL_ARC_HEIGHT := 54.0
 const MAX_BET := 999999
 const COIN_BURST_SCENE := preload("res://src/scenes/vfx/CoinBurst.tscn")
 const FAIRNESS := preload("res://src/server/BlackjackFairness.gd")
-const WIN_EFFECT_INSET := 24.0
+const WIN_EFFECT_DESIGN_SIZE := Vector2(1280.0, 720.0)
 
 enum State { IDLE, PLAYER_TURN }
 var _state := State.IDLE
@@ -20,6 +20,7 @@ var _dealer_hole_hidden := false
 var _player_value := 0
 var _active_bet := 0
 var _last_shoe_reveal := {}
+var _win_effect_marker_positions := {}
 
 @onready var coins_label: Label     = %CoinsLabel
 @onready var status_label: Label    = %StatusLabel
@@ -73,15 +74,15 @@ func _ready() -> void:
 	_refresh_betting_controls()
 	_set_actions(false)
 	_set_fairness_reveal_available(false)
+	for emitter: Marker2D in win_effect_emitters.get_children():
+		_win_effect_marker_positions[emitter] = emitter.position
 	get_viewport().size_changed.connect(_layout_win_effect_emitters)
 	call_deferred("_layout_win_effect_emitters")
 
 func _layout_win_effect_emitters() -> void:
 	var size := get_viewport().get_visible_rect().size
-	$WinEffectEmitters/Top.global_position = Vector2(size.x * 0.5, WIN_EFFECT_INSET)
-	$WinEffectEmitters/Right.global_position = Vector2(size.x - WIN_EFFECT_INSET, size.y * 0.5)
-	$WinEffectEmitters/Bottom.global_position = Vector2(size.x * 0.5, size.y - WIN_EFFECT_INSET)
-	$WinEffectEmitters/Left.global_position = Vector2(WIN_EFFECT_INSET, size.y * 0.5)
+	for emitter: Marker2D in _win_effect_marker_positions:
+		emitter.position = _win_effect_marker_positions[emitter] * size / WIN_EFFECT_DESIGN_SIZE
 
 # ── Input ─────────────────────────────────────────────────────────────────────
 
