@@ -107,6 +107,16 @@ custom_minimum_size = Vector2(96, 0)
 text = "Cards left: —"
 vertical_alignment = 1
 
+[node name="FairnessLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+text = "Fair shoe: waiting…"
+horizontal_alignment = 1
+
+[node name="FairnessBtn" type="Button" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+disabled = true
+text = "Copy Last Fairness Reveal"
+
 [node name="Sep2" type="HSeparator" parent="Center/Panel/Margin/VBox"]
 
 [node name="PlayerLabel" type="Label" parent="Center/Panel/Margin/VBox"]

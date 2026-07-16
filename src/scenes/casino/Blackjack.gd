@@ -10,6 +10,7 @@ const CARD_FLIP_HALF_TIME := 0.14
 const CARD_DEAL_ARC_HEIGHT := 54.0
 const MAX_BET := 999999
 const COIN_BURST_SCENE := preload("res://src/scenes/vfx/CoinBurst.tscn")
+const FAIRNESS := preload("res://src/server/BlackjackFairness.gd")
 const WIN_EFFECT_INSET := 24.0
 
 enum State { IDLE, PLAYER_TURN }
@@ -18,6 +19,7 @@ var _dealer_cards: Array = []
 var _dealer_hole_hidden := false
 var _player_value := 0
 var _active_bet := 0
+var _last_shoe_reveal := {}
 
 @onready var coins_label: Label     = %CoinsLabel
 @onready var status_label: Label    = %StatusLabel
@@ -27,6 +29,8 @@ var _active_bet := 0
 @onready var dealer_hand: HBoxContainer = %DealerHand
 @onready var dealer_info_label: Label = %DealerInfoLabel
 @onready var deck_count_label: Label = %DeckCountLabel
+@onready var fairness_label: Label = %FairnessLabel
+@onready var fairness_btn: Button = %FairnessBtn
 @onready var bet_spin: SpinBox      = %BetSpin
 @onready var deal_btn: Button       = %DealBtn
 @onready var all_in_btn: Button     = %AllInBtn
@@ -43,6 +47,8 @@ func _ready() -> void:
 	NetAPI.bj_deal.connect(_on_deal)
 	NetAPI.bj_shuffled.connect(_on_shuffled)
 	NetAPI.bj_shoe_count.connect(_update_deck_count)
+	NetAPI.bj_shoe_commitment.connect(_on_shoe_commitment)
+	NetAPI.bj_shoe_revealed.connect(_on_shoe_revealed)
 	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_on_leave_pressed)
 	NetAPI.bj_hit.connect(_on_hit)
 	NetAPI.bj_dealer_reveal.connect(_on_dealer_reveal)
@@ -57,6 +63,7 @@ func _ready() -> void:
 	hit_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_hit"))
 	stand_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_stand"))
 	double_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_double"))
+	fairness_btn.pressed.connect(_copy_fairness_reveal)
 	coins_label.text = "Coins: %d" % GameManager.current_coins
 	deck_count_label.tooltip_text = "6-deck shoe. Shuffles when 156 cards remain."
 	_update_deck_count(0)
@@ -124,6 +131,23 @@ func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance
 
 func _on_shuffled(_deck_remaining: int) -> void:
 	AudioManager.sfx("sfx_card_shuffle")
+
+func _on_shoe_commitment(commitment: String, deck_remaining: int) -> void:
+	fairness_label.text = "Fair shoe: %s…" % commitment.left(12)
+	fairness_label.tooltip_text = "SHA-256 commitment published before any card is dealt. Cards left: %d.%s" % [deck_remaining, " Last shoe verified." if not _last_shoe_reveal.is_empty() else ""]
+
+func _on_shoe_revealed(commitment: String, seed: String, nonce: String, dealt_cards: Array) -> void:
+	var verified := FAIRNESS.verify_reveal(commitment, seed, nonce, dealt_cards)
+	_last_shoe_reveal = {"commitment": commitment, "seed": seed, "nonce": nonce, "dealt_cards": dealt_cards, "verified": verified}
+	fairness_btn.disabled = false
+	print("Blackjack fairness reveal: %s" % JSON.stringify(_last_shoe_reveal))
+
+func _copy_fairness_reveal() -> void:
+	if _last_shoe_reveal.is_empty():
+		status_label.text = "The current shoe is committed; reveal data arrives after it is replaced."
+		return
+	DisplayServer.clipboard_set(JSON.stringify(_last_shoe_reveal))
+	status_label.text = "Fairness reveal copied for independent verification."
 
 func _on_hit(card: Dictionary, new_val: int, deck_remaining: int) -> void:
 	_deal_card_animated(player_hand, _card_widget(card), 0.0, true)

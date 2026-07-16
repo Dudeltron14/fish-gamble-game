@@ -41,6 +41,16 @@ func _init_schema() -> void:
 			UNIQUE(player_id, item_id)
 		)
 	""")
+	_db.query("""
+		CREATE TABLE IF NOT EXISTS blackjack_shoes (
+			commitment TEXT PRIMARY KEY,
+			seed TEXT NOT NULL,
+			nonce TEXT NOT NULL,
+			dealt_cards TEXT NOT NULL DEFAULT '[]',
+			created_at INTEGER NOT NULL,
+			revealed_at INTEGER
+		)
+	""")
 	_ensure_player_column("equipped_rod_id", "TEXT DEFAULT ''")
 	_ensure_player_column("equipped_bait_id", "TEXT DEFAULT ''")
 	_ensure_player_column("equipped_tackle_id", "TEXT DEFAULT ''")

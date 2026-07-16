@@ -1,14 +1,18 @@
 extends Node
 
 enum State { PLAYER_TURN, DEALER_TURN }
-const SHOE_DECKS := 6
 const SHUFFLE_CUT_CARD := 52 * 3
 
 var _shoe: Array = []
+var _shoe_seed := ""
+var _shoe_nonce := ""
+var _shoe_commitment := ""
+var _shoe_dealt: Array = []
 
 func handle_shoe_count(peer_id: int) -> void:
 	if _shoe.is_empty():
-		_shuffle_shoe()
+		_start_new_shoe()
+	NetAPI.rpc_id(peer_id, "notify_bj_shoe_commitment", _shoe_commitment, _shoe.size())
 	NetAPI.rpc_id(peer_id, "notify_bj_shoe_count", _shoe.size())
 
 func handle_bet(peer_id: int, amount: int) -> void:
@@ -29,10 +33,10 @@ func handle_bet(peer_id: int, amount: int) -> void:
 	session.set_meta("bj_bet", amount)
 
 	if _shoe.size() <= SHUFFLE_CUT_CARD:
-		_shuffle_shoe()
+		_start_new_shoe()
 		NetAPI.rpc_id(peer_id, "notify_bj_shuffled", _shoe.size())
-	var ph: Array = [_shoe.pop_back(), _shoe.pop_back()]
-	var dh: Array = [_shoe.pop_back(), _shoe.pop_back()]
+	var ph: Array = [_draw_card(), _draw_card()]
+	var dh: Array = [_draw_card(), _draw_card()]
 	_broadcast_shoe_count()
 	session.set_meta("bj_state", State.PLAYER_TURN)
 	session.set_meta("bj_ph",    ph)
@@ -47,7 +51,7 @@ func handle_hit(peer_id: int) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
 	if not _in_player_turn(session): return
 	var ph: Array   = session.get_meta("bj_ph")
-	var card: Dictionary = _shoe.pop_back()
+	var card := _draw_card()
 	ph.append(card)
 	_broadcast_shoe_count()
 	session.set_meta("bj_ph",   ph)
@@ -73,7 +77,7 @@ func handle_double(peer_id: int) -> void:
 	var extra := bet
 	session.coins -= extra
 	session.set_meta("bj_bet", bet + extra)
-	var card: Dictionary = _shoe.pop_back()
+	var card := _draw_card()
 	ph.append(card)
 	_broadcast_shoe_count()
 	session.set_meta("bj_ph",   ph)
@@ -100,7 +104,7 @@ func _run_dealer(peer_id: int, session: PlayerSession) -> void:
 	NetAPI.rpc_id(peer_id, "notify_bj_dealer_reveal", dh, _val(dh), _shoe.size())
 
 	while _val(dh) < 17:
-		var card: Dictionary = _shoe.pop_back()
+		var card := _draw_card()
 		dh.append(card)
 		_broadcast_shoe_count()
 		NetAPI.rpc_id(peer_id, "notify_bj_dealer_card", card, _val(dh), _shoe.size())
@@ -137,17 +141,45 @@ func _resolve(peer_id: int, session: PlayerSession) -> void:
 
 	NetAPI.rpc_id(peer_id, "notify_bj_result", outcome, dh, payout, session.coins)
 
-func _make_shoe() -> Array:
-	var d := []
-	for _deck_index in range(SHOE_DECKS):
-		for s in 4:
-			for r in 13:
-				d.append({"suit": s, "rank": r})
-	return d
+func _start_new_shoe() -> void:
+	if not _shoe_commitment.is_empty():
+		_reveal_current_shoe()
+	_shuffle_shoe()
+	_persist_shoe(false)
+	NetAPI.rpc("notify_bj_shoe_commitment", _shoe_commitment, _shoe.size())
 
-func _shuffle_shoe() -> void:
-	_shoe = _make_shoe()
-	_shoe.shuffle()
+func _shuffle_shoe(seed: String = "", nonce: String = "") -> void:
+	_shoe_seed = seed if not seed.is_empty() else BlackjackFairness.secure_token()
+	_shoe_nonce = nonce if not nonce.is_empty() else BlackjackFairness.secure_token(16)
+	_shoe_commitment = BlackjackFairness.commitment(_shoe_seed, _shoe_nonce)
+	_shoe = BlackjackFairness.make_shoe(_shoe_seed, _shoe_nonce)
+	_shoe_dealt.clear()
+
+func _draw_card() -> Dictionary:
+	var card: Dictionary = _shoe.pop_back()
+	_shoe_dealt.append(card)
+	_persist_shoe(false)
+	return card
+
+func _reveal_current_shoe() -> void:
+	_persist_shoe(true)
+	NetAPI.rpc("notify_bj_shoe_revealed", _shoe_commitment, _shoe_seed, _shoe_nonce, _shoe_dealt)
+
+func _persist_shoe(revealed: bool) -> void:
+	var auth := GameServer.get_node_or_null("AuthServer")
+	if auth == null or auth._db == null:
+		return
+	if revealed:
+		auth._db.query_with_bindings(
+			"UPDATE blackjack_shoes SET dealt_cards = ?, revealed_at = ? WHERE commitment = ?",
+			[JSON.stringify(_shoe_dealt), int(Time.get_unix_time_from_system()), _shoe_commitment]
+		)
+		return
+	auth._db.query_with_bindings("""
+		INSERT INTO blackjack_shoes (commitment, seed, nonce, dealt_cards, created_at)
+		VALUES (?, ?, ?, ?, ?)
+		ON CONFLICT(commitment) DO UPDATE SET dealt_cards = excluded.dealt_cards
+	""", [_shoe_commitment, _shoe_seed, _shoe_nonce, JSON.stringify(_shoe_dealt), int(Time.get_unix_time_from_system())])
 
 func _broadcast_shoe_count() -> void:
 	NetAPI.rpc("notify_bj_shoe_count", _shoe.size())
