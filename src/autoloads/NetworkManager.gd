@@ -33,7 +33,8 @@ func start_server(port: int = DEFAULT_PORT) -> Error:
 	return OK
 
 func connect_to_url(url: String) -> Error:
-	disconnect_from_server()
+	if _peer != null:
+		disconnect_from_server()
 	_peer = WebSocketMultiplayerPeer.new()
 	var err := _peer.create_client(url)
 	if err != OK:
