@@ -292,6 +292,7 @@ func _load_equipped(session: PlayerSession, player_id: int) -> void:
 		var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
 		if tackle and session.hook_durability <= 0:
 			session.hook_durability = tackle.durability
+	session.enforce_equipment_rules()
 	save_equipment(session)
 
 func _is_owned_slot_item(session: PlayerSession, item_id: String, slot: String) -> bool:

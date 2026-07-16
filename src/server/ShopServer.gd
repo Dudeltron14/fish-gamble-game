@@ -51,11 +51,12 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 			return
 		session.equipped_bait_id = item_id;   slot = "bait"
 	elif item is TackleData:
+		var had_tackle := not session.equipped_tackle_id.is_empty()
 		session.equipped_tackle_id = item_id
 		if item_id == "treasure_magnet":
 			session.equipped_bait_id = ""
 		var tackle := item as TackleData
-		session.hook_durability = tackle.durability
+		session.hook_durability = _durability_after_tackle_equip(session.hook_durability, had_tackle, tackle.durability)
 		slot = "tackle"
 		NetAPI.rpc_id(peer_id, "notify_hook_durability", session.hook_durability, tackle.durability)
 	else:
@@ -101,6 +102,8 @@ func _persist_equipment(session: PlayerSession) -> void:
 
 func _auto_equip_if_empty(peer_id: int, session: PlayerSession, item: ItemData, item_id: String) -> bool:
 	if item is BaitData and session.equipped_bait_id.is_empty():
+		if session.equipped_tackle_id == "treasure_magnet":
+			return false
 		session.equipped_bait_id = item_id
 		_persist_equipment(session)
 		NetAPI.rpc_id(peer_id, "notify_equip_result", true, item_id, "bait")
@@ -118,3 +121,6 @@ func _auto_equip_if_empty(peer_id: int, session: PlayerSession, item: ItemData, 
 			NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, session.hook_durability, tackle.durability)
 		return true
 	return false
+
+static func _durability_after_tackle_equip(current: int, had_tackle: bool, max_durability: int) -> int:
+	return mini(current, max_durability) if had_tackle else max_durability

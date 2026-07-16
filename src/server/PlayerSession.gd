@@ -22,5 +22,11 @@ func add_owned(item_id: String, delta: int) -> void:
 func get_owned(item_id: String) -> int:
 	return owned_items.get(item_id, 0)
 
+func enforce_equipment_rules() -> bool:
+	if equipped_tackle_id == "treasure_magnet" and not equipped_bait_id.is_empty():
+		equipped_bait_id = ""
+		return true
+	return false
+
 func _init(p_peer_id: int) -> void:
 	peer_id = p_peer_id

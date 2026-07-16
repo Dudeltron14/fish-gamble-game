@@ -5,7 +5,6 @@ const FRAME_SIZE := Vector2i(64, 64)
 const FRAME_COUNT := 31
 const FPS := 30.0
 const FALLING_COIN_SCRIPT := preload("res://src/scenes/vfx/FallingCoin.gd")
-const COIN_TEXTURE := preload("res://assets/ui_icons/icon_coin_bonus.png")
 
 @onready var sprite: Sprite2D = $Sprite2D
 
@@ -38,10 +37,8 @@ func _spawn_falling_coins() -> void:
 	for i in 3:
 		var coin := FALLING_COIN_SCRIPT.new()
 		get_parent().add_child(coin)
-		coin.texture = COIN_TEXTURE
-		coin.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		coin.global_position = global_position + Vector2(randf_range(-20.0, 20.0), randf_range(-12.0, 12.0))
-		coin.scale = Vector2.ONE * randf_range(2.0, 3.0)
+		coin.scale = Vector2.ONE * randf_range(0.38, 0.54)
 		coin.launch(Vector2(randf_range(-180.0, 180.0), randf_range(-340.0, -180.0)))
 
 func _set_frame(frame: int) -> void:

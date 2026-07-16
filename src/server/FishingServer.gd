@@ -9,7 +9,7 @@ const DEFAULT_WEIGHTS := {
 
 const MIN_AUTO_RESULT_MS := 350
 const MIN_REEL_RESULT_MS := 1000
-const TREASURE_MAGNET_TREASURE_CHANCE := 0.75
+const TREASURE_MAGNET_TREASURE_CHANCE := 0.85
 
 const JUNK_IDS := ["junk_boot", "junk_can", "junk_seaweed"]
 const MAGNET_JUNK := [
@@ -43,6 +43,8 @@ func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 	if session == null or session.current_zone != "DockZone":
 		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0, 1.0, 1.0)
 		return
+	if session.enforce_equipment_rules():
+		_persist_equipment(session)
 
 	var fish := _pick_fish(session, cast_quality)
 	if fish == null:

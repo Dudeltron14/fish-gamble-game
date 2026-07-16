@@ -283,15 +283,15 @@ func _refresh() -> void:
 			label.modulate = Color.WHITE
 		bait_header_lbl.text = "MAGNET MODE: Bait incompatible"
 		bite_lbl.text = "Trash / Chest / Key / Legend."
-		common_lbl.text    = "87.1%"
-		uncommon_lbl.text  = "6.5%"
-		rare_lbl.text      = "6.5%"
+		common_lbl.text    = "82.7%"
+		uncommon_lbl.text  = "8.6%"
+		rare_lbl.text      = "8.6%"
 		legendary_lbl.text = "0%"
 		_tip(bait_icon, bait_header_lbl, "Treasure Magnet unequips bait and searches only for trash, Sunken Chests, or Ancient Keys.")
-		_tip(bite_icon, bite_lbl, "One magnet durability is used per search. A full 10-use Magnet has a 75%% chance to find at least one Chest or Key.")
+		_tip(bite_icon, bite_lbl, "One magnet durability is used per search. A full 10-use Magnet has an 85%% chance to find at least one Chest or Key.")
 		_tip(common_icon, common_lbl, "Trash: Old Boot, Tin Can, or Seaweed. This is the normal result when a treasure roll misses.")
-		_tip(uncommon_icon, uncommon_lbl, "Sunken Chest: each search has about a 6.5%% chance to find one.")
-		_tip(rare_icon, rare_lbl, "Ancient Key: each search has about a 6.5%% chance to find one. Chest and Key are equally likely.")
+		_tip(uncommon_icon, uncommon_lbl, "Sunken Chest: each search has about an 8.6%% chance to find one.")
+		_tip(rare_icon, rare_lbl, "Ancient Key: each search has about an 8.6%% chance to find one. Chest and Key are equally likely.")
 		_tip(legendary_icon, legendary_lbl, "Legendary fish cannot be caught while the Treasure Magnet is equipped.")
 	else:
 		common_icon.texture = TIER_COMMON_ICON
@@ -353,9 +353,9 @@ func _refresh() -> void:
 		durability_lbl.text = "Durability  %d / %d" % [cur, max_v]
 		_tip(durability_icon, durability_lbl, "Durability  %d / %d\nUses remaining before this hook breaks.\nOne use lost per bite (win or lose).\nWhen it reaches 0, one hook is consumed from inventory and the next auto-equips at full durability." % [cur, max_v])
 		if tackle.id == "treasure_magnet":
-			coin_lbl.text = "Treasure  75% / 10 uses"
-			react_lbl.text = "Trash 87.1%  •  Chest/Key 6.5%"
-			_tip(coin_icon, coin_lbl, "Across its 10 uses, the Treasure Magnet has a 75%% chance to find at least one Chest or Key.")
+			coin_lbl.text = "Treasure  85% / 10 uses"
+			react_lbl.text = "Trash 82.7%  •  Chest/Key 8.6%"
+			_tip(coin_icon, coin_lbl, "Across its 10 uses, the Treasure Magnet has an 85%% chance to find at least one Chest or Key.")
 			_tip(react_icon, react_lbl, "Each search yields trash, a Sunken Chest, or an Ancient Key. Chest and Key are equally likely; it cannot catch legendary fish.")
 		else:
 			coin_lbl.text = "Coins  x%.1f" % tackle.coin_multiplier

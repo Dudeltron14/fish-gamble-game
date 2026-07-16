@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="FishData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/resources/items/FishData.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/User_Gen_ChatGPT/Fish/junk_seaweed.png" id="2_seaweed"]
+[ext_resource type="Texture2D" path="res://assets/User_Gen_ChatGPT/Fish/junk_seaweed_v2.png" id="2_seaweed"]
 
 [resource]
 script = ExtResource("1")
