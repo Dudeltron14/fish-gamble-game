@@ -233,7 +233,7 @@ func _tip(icon: TextureRect, lbl: Label, text: String) -> void:
 	lbl.tooltip_text  = text
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and _expanded:
+	if not _shop_mode and event.is_action_pressed("ui_cancel") and _expanded:
 		_set_expanded(false)
 		get_viewport().set_input_as_handled()
 		return

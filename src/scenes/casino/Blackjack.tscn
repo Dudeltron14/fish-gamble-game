@@ -44,6 +44,35 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="FairnessOverlay" type="VBoxContainer" parent="."]
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -132.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+modulate = Color(1, 1, 1, 0.55)
+theme_override_constants/separation = 4
+
+[node name="FairnessLabel" type="Label" parent="FairnessOverlay"]
+unique_name_in_owner = true
+text = "Fair shoe: waiting…"
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 11
+
+[node name="FairnessBtn" type="Button" parent="FairnessOverlay"]
+unique_name_in_owner = true
+flat = true
+disabled = true
+text = "Copy Last Fairness Reveal"
+alignment = 2
+theme_override_font_sizes/font_size = 11
+
 [node name="Panel" type="PanelContainer" parent="Center"]
 
 [node name="Margin" type="MarginContainer" parent="Center/Panel"]
@@ -106,16 +135,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 0)
 text = "Cards left: —"
 vertical_alignment = 1
-
-[node name="FairnessLabel" type="Label" parent="Center/Panel/Margin/VBox"]
-unique_name_in_owner = true
-text = "Fair shoe: waiting…"
-horizontal_alignment = 1
-
-[node name="FairnessBtn" type="Button" parent="Center/Panel/Margin/VBox"]
-unique_name_in_owner = true
-disabled = true
-text = "Copy Last Fairness Reveal"
 
 [node name="Sep2" type="HSeparator" parent="Center/Panel/Margin/VBox"]
 

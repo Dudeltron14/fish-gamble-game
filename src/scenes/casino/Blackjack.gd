@@ -38,7 +38,6 @@ var _last_shoe_reveal := {}
 @onready var stand_btn: Button      = %StandBtn
 @onready var double_btn: Button     = %DoubleBtn
 @onready var win_effect_emitters: Node2D = $WinEffectEmitters
-@onready var blackjack_panel: PanelContainer = $Center/Panel
 
 func _ready() -> void:
 	AudioManager.set_music_context("casino")
@@ -74,13 +73,11 @@ func _ready() -> void:
 	call_deferred("_layout_win_effect_emitters")
 
 func _layout_win_effect_emitters() -> void:
-	var panel_rect := blackjack_panel.get_global_rect()
-	var center := panel_rect.get_center()
-	var inset := minf(WIN_EFFECT_INSET, minf(panel_rect.size.x, panel_rect.size.y) * 0.1)
-	$WinEffectEmitters/Top.global_position = Vector2(center.x, panel_rect.position.y + inset)
-	$WinEffectEmitters/Right.global_position = Vector2(panel_rect.end.x - inset, center.y)
-	$WinEffectEmitters/Bottom.global_position = Vector2(center.x, panel_rect.end.y - inset)
-	$WinEffectEmitters/Left.global_position = Vector2(panel_rect.position.x + inset, center.y)
+	var size := get_viewport().get_visible_rect().size
+	$WinEffectEmitters/Top.global_position = Vector2(size.x * 0.5, WIN_EFFECT_INSET)
+	$WinEffectEmitters/Right.global_position = Vector2(size.x - WIN_EFFECT_INSET, size.y * 0.5)
+	$WinEffectEmitters/Bottom.global_position = Vector2(size.x * 0.5, size.y - WIN_EFFECT_INSET)
+	$WinEffectEmitters/Left.global_position = Vector2(WIN_EFFECT_INSET, size.y * 0.5)
 
 # ── Input ─────────────────────────────────────────────────────────────────────
 
@@ -133,7 +130,7 @@ func _on_shuffled(_deck_remaining: int) -> void:
 	AudioManager.sfx("sfx_card_shuffle")
 
 func _on_shoe_commitment(commitment: String, deck_remaining: int) -> void:
-	fairness_label.text = "Fair shoe: %s…" % commitment.left(12)
+	fairness_label.text = "Fair shoe:\n%s\n%s\n%s\n%s" % [commitment.substr(0, 16), commitment.substr(16, 16), commitment.substr(32, 16), commitment.substr(48, 16)]
 	fairness_label.tooltip_text = "SHA-256 commitment published before any card is dealt. Cards left: %d.%s" % [deck_remaining, " Last shoe verified." if not _last_shoe_reveal.is_empty() else ""]
 
 func _on_shoe_revealed(commitment: String, seed: String, nonce: String, dealt_cards: Array) -> void:
