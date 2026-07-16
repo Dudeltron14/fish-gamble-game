@@ -9,7 +9,7 @@ const DEFAULT_WEIGHTS := {
 
 const MIN_AUTO_RESULT_MS := 350
 const MIN_REEL_RESULT_MS := 1000
-const TREASURE_MAGNET_PROFIT_CHANCE := 0.55
+const TREASURE_MAGNET_TREASURE_CHANCE := 0.75
 
 const JUNK_IDS := ["junk_boot", "junk_can", "junk_seaweed"]
 const MAGNET_JUNK := [
@@ -244,7 +244,7 @@ func _fish_candidates(ids: Array[String]) -> Array[FishData]:
 	return candidates
 
 func _magnet_treasure_chance(durability: int) -> float:
-	return 1.0 - pow(1.0 - TREASURE_MAGNET_PROFIT_CHANCE, 1.0 / maxi(durability, 1))
+	return 1.0 - pow(1.0 - TREASURE_MAGNET_TREASURE_CHANCE, 1.0 / maxi(durability, 1))
 
 func _weighted_rarity(weights: Dictionary) -> String:
 	var roll := randf()
