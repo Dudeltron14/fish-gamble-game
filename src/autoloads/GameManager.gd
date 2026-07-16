@@ -21,7 +21,7 @@ var hook_max_durability: int = 0
 var camera_zoom: float = 2.0
 
 const ZONE_HINTS := {
-	"DockZone":   "Press E to Fish",
+	"DockZone":   "HOLD E to Fish",
 	"ShopZone":   "Press E to open shop",
 	"CasinoZone": "Press E to enter casino",
 }
