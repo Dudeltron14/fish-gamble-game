@@ -4,7 +4,7 @@ Every six-deck blackjack shoe is committed before its first card is dealt. This 
 
 ## What players see
 
-While blackjack is open, the subtle bottom-right overlay shows the active **Fair shoe** commitment. It is a full SHA-256 hash, split over four lines for readability.
+While blackjack is open, the subtle bottom-right overlay shows only a short **Fair shoe** commitment fingerprint. The complete seed, nonce, and dealt-card data remain hidden while the shoe is live.
 
 When the shoe is replaced at the three-deck cut card, the previous shoe's seed, nonce, and ordered dealt-card log are revealed. **Copy Last Fairness Reveal** becomes available; it copies that material as JSON.
 

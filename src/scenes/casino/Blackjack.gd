@@ -130,7 +130,7 @@ func _on_shuffled(_deck_remaining: int) -> void:
 	AudioManager.sfx("sfx_card_shuffle")
 
 func _on_shoe_commitment(commitment: String, deck_remaining: int) -> void:
-	fairness_label.text = "Fair shoe:\n%s\n%s\n%s\n%s" % [commitment.substr(0, 16), commitment.substr(16, 16), commitment.substr(32, 16), commitment.substr(48, 16)]
+	fairness_label.text = "Fair shoe: %s…" % commitment.left(12)
 	fairness_label.tooltip_text = "SHA-256 commitment published before any card is dealt. Cards left: %d.%s" % [deck_remaining, " Last shoe verified." if not _last_shoe_reveal.is_empty() else ""]
 
 func _on_shoe_revealed(commitment: String, seed: String, nonce: String, dealt_cards: Array) -> void:
