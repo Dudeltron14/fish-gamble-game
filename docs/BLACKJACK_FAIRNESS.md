@@ -6,13 +6,13 @@ Every six-deck blackjack shoe is committed before its first card is dealt. This 
 
 While blackjack is open, the subtle bottom-right overlay shows only a short **Fair shoe** commitment fingerprint. The complete seed, nonce, and dealt-card data remain hidden while the shoe is live.
 
-When the shoe is replaced at the three-deck cut card, the previous shoe's seed, nonce, and ordered dealt-card log are revealed. **Copy Last Fairness Reveal** becomes available; it copies that material as JSON.
+When the shoe is replaced at the three-deck cut card, the previous shoe's seed, nonce, ordered dealt-card log, and readable action audit are revealed. **Copy Last Fairness Reveal** becomes available; it copies that material as JSON. **View Completed Casino Log** shows each player or dealer action without exposing the live shoe.
 
 ## Quick check
 
 1. Open Blackjack and note that a `Fair shoe` commitment appears before dealing.
 2. Play until the shoe is replaced, then click **Copy Last Fairness Reveal**.
-3. Paste the result into a text editor. It includes `commitment`, `seed`, `nonce`, `dealt_cards`, and the game's local `verified` result.
+3. Paste the result into a text editor. It includes `commitment`, `seed`, `nonce`, `dealt_cards`, `audit_log`, and the game's local `verified` result.
 4. A value of `verified: true` means the client reproduced the committed shoe and every logged dealt card matched its predetermined order.
 
 ## Independent verification

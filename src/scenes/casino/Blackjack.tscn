@@ -1,8 +1,14 @@
-[gd_scene format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://src/scenes/casino/Blackjack.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://d01b16f17u1lb" path="res://assets/User_Gen_ChatGPT/Casino Backdrop.png" id="2_backdrop"]
 [ext_resource type="Texture2D" uid="uid://cwe0mabngqay" path="res://assets/Playing Cards/card-back1.png" id="3_card_back"]
+
+[sub_resource type="Shader" id="Shader_disabled_stripes"]
+code = "shader_type canvas_item;\n\nvoid fragment() {\n\tfloat stripe = mod(floor((UV.x + UV.y) * 10.0), 2.0);\n\tCOLOR = vec4(1.0, 1.0, 1.0, stripe * 0.24);\n}\n"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_disabled_stripes"]
+shader = SubResource("Shader_disabled_stripes")
 
 [node name="Blackjack" type="CanvasLayer"]
 layer = 10
@@ -51,12 +57,11 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -300.0
-offset_top = -132.0
+offset_top = -176.0
 offset_right = -16.0
 offset_bottom = -16.0
 grow_horizontal = 0
 grow_vertical = 0
-modulate = Color(1, 1, 1, 0.55)
 theme_override_constants/separation = 4
 
 [node name="FairnessLabel" type="Label" parent="FairnessOverlay"]
@@ -64,12 +69,33 @@ unique_name_in_owner = true
 text = "Fair shoe: waiting…"
 horizontal_alignment = 2
 theme_override_font_sizes/font_size = 11
+modulate = Color(1, 1, 1, 0.55)
 
 [node name="FairnessBtn" type="Button" parent="FairnessOverlay"]
 unique_name_in_owner = true
-flat = true
+custom_minimum_size = Vector2(0, 26)
 disabled = true
-text = "Copy Last Fairness Reveal"
+text = "Fairness Reveal Locked"
+alignment = 2
+theme_override_font_sizes/font_size = 11
+
+[node name="FairnessStripes" type="ColorRect" parent="FairnessOverlay/FairnessBtn"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_disabled_stripes")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="AuditBtn" type="Button" parent="FairnessOverlay"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 22)
+flat = true
+text = "View Completed Casino Log"
 alignment = 2
 theme_override_font_sizes/font_size = 11
 

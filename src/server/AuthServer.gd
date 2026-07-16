@@ -47,10 +47,12 @@ func _init_schema() -> void:
 			seed TEXT NOT NULL,
 			nonce TEXT NOT NULL,
 			dealt_cards TEXT NOT NULL DEFAULT '[]',
+			audit_log TEXT NOT NULL DEFAULT '[]',
 			created_at INTEGER NOT NULL,
 			revealed_at INTEGER
 		)
 	""")
+	_ensure_blackjack_shoe_column("audit_log", "TEXT NOT NULL DEFAULT '[]'")
 	_ensure_player_column("equipped_rod_id", "TEXT DEFAULT ''")
 	_ensure_player_column("equipped_bait_id", "TEXT DEFAULT ''")
 	_ensure_player_column("equipped_tackle_id", "TEXT DEFAULT ''")
@@ -345,6 +347,13 @@ func _ensure_player_column(column_name: String, column_def: String) -> void:
 		if str(row.name) == column_name:
 			return
 	_db.query("ALTER TABLE players ADD COLUMN %s %s" % [column_name, column_def])
+
+func _ensure_blackjack_shoe_column(column_name: String, column_def: String) -> void:
+	_db.query("PRAGMA table_info(blackjack_shoes)")
+	for row in _db.query_result:
+		if str(row.name) == column_name:
+			return
+	_db.query("ALTER TABLE blackjack_shoes ADD COLUMN %s %s" % [column_name, column_def])
 
 func _generate_salt() -> String:
 	var bytes := PackedByteArray()
