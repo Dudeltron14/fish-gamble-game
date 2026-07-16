@@ -21,7 +21,7 @@ Coin-affecting gameplay is server-authoritative; movement position is server-sim
 | 🐠 **Catch & Collect** | Everyday fish, rare Pearl Clams, elusive Baby Kraken, Sunken Chests, Ancient Keys, and a growing collection of dock junk. |
 | 🧲 **Gear Variety** | Collect rods, bait, hooks, and the Treasure Magnet; equipment, durability, owned counts, compatibility, and empty-gear warnings are all tracked live. |
 | 🎰 **Shared Blackjack** | Multiplayer six-deck shoe, live card counter, All In, Hit, Stand, Double Down, dealer logic, flip animations, shuffle audio, and coin-burst wins. |
-| 🔎 **Fair Play** | Blackjack commits a SHA-256 shoe hash before dealing, then reveals copyable seed, nonce, and dealt-card audit data when the shoe is replaced. |
+| 🔎 **Fair Play** | Blackjack commits a SHA-256 shoe hash before dealing, then reveals copyable seed, nonce, and dealt-card audit data when the shoe is replaced. Read the [fairness guide](docs/BLACKJACK_FAIRNESS.md). |
 | 🌍 **Living Island** | Pixel-art Dock, Shop, and Casino zones. Walk up and press **E** to interact; adjust your personal camera zoom from Gear Stats. |
 | 👥 **Multiplayer & Accounts** | WebSocket multiplayer, server-authoritative coins and movement, live server status, SQLite persistence, and one active session per account. |
 | 🛠️ **Playtest Lanes** | Isolated production, `staging`, and `staging2` server/client images, ports, databases, routes, and log access. |
