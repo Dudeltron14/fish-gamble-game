@@ -98,7 +98,6 @@ position = Vector2(29, 88)
 rotation = 1.5707964
 
 [node name="BG" type="TextureRect" parent="." unique_id=1556854321]
-visible = false
 texture_filter = 2
 anchors_preset = 15
 anchor_right = 1.0
@@ -110,7 +109,6 @@ expand_mode = 1
 stretch_mode = 6
 
 [node name="Center" type="CenterContainer" parent="." unique_id=369039004]
-visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
