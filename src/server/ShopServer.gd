@@ -11,6 +11,9 @@ func handle_buy(peer_id: int, item_id: String) -> void:
 		push_warning("ShopServer: buy rejected peer=%d item=%s found=%s price=%d" % [peer_id, item_id, str(item != null), item.buy_price if item else -1])
 		NetAPI.rpc_id(peer_id, "notify_shop_result", false, "Item not for sale.", session.coins)
 		return
+	if item is RodData and session.get_owned(item_id) > 0:
+		NetAPI.rpc_id(peer_id, "notify_shop_result", false, "You already own this rod.", session.coins)
+		return
 
 	if session.coins < item.buy_price:
 		NetAPI.rpc_id(peer_id, "notify_shop_result", false, "Not enough coins.", session.coins)
@@ -51,12 +54,10 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 			return
 		session.equipped_bait_id = item_id;   slot = "bait"
 	elif item is TackleData:
-		var had_tackle := not session.equipped_tackle_id.is_empty()
-		session.equipped_tackle_id = item_id
 		if item_id == "treasure_magnet":
 			session.equipped_bait_id = ""
 		var tackle := item as TackleData
-		session.hook_durability = _durability_after_tackle_equip(session.hook_durability, had_tackle, tackle.durability)
+		session.select_tackle(item_id, tackle.durability)
 		slot = "tackle"
 		NetAPI.rpc_id(peer_id, "notify_hook_durability", session.hook_durability, tackle.durability)
 	else:
@@ -109,11 +110,10 @@ func _auto_equip_if_empty(peer_id: int, session: PlayerSession, item: ItemData, 
 		NetAPI.rpc_id(peer_id, "notify_equip_result", true, item_id, "bait")
 		return true
 	if item is TackleData and session.equipped_tackle_id.is_empty():
-		session.equipped_tackle_id = item_id
 		if item_id == "treasure_magnet":
 			session.equipped_bait_id = ""
 		var tackle := item as TackleData
-		session.hook_durability = tackle.durability
+		session.select_tackle(item_id, tackle.durability)
 		_persist_equipment(session)
 		NetAPI.rpc_id(peer_id, "notify_hook_durability", session.hook_durability, tackle.durability)
 		NetAPI.rpc_id(peer_id, "notify_equip_result", true, item_id, "tackle")
@@ -121,6 +121,3 @@ func _auto_equip_if_empty(peer_id: int, session: PlayerSession, item: ItemData, 
 			NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, session.hook_durability, tackle.durability)
 		return true
 	return false
-
-static func _durability_after_tackle_equip(current: int, had_tackle: bool, max_durability: int) -> int:
-	return mini(current, max_durability) if had_tackle else max_durability

@@ -7,7 +7,7 @@
 script = ExtResource("1")
 id = "treasure_magnet"
 display_name = "Treasure Magnet"
-description = "Finds Sunken Chests or Ancient Keys. 85% chance to find one across 10 uses; unequips bait."
+description = "Finds Sunken Chests or Ancient Keys. 55% chance each use; unequips bait."
 icon = ExtResource("2_icon")
 buy_price = 200
 sell_price = 80

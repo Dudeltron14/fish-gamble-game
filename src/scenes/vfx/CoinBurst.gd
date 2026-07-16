@@ -11,6 +11,7 @@ const FALLING_COIN_SCRIPT := preload("res://src/scenes/vfx/FallingCoin.gd")
 var _elapsed := 0.0
 var _frame := -1
 var _cycles := 1
+var _completed_loops := 0
 
 func configure(cycles: int) -> void:
 	_cycles = maxi(1, cycles)
@@ -27,8 +28,11 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_elapsed += delta
 	var next_frame := int(_elapsed * FPS)
-	if next_frame >= FRAME_COUNT * _cycles:
+	var completed_loops := mini(next_frame / FRAME_COUNT, _cycles)
+	while _completed_loops < completed_loops:
 		_spawn_falling_coins()
+		_completed_loops += 1
+	if next_frame >= FRAME_COUNT * _cycles:
 		queue_free()
 		return
 	_set_frame(next_frame % FRAME_COUNT)
@@ -38,7 +42,7 @@ func _spawn_falling_coins() -> void:
 		var coin := FALLING_COIN_SCRIPT.new()
 		get_parent().add_child(coin)
 		coin.global_position = global_position + Vector2(randf_range(-20.0, 20.0), randf_range(-12.0, 12.0))
-		coin.scale = Vector2.ONE * randf_range(0.38, 0.54)
+		coin.scale = scale * 0.5
 		coin.launch(Vector2(randf_range(-180.0, 180.0), randf_range(-340.0, -180.0)))
 
 func _set_frame(frame: int) -> void:

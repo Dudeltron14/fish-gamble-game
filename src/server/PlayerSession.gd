@@ -11,6 +11,7 @@ var equipped_bait_id: String = ""
 var equipped_tackle_id: String = ""
 var owned_items: Dictionary = {}  # item_id -> quantity (authoritative server-side cache)
 var hook_durability: int = 0      # current uses remaining on equipped hook
+var hook_durabilities: Dictionary = {}  # hook type -> uses remaining
 
 func add_owned(item_id: String, delta: int) -> void:
 	var q: int = owned_items.get(item_id, 0) + delta
@@ -27,6 +28,17 @@ func enforce_equipment_rules() -> bool:
 		equipped_bait_id = ""
 		return true
 	return false
+
+func select_tackle(item_id: String, max_durability: int, legacy_durability: int = 0) -> void:
+	equipped_tackle_id = item_id
+	if not hook_durabilities.has(item_id):
+		hook_durabilities[item_id] = legacy_durability if legacy_durability > 0 else max_durability
+	hook_durability = int(hook_durabilities[item_id])
+
+func set_current_hook_durability(value: int) -> void:
+	hook_durability = value
+	if not equipped_tackle_id.is_empty():
+		hook_durabilities[equipped_tackle_id] = value
 
 func _init(p_peer_id: int) -> void:
 	peer_id = p_peer_id

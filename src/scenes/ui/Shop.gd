@@ -87,7 +87,7 @@ func _make_row(item: ItemData) -> Control:
 		var btn := Button.new()
 		btn.text = "Buy"
 		btn.custom_minimum_size = Vector2(52, 0)
-		btn.disabled = GameManager.current_coins < item.buy_price
+		btn.disabled = GameManager.current_coins < item.buy_price or (item is RodData and owned > 0)
 		btn.pressed.connect(_on_buy_pressed.bind(item.id, btn))
 		row.add_child(btn)
 

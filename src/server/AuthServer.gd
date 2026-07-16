@@ -45,6 +45,7 @@ func _init_schema() -> void:
 	_ensure_player_column("equipped_bait_id", "TEXT DEFAULT ''")
 	_ensure_player_column("equipped_tackle_id", "TEXT DEFAULT ''")
 	_ensure_player_column("hook_durability", "INTEGER DEFAULT 0")
+	_ensure_player_column("hook_durabilities", "TEXT DEFAULT '{}'")
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
@@ -96,8 +97,6 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 	if session and not session.equipped_tackle_id.is_empty():
 		var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
 		if tackle:
-			if session.hook_durability == 0:
-				session.hook_durability = tackle.durability
 			NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, session.hook_durability, tackle.durability)
 		else:
 			push_warning("AuthServer: equipped tackle not found peer=%d tackle=%s items_loaded=%d" % [peer_id, session.equipped_tackle_id, ItemRegistry.items.size()])
@@ -210,7 +209,7 @@ func _set_starter_equipment(username: String) -> void:
 
 func _ensure_usable_equipment(username: String, player_id: int) -> void:
 	_db.query_with_bindings(
-		"SELECT equipped_rod_id, equipped_bait_id, equipped_tackle_id, hook_durability FROM players WHERE id = ?",
+		"SELECT equipped_rod_id, equipped_bait_id, equipped_tackle_id, hook_durability, hook_durabilities FROM players WHERE id = ?",
 		[player_id]
 	)
 	if _db.query_result.is_empty():
@@ -279,19 +278,21 @@ func _load_equipped(session: PlayerSession, player_id: int) -> void:
 		var rod_id := str(row.equipped_rod_id)
 		var bait_id := str(row.equipped_bait_id)
 		var tackle_id := str(row.equipped_tackle_id)
+		var saved_durabilities := JSON.parse_string(str(row.hook_durabilities))
+		if saved_durabilities is Dictionary:
+			session.hook_durabilities = saved_durabilities
 		session.equipped_rod_id = rod_id if _is_owned_slot_item(session, rod_id, "rod") else first_rod
 		session.equipped_bait_id = bait_id if _is_owned_slot_item(session, bait_id, "bait") else first_bait
 		session.equipped_tackle_id = tackle_id if _is_owned_slot_item(session, tackle_id, "tackle") else first_tackle
-		session.hook_durability = int(row.hook_durability)
+		if not session.equipped_tackle_id.is_empty():
+			var equipped_tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
+			if equipped_tackle:
+				session.select_tackle(session.equipped_tackle_id, equipped_tackle.durability, int(row.hook_durability))
 	else:
 		session.equipped_rod_id = first_rod
 		session.equipped_bait_id = first_bait
 		session.equipped_tackle_id = first_tackle
 
-	if not session.equipped_tackle_id.is_empty():
-		var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
-		if tackle and session.hook_durability <= 0:
-			session.hook_durability = tackle.durability
 	session.enforce_equipment_rules()
 	save_equipment(session)
 
@@ -316,13 +317,15 @@ func save_equipment(session: PlayerSession) -> void:
 		SET equipped_rod_id = ?,
 			equipped_bait_id = ?,
 			equipped_tackle_id = ?,
-			hook_durability = ?
+			hook_durability = ?,
+			hook_durabilities = ?
 		WHERE username = ?
 	""", [
 		session.equipped_rod_id,
 		session.equipped_bait_id,
 		session.equipped_tackle_id,
 		session.hook_durability,
+		JSON.stringify(session.hook_durabilities),
 		session.username,
 	])
 
