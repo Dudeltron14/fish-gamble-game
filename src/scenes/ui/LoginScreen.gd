@@ -2,6 +2,7 @@ extends Control
 
 const CONNECT_TIMEOUT := 5.0
 const AUTH_TIMEOUT := 5.0
+const STATUS_CONNECT_TIMEOUT := 12.0
 const SERVER_URL := "wss://fishserver.dudeltron14.win"
 const SERVER_LABEL := "Production Server"
 const MENU_EFFECT_REFERENCE_SIZE := Vector2(1280.0, 720.0)
@@ -94,7 +95,8 @@ func _execute_pending() -> void:
 
 func _on_network_connected() -> void:
 	if _pending == _Action.NONE:
-		NetAPI.rpc_id(1, "c2s_server_status", Time.get_ticks_msec())
+		if _checking_server_status:
+			_send_server_status_query(_status_attempt_id)
 	else:
 		_execute_pending()
 
@@ -155,17 +157,31 @@ func _request_server_status() -> void:
 	_set_server_status("Checking server…", true)
 	var peer: MultiplayerPeer = multiplayer.multiplayer_peer
 	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
-		NetAPI.rpc_id(1, "c2s_server_status", Time.get_ticks_msec())
-		_check_server_status_timeout(attempt_id)
+		_send_server_status_query(attempt_id)
 		return
 	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTING:
-		_check_server_status_timeout(attempt_id)
+		_check_server_status_connection_timeout(attempt_id)
 		return
 	if NetworkManager.connect_to_url(SERVER_URL) != OK:
 		_checking_server_status = false
 		_set_server_status("Offline", false)
 		return
+	_check_server_status_connection_timeout(attempt_id)
+
+func _send_server_status_query(attempt_id: int) -> void:
+	NetAPI.rpc_id(1, "c2s_server_status", Time.get_ticks_msec())
 	_check_server_status_timeout(attempt_id)
+
+func _check_server_status_connection_timeout(attempt_id: int) -> void:
+	await get_tree().create_timer(STATUS_CONNECT_TIMEOUT).timeout
+	if attempt_id != _status_attempt_id or not _checking_server_status:
+		return
+	var peer: MultiplayerPeer = multiplayer.multiplayer_peer
+	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		return
+	_checking_server_status = false
+	NetworkManager.disconnect_from_server()
+	_set_server_status("Offline", false)
 
 func _check_server_status_timeout(attempt_id: int) -> void:
 	await get_tree().create_timer(CONNECT_TIMEOUT).timeout
