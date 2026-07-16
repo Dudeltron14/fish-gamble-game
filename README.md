@@ -17,13 +17,15 @@ Coin-affecting gameplay is server-authoritative; movement position is server-sim
 
 | System | Details |
 |---|---|
-| 🐟 **Fishing** | 4-stage minigame (Cast → Wait → React → Reel). 17 catchables, synced bobbers, splash VFX, and visible catch popups. |
-| 🎰 **Blackjack** | Full server-side state machine. Hit, Stand, Double Down. Dealer follows standard rules (hit <17). Real card sprites with flip reveals. |
-| 🏪 **Shop** | Buy and equip rods, bait, and hooks. Live owned count, durability tracking, gear consumption per cast. |
-| 🌍 **World** | Pixel-art island. Walk to the Dock, Shop, or Casino — press E to interact. |
-| 👤 **Multiplayer** | WebSocket-based. Public clients connect to the official server at `wss://fishserver.dudeltron14.win`. |
-| 🔐 **Auth** | Username + password (double-hashed with per-user salt). SQLite persistence. 50 coin starting balance. |
-| 🚀 **Auto-deploy** | Push/merge to `staging` publishes `:staging` Docker images for QA. Merge verified `staging` into `master` to publish production `:latest` images. |
+| 🎣 **Skill Fishing** | Four-stage Cast → Wait → React → Reel gameplay, cast-quality rewards, synced bobbers, splash VFX, and visible catch popups. |
+| 🐠 **Catch & Collect** | Everyday fish, rare Pearl Clams, elusive Baby Kraken, Sunken Chests, Ancient Keys, and a growing collection of dock junk. |
+| 🧲 **Gear Variety** | Collect rods, bait, hooks, and the Treasure Magnet; equipment, durability, owned counts, compatibility, and empty-gear warnings are all tracked live. |
+| 🎰 **Shared Blackjack** | Multiplayer six-deck shoe, live card counter, All In, Hit, Stand, Double Down, dealer logic, flip animations, shuffle audio, and coin-burst wins. |
+| 🔎 **Fair Play** | Blackjack commits a SHA-256 shoe hash before dealing, then reveals copyable seed, nonce, and dealt-card audit data when the shoe is replaced. |
+| 🌍 **Living Island** | Pixel-art Dock, Shop, and Casino zones. Walk up and press **E** to interact; adjust your personal camera zoom from Gear Stats. |
+| 👥 **Multiplayer & Accounts** | WebSocket multiplayer, server-authoritative coins and movement, live server status, SQLite persistence, and one active session per account. |
+| 🛠️ **Playtest Lanes** | Isolated production, `staging`, and `staging2` server/client images, ports, databases, routes, and log access. |
+| 🚀 **Auto-deploy** | GitHub Actions exports Godot server/web builds to GHCR; Watchtower automatically refreshes the matching Docker containers. |
 
 ---
 
@@ -57,12 +59,13 @@ Players start with a **Starter Rod**, **10 Worm uses**, and **1 Basic Hook** (10
 | Glow Grub | 25c | 14% | 1% |
 | Magic Bait | 60c | 40% | 15% |
 
-### Hooks (durability depletes each cast)
-| Hook | Cost | Durability | Coin bonus |
+### Tackle (durability depletes each cast)
+| Tackle | Cost | Durability | Coin bonus |
 |---|---|---|---|
 | Basic Hook | 15c / free starter | 10 uses | ×1.0 |
 | Shiny Lure | 60c | 15 uses | ×1.15 |
 | Golden Hook | 120c | 20 uses | ×1.3 |
+| Treasure Magnet | 200c | 10 uses | Treasure-focused searches |
 
 ### Fish
 | Catch | Rarity | Coins |
