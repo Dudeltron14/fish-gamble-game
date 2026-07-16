@@ -7,7 +7,7 @@
 script = ExtResource("1")
 id = "master_rod"
 display_name = "Master Rod"
-description = "Forged from legends. Probably."
+description = "A dazzling heirloom that hums when the moon is listening."
 icon = ExtResource("2_icon")
 buy_price = 250
 sell_price = 125

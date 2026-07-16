@@ -7,7 +7,7 @@
 script = ExtResource("1")
 id = "glow_grub"
 display_name = "Glow Grub"
-description = "A lively mid-tier bait. Prevents trash and leans into uncommon and rare catches."
+description = "Glows softly. Insists it is not trying to impress anyone."
 icon = ExtResource("2_icon")
 buy_price = 25
 sell_price = 8

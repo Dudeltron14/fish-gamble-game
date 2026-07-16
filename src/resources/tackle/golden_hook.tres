@@ -7,7 +7,7 @@
 script = ExtResource("1")
 id = "golden_hook"
 display_name = "Golden Hook"
-description = "Sharper, heavier, meaner. Fish don't stand a chance."
+description = "A hook fit for royalty, or a fish with expensive taste."
 icon = ExtResource("2_icon")
 buy_price = 120
 sell_price = 50

@@ -7,7 +7,7 @@
 script = ExtResource("1")
 id = "lure"
 display_name = "Shiny Lure"
-description = "A polished hook upgrade with better payout and reaction time. 15 uses."
+description = "Twinkles like a tiny lie told by the sea."
 icon = ExtResource("2_icon")
 buy_price = 60
 sell_price = 20

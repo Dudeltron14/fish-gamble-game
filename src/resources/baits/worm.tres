@@ -7,7 +7,7 @@
 script = ExtResource("1")
 id = "worm"
 display_name = "Worm"
-description = "A basic bait. Mostly catches starter fish, with only rare junk."
+description = "A plucky little traveler with nowhere important to be."
 icon = ExtResource("2_icon")
 buy_price = 5
 sell_price = 1

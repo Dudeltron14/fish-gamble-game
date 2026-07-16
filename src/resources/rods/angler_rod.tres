@@ -7,7 +7,7 @@
 script = ExtResource("1")
 id = "angler_rod"
 display_name = "Angler's Rod"
-description = "Faster cast, sturdier line. The dock regulars swear by it."
+description = "Polished by salt, sun, and very confident anglers."
 icon = ExtResource("2_icon")
 buy_price = 80
 sell_price = 40

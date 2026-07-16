@@ -7,7 +7,7 @@
 script = ExtResource("1")
 id = "magic_bait"
 display_name = "Magic Bait"
-description = "Common fish won't touch it. Legendary fish can't resist."
+description = "Smells like thunder, starlight, and an expensive secret."
 icon = ExtResource("2_icon")
 buy_price = 60
 sell_price = 20
