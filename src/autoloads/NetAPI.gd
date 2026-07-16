@@ -65,12 +65,6 @@ func c2s_world_ready() -> void:
 func c2s_server_status(sent_ms: int) -> void:
 	if not multiplayer.is_server(): return
 	var peer_id := _peer_id()
-	var session := GameServer.get_session(peer_id)
-	var now := Time.get_ticks_msec()
-	if session and now - int(session.get_meta("status_query_ms", 0)) < 1000:
-		return
-	if session:
-		session.set_meta("status_query_ms", now)
 	NetAPI.rpc_id(peer_id, "notify_server_status", GameServer.get_authenticated_player_count(), sent_ms)
 
 @rpc("any_peer", "call_local", "unreliable_ordered")
