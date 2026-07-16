@@ -7,6 +7,7 @@ signal owned_changed()
 @warning_ignore("unused_signal")
 signal hook_durability_changed(current: int, max_val: int)
 signal camera_zoom_changed(value: float)
+signal fishing_result_completed()
 
 var current_player_name: String = ""
 var current_coins: int = 0

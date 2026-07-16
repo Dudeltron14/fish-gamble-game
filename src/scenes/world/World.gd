@@ -282,6 +282,7 @@ func _on_overlay_closed() -> void:
 	if _overlay_scene == FISHING_SCENE:
 		if player:
 			player.stop_fishing()
+		GameManager.fishing_result_completed.emit()
 	if _overlay_scene == SHOP_SCENE and _stats_panel != null and is_instance_valid(_stats_panel):
 		_stats_panel.visible = _stats_panel_was_visible
 	_overlay = null
