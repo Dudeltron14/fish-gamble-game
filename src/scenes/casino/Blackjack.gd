@@ -10,6 +10,7 @@ const CARD_FLIP_HALF_TIME := 0.14
 const CARD_DEAL_ARC_HEIGHT := 54.0
 const MAX_BET := 999999
 const COIN_BURST_SCENE := preload("res://src/scenes/vfx/CoinBurst.tscn")
+const WIN_EFFECT_INSET := 24.0
 
 enum State { IDLE, PLAYER_TURN }
 var _state := State.IDLE
@@ -33,6 +34,7 @@ var _active_bet := 0
 @onready var stand_btn: Button      = %StandBtn
 @onready var double_btn: Button     = %DoubleBtn
 @onready var win_effect_emitters: Node2D = $WinEffectEmitters
+@onready var blackjack_panel: PanelContainer = $Center/Panel
 
 func _ready() -> void:
 	AudioManager.set_music_context("casino")
@@ -61,6 +63,17 @@ func _ready() -> void:
 	NetAPI.rpc_id(1, "c2s_bj_shoe_count")
 	_refresh_betting_controls()
 	_set_actions(false)
+	get_viewport().size_changed.connect(_layout_win_effect_emitters)
+	call_deferred("_layout_win_effect_emitters")
+
+func _layout_win_effect_emitters() -> void:
+	var panel_rect := blackjack_panel.get_global_rect()
+	var center := panel_rect.get_center()
+	var inset := minf(WIN_EFFECT_INSET, minf(panel_rect.size.x, panel_rect.size.y) * 0.1)
+	$WinEffectEmitters/Top.global_position = Vector2(center.x, panel_rect.position.y + inset)
+	$WinEffectEmitters/Right.global_position = Vector2(panel_rect.end.x - inset, center.y)
+	$WinEffectEmitters/Bottom.global_position = Vector2(center.x, panel_rect.end.y - inset)
+	$WinEffectEmitters/Left.global_position = Vector2(panel_rect.position.x + inset, center.y)
 
 # ── Input ─────────────────────────────────────────────────────────────────────
 
@@ -420,8 +433,6 @@ func _spawn_coin_bursts(payout: int) -> void:
 		loops = 2
 	elif payout >= 50:
 		bursts_per_corner = 2
-
-	var viewport_size := get_viewport().get_visible_rect().size
 
 	var burst_index := 0
 	for emitter: Marker2D in win_effect_emitters.get_children():
