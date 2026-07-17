@@ -23,6 +23,7 @@ GameManager="*res://src/autoloads/GameManager.gd"
 NetworkManager="*res://src/autoloads/NetworkManager.gd"
 ItemRegistry="*res://src/autoloads/ItemRegistry.gd"
 AudioManager="*res://src/autoloads/AudioManager.gd"
+ClientSettings="*res://src/autoloads/ClientSettings.gd"
 NetAPI="*res://src/autoloads/NetAPI.gd"
 GameServer="*res://src/autoloads/GameServer.gd"
 
@@ -30,6 +31,7 @@ GameServer="*res://src/autoloads/GameServer.gd"
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
+window/stretch/mode="canvas_items"
 
 [editor_plugins]
 

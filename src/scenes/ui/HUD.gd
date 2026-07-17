@@ -23,6 +23,7 @@ func _ready() -> void:
 	GameManager.fishing_result_completed.connect(_hide_warnings_after_fishing_result)
 	NetAPI.bait_empty.connect(func(): _show_warning(bait_warning_label, "Bait ran out. Buy or equip more bait."))
 	NetAPI.hook_broken.connect(func(): _show_warning(hook_warning_label, "Hook broke. Buy or equip another hook."))
+	%SettingsBtn.pressed.connect(func(): ClientSettings.open(self))
 	_on_coins_changed(GameManager.current_coins)
 	_refresh_equipped()
 

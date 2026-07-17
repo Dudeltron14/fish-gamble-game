@@ -25,6 +25,7 @@ var _menu_effect_bases := {}
 @onready var password_field: LineEdit = %PasswordField
 @onready var login_btn: Button = %LoginBtn
 @onready var register_btn: Button = %RegisterBtn
+@onready var settings_btn: Button = %SettingsBtn
 @onready var status_label: Label = %StatusLabel
 
 func _ready() -> void:
@@ -33,6 +34,7 @@ func _ready() -> void:
 	official_server_btn.pressed.connect(_request_server_status)
 	login_btn.pressed.connect(_on_login_pressed)
 	register_btn.pressed.connect(_on_register_pressed)
+	settings_btn.pressed.connect(func(): ClientSettings.open(self))
 	NetAPI.login_result.connect(_on_login_result)
 	NetAPI.register_result.connect(_on_register_result)
 	NetAPI.server_status.connect(_on_server_status)
@@ -105,6 +107,7 @@ func _on_login_result(ok: bool, reason: String, coins: int) -> void:
 	_auth_attempt_id += 1
 	if ok:
 		GameManager.set_player_data(_pending_username, coins)
+		ClientSettings.load_player_settings()
 		GameManager.go_to_scene("res://src/scenes/world/World.tscn")
 	else:
 		set_status(reason)

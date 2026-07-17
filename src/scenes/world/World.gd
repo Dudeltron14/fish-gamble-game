@@ -308,6 +308,7 @@ func _show_disconnect_dialog() -> void:
 func _can_show_disconnect_dialog() -> bool:
 	return _overlay == null \
 		and not _is_disconnect_dialog_open() \
+		and not ClientSettings.is_open() \
 		and not _is_stats_panel_open()
 
 func _is_disconnect_dialog_open() -> bool:
