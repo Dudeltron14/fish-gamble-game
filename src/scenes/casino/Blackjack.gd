@@ -133,6 +133,17 @@ func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance
 
 func _on_shuffled(_deck_remaining: int) -> void:
 	AudioManager.sfx("sfx_card_shuffle")
+	deck_stack.pivot_offset = deck_stack.size * 0.5
+	deck_stack.rotation = 0.0
+	deck_stack.scale = Vector2.ONE
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(deck_stack, "rotation", TAU * 2.0, 0.45)
+	tween.tween_property(deck_stack, "scale", Vector2.ONE * 1.15, 0.2)
+	tween.tween_property(deck_stack, "scale", Vector2.ONE, 0.25).set_delay(0.2)
+	tween.finished.connect(func() -> void:
+		deck_stack.rotation = 0.0
+		deck_stack.scale = Vector2.ONE
+	)
 
 func _on_shoe_commitment(commitment: String, deck_remaining: int) -> void:
 	fairness_label.text = _masked_commitment(commitment)
