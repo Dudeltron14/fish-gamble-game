@@ -240,6 +240,8 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 			AudioManager.sfx("sfx_blackjack_win")
 			AudioManager.sfx("sfx_casino_chips")
 			if payout > 0:
+				if payout >= 100:
+					AudioManager.sfx("sfx_jackpot_coin_loop")
 				_spawn_coin_bursts(payout)
 		"bust", "lose": AudioManager.sfx("sfx_blackjack_lose")
 		"push": AudioManager.sfx("sfx_blackjack_push")
@@ -483,33 +485,33 @@ func _update_player_value() -> void:
 	player_value_label.text = "Your hand: %d" % _player_value
 
 func _spawn_coin_bursts(payout: int) -> void:
-	var bursts_per_corner := 1
+	var emitter_count := 4
 	var loops := 1
 	if payout >= 500:
-		bursts_per_corner = 7
+		emitter_count = win_effect_emitters.get_child_count()
 		loops = 3
 	elif payout >= 100:
-		bursts_per_corner = 4
+		emitter_count = 8
 		loops = 2
-	elif payout >= 50:
-		bursts_per_corner = 2
 
+	var emitters: Array[Node] = win_effect_emitters.get_children()
+	var start := randi() % emitters.size()
 	var burst_index := 0
-	for emitter: Marker2D in win_effect_emitters.get_children():
-		for i in bursts_per_corner:
-			var burst := COIN_BURST_SCENE.instantiate() as CoinBurst
-			add_child(burst)
-			var jitter := Vector2(randf_range(-42.0, 42.0), randf_range(-42.0, 42.0))
-			burst.global_position = emitter.global_position + jitter
-			burst.rotation = emitter.global_rotation
-			burst.scale *= 3.0
-			burst.configure(loops)
-			if burst_index > 0:
-				burst.modulate.a = 0.0
-				var tween := create_tween()
-				tween.tween_interval(float(burst_index) * 0.035)
-				tween.tween_property(burst, "modulate:a", 1.0, 0.01)
-			burst_index += 1
+	for index in emitter_count:
+		var emitter: Marker2D = emitters[(start + index * emitters.size() / emitter_count) % emitters.size()]
+		var burst := COIN_BURST_SCENE.instantiate() as CoinBurst
+		add_child(burst)
+		var jitter := Vector2(randf_range(-42.0, 42.0), randf_range(-42.0, 42.0))
+		burst.global_position = emitter.global_position + jitter
+		burst.rotation = emitter.global_rotation
+		burst.scale *= 3.0
+		burst.configure(loops)
+		if burst_index > 0:
+			burst.modulate.a = 0.0
+			var tween := create_tween()
+			tween.tween_interval(float(burst_index) * 0.035)
+			tween.tween_property(burst, "modulate:a", 1.0, 0.01)
+		burst_index += 1
 
 func _clear_node(node: Node) -> void:
 	for c in node.get_children():
