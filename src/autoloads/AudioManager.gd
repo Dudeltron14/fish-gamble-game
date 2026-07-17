@@ -59,6 +59,7 @@ const SFX_EXTENSIONS := [".wav", ".mp3", ".ogg"]
 const KENNY_CASINO_AUDIO_DIR := "res://assets/Kenny Casino Audio/Audio/"
 const SFX_PATHS: Dictionary = {
 	"sfx_jackpot_coin_loop": ["res://assets/vfx/floraphonic-jackpot-slot-machine-coin-loop-11-216266.mp3"],
+	"sfx_blackjack_win_sting": ["res://assets/sfx/floraphonic-playful-casino-slot-machine-jackpot-1-183922.mp3"],
 	"sfx_card_deal": [
 		KENNY_CASINO_AUDIO_DIR + "card-slide-1.ogg",
 		KENNY_CASINO_AUDIO_DIR + "card-slide-2.ogg",
@@ -164,7 +165,7 @@ func _load_sfx() -> void:
 		"sfx_bobber_splash",
 		"sfx_card_deal", "sfx_card_flip", "sfx_card_shuffle", "sfx_card_fan",
 	"sfx_cards_pack_open", "sfx_cards_pack_take_out",
-	"sfx_blackjack_win", "sfx_blackjack_lose", "sfx_blackjack_push", "sfx_casino_chips", "sfx_jackpot_coin_loop",
+	"sfx_blackjack_win", "sfx_blackjack_lose", "sfx_blackjack_push", "sfx_casino_chips", "sfx_jackpot_coin_loop", "sfx_blackjack_win_sting",
 	]:
 		if SFX_PATHS.has(name):
 			var streams := _load_sfx_variants(SFX_PATHS[name])

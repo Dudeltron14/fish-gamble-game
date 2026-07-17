@@ -239,6 +239,7 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 		"win":
 			AudioManager.sfx("sfx_blackjack_win")
 			AudioManager.sfx("sfx_casino_chips")
+			AudioManager.sfx("sfx_blackjack_win_sting")
 			if payout > 0:
 				if payout >= 100:
 					AudioManager.sfx("sfx_jackpot_coin_loop")
