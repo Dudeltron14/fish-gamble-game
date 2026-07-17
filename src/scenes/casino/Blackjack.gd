@@ -10,6 +10,8 @@ const CARD_FLIP_HALF_TIME := 0.14
 const CARD_DEAL_ARC_HEIGHT := 54.0
 const MAX_BET := 999999
 const COIN_BURST_SCENE := preload("res://src/scenes/vfx/CoinBurst.tscn")
+const FAIRNESS := preload("res://src/server/BlackjackFairness.gd")
+const WIN_EFFECT_DESIGN_SIZE := Vector2(1280.0, 720.0)
 
 enum State { IDLE, PLAYER_TURN }
 var _state := State.IDLE
@@ -17,6 +19,8 @@ var _dealer_cards: Array = []
 var _dealer_hole_hidden := false
 var _player_value := 0
 var _active_bet := 0
+var _last_shoe_reveal := {}
+var _win_effect_marker_positions := {}
 
 @onready var coins_label: Label     = %CoinsLabel
 @onready var status_label: Label    = %StatusLabel
@@ -26,6 +30,10 @@ var _active_bet := 0
 @onready var dealer_hand: HBoxContainer = %DealerHand
 @onready var dealer_info_label: Label = %DealerInfoLabel
 @onready var deck_count_label: Label = %DeckCountLabel
+@onready var fairness_label: Label = %FairnessLabel
+@onready var fairness_btn: Button = %FairnessBtn
+@onready var fairness_stripes: ColorRect = %FairnessStripes
+@onready var audit_btn: Button = %AuditBtn
 @onready var bet_spin: SpinBox      = %BetSpin
 @onready var deal_btn: Button       = %DealBtn
 @onready var all_in_btn: Button     = %AllInBtn
@@ -41,6 +49,8 @@ func _ready() -> void:
 	NetAPI.bj_deal.connect(_on_deal)
 	NetAPI.bj_shuffled.connect(_on_shuffled)
 	NetAPI.bj_shoe_count.connect(_update_deck_count)
+	NetAPI.bj_shoe_commitment.connect(_on_shoe_commitment)
+	NetAPI.bj_shoe_revealed.connect(_on_shoe_revealed)
 	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_on_leave_pressed)
 	NetAPI.bj_hit.connect(_on_hit)
 	NetAPI.bj_dealer_reveal.connect(_on_dealer_reveal)
@@ -55,12 +65,24 @@ func _ready() -> void:
 	hit_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_hit"))
 	stand_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_stand"))
 	double_btn.pressed.connect(func(): NetAPI.rpc_id(1, "c2s_bj_double"))
+	fairness_btn.pressed.connect(_copy_fairness_reveal)
+	audit_btn.pressed.connect(_show_casino_log)
 	coins_label.text = "Coins: %d" % GameManager.current_coins
 	deck_count_label.tooltip_text = "6-deck shoe. Shuffles when 156 cards remain."
 	_update_deck_count(0)
 	NetAPI.rpc_id(1, "c2s_bj_shoe_count")
 	_refresh_betting_controls()
 	_set_actions(false)
+	_set_fairness_reveal_available(false)
+	for emitter: Marker2D in win_effect_emitters.get_children():
+		_win_effect_marker_positions[emitter] = emitter.position
+	get_viewport().size_changed.connect(_layout_win_effect_emitters)
+	call_deferred("_layout_win_effect_emitters")
+
+func _layout_win_effect_emitters() -> void:
+	var size := get_viewport().get_visible_rect().size
+	for emitter: Marker2D in _win_effect_marker_positions:
+		emitter.position = _win_effect_marker_positions[emitter] * size / WIN_EFFECT_DESIGN_SIZE
 
 # ── Input ─────────────────────────────────────────────────────────────────────
 
@@ -111,6 +133,57 @@ func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance
 
 func _on_shuffled(_deck_remaining: int) -> void:
 	AudioManager.sfx("sfx_card_shuffle")
+
+func _on_shoe_commitment(commitment: String, deck_remaining: int) -> void:
+	fairness_label.text = _masked_commitment(commitment)
+	fairness_label.tooltip_text = "SHA-256 commitment published before any card is dealt. Cards left: %d.%s" % [deck_remaining, " Last shoe verified." if not _last_shoe_reveal.is_empty() else ""]
+
+func _masked_commitment(commitment: String) -> String:
+	var masked := commitment.left(12) + "*".repeat(maxi(0, commitment.length() - 12))
+	return "Fair shoe:\n%s\n%s\n%s\n%s" % [masked.substr(0, 16), masked.substr(16, 16), masked.substr(32, 16), masked.substr(48, 16)]
+
+func _on_shoe_revealed(commitment: String, seed: String, nonce: String, dealt_cards: Array, audit_log: Array) -> void:
+	var verified := FAIRNESS.verify_reveal(commitment, seed, nonce, dealt_cards)
+	_last_shoe_reveal = {"commitment": commitment, "seed": seed, "nonce": nonce, "dealt_cards": dealt_cards, "audit_log": audit_log, "verified": verified}
+	_set_fairness_reveal_available(true)
+	print("Blackjack fairness reveal: %s" % JSON.stringify(_last_shoe_reveal))
+
+func _set_fairness_reveal_available(available: bool) -> void:
+	fairness_btn.disabled = not available
+	fairness_btn.text = "Copy Last Fairness Reveal" if available else "Fairness Reveal Locked"
+	fairness_stripes.visible = not available
+	audit_btn.visible = available
+
+func _copy_fairness_reveal() -> void:
+	if _last_shoe_reveal.is_empty():
+		status_label.text = "The current shoe is committed; reveal data arrives after it is replaced."
+		return
+	DisplayServer.clipboard_set(JSON.stringify(_last_shoe_reveal))
+	status_label.text = "Fairness reveal copied for independent verification."
+
+func _show_casino_log() -> void:
+	if _last_shoe_reveal.is_empty():
+		return
+	var dialog := AcceptDialog.new()
+	dialog.title = "Completed Shoe Casino Log"
+	var log_view := TextEdit.new()
+	log_view.editable = false
+	log_view.position = Vector2(16, 44)
+	log_view.size = Vector2(568, 350)
+	log_view.text = _casino_log_text()
+	dialog.add_child(log_view)
+	add_child(dialog)
+	dialog.confirmed.connect(dialog.queue_free)
+	dialog.popup_centered(Vector2i(600, 420))
+
+func _casino_log_text() -> String:
+	var lines := ["Completed shoe audit — cards were fixed before play began."]
+	for index in _last_shoe_reveal.get("audit_log", []).size():
+		var entry: Dictionary = _last_shoe_reveal["audit_log"][index]
+		var card: Dictionary = entry.get("card", {})
+		var card_name := "%s%s" % [RANKS[int(card.get("rank", 0))], SUITS[int(card.get("suit", 0))]]
+		lines.append("%03d  %s — %s: %s" % [index + 1, entry.get("actor", "Dealer"), entry.get("action", "deal"), card_name])
+	return "\n".join(lines)
 
 func _on_hit(card: Dictionary, new_val: int, deck_remaining: int) -> void:
 	_deal_card_animated(player_hand, _card_widget(card), 0.0, true)
@@ -420,8 +493,6 @@ func _spawn_coin_bursts(payout: int) -> void:
 		loops = 2
 	elif payout >= 50:
 		bursts_per_corner = 2
-
-	var viewport_size := get_viewport().get_visible_rect().size
 
 	var burst_index := 0
 	for emitter: Marker2D in win_effect_emitters.get_children():

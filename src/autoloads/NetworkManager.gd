@@ -10,6 +10,9 @@ const DEFAULT_PORT := 7070
 
 var _peer: WebSocketMultiplayerPeer = null
 
+func get_connection_status() -> int:
+	return _peer.get_connection_status() if _peer != null else MultiplayerPeer.CONNECTION_DISCONNECTED
+
 func _ready() -> void:
 	multiplayer.connected_to_server.connect(_on_connected_to_server)
 	multiplayer.connection_failed.connect(_on_connection_failed)
@@ -30,7 +33,8 @@ func start_server(port: int = DEFAULT_PORT) -> Error:
 	return OK
 
 func connect_to_url(url: String) -> Error:
-	disconnect_from_server()
+	if _peer != null:
+		disconnect_from_server()
 	_peer = WebSocketMultiplayerPeer.new()
 	var err := _peer.create_client(url)
 	if err != OK:

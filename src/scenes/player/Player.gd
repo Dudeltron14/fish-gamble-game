@@ -8,6 +8,7 @@ const CATCH_DISPLAY_SIZE := 32.0
 const FISH_SHEET := preload("res://assets/free fish/free fish.png")
 const FISH_FRAME_SIZE := Vector2i(16, 16)
 const FISH_SHEET_COLUMNS := 3
+const PLAYER_RENDER_LAYER := 1000
 
 @export var player_name: String = "":
 	set(v):
@@ -33,6 +34,7 @@ var _catch_tween: Tween = null
 
 func _ready() -> void:
 	_update_local_control()
+	_update_draw_order()
 	if not GameManager.camera_zoom_changed.is_connected(_on_camera_zoom_changed):
 		GameManager.camera_zoom_changed.connect(_on_camera_zoom_changed)
 	name_label.text = player_name
@@ -57,10 +59,14 @@ func _update_local_control() -> void:
 func _process(delta: float) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting:
 		return
+	_update_draw_order()
 	if _is_local_authority():
 		# ponytail: snap only large drift; add sequence/replay reconciliation if collision mismatches are visible.
 		return
 	position = position.lerp(_remote_target_position, minf(1.0, REMOTE_LERP_SPEED * delta))
+
+func _update_draw_order() -> void:
+	z_index = PLAYER_RENDER_LAYER + floori(global_position.y)
 
 func _physics_process(delta: float) -> void:
 	if _is_dedicated_server_player():

@@ -1,17 +1,14 @@
-[gd_resource type="Resource" script_class="FishData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="FishData" format=3 uid="uid://btiyo21n06wm3"]
 
-[ext_resource type="Script" path="res://src/resources/items/FishData.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/User_Gen_ChatGPT/Fish/junk_seaweed_v2.png" id="2_seaweed"]
+[ext_resource type="Script" uid="uid://cmwmeh18ej2d2" path="res://src/resources/items/FishData.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://chkb3st3nc2to" path="res://assets/User_Gen_ChatGPT/Fish/junk_seaweed_v2.png" id="2_seaweed"]
 
 [resource]
 script = ExtResource("1")
+base_coin_value = 0
+catch_difficulty = 0.2
+sprite_frame = -1
 id = "junk_seaweed"
 display_name = "Clump of Seaweed"
 description = "Gross. Use some bait next time."
 icon = ExtResource("2_seaweed")
-buy_price = 0
-sell_price = 0
-rarity = "common"
-base_coin_value = 0
-catch_difficulty = 0.2
-sprite_frame = -1

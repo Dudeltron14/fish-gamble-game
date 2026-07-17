@@ -1,16 +1,21 @@
-[gd_resource type="Resource" script_class="BaitData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="BaitData" format=3 uid="uid://c5wdt7204mqji"]
 
-[ext_resource type="Script" path="res://src/resources/items/BaitData.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/User_Gen_ChatGPT/gear/magic_bait.png" id="2_icon"]
+[ext_resource type="Script" uid="uid://clv3naw4uehe8" path="res://src/resources/items/BaitData.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://b3eieevx18di" path="res://assets/User_Gen_ChatGPT/gear/magic_bait.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1")
+rarity_weights = {
+"common": 0.0,
+"legendary": 0.15,
+"rare": 0.4,
+"uncommon": 0.425
+}
+uses_per_stack = 5
+wait_modifier = 0.55
 id = "magic_bait"
 display_name = "Magic Bait"
 description = "Smells like thunder, starlight, and an expensive secret."
 icon = ExtResource("2_icon")
 buy_price = 60
 sell_price = 20
-rarity_weights = {"common": 0.0, "uncommon": 0.425, "rare": 0.40, "legendary": 0.15}
-uses_per_stack = 5
-wait_modifier = 0.55

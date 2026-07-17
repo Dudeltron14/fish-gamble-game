@@ -1,17 +1,15 @@
-[gd_resource type="Resource" script_class="FishData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="FishData" format=3 uid="uid://dsq3w6y48bsgc"]
 
-[ext_resource type="Script" path="res://src/resources/items/FishData.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/User_Gen_ChatGPT/Fish/overflowing_gold_chest.png" id="2_chest"]
+[ext_resource type="Script" uid="uid://cmwmeh18ej2d2" path="res://src/resources/items/FishData.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://cdtwfhjfaxgcd" path="res://assets/User_Gen_ChatGPT/Fish/overflowing_gold_chest.png" id="2_chest"]
 
 [resource]
 script = ExtResource("1")
-id = "legendary_chest"
-display_name = "Sunken Chest"
-description = "How did this end up down there? Worth a fortune."
-buy_price = 0
-sell_price = 0
-icon = ExtResource("2_chest")
 rarity = "legendary"
 base_coin_value = 150
 catch_difficulty = 2.2
 sprite_frame = 5
+id = "legendary_chest"
+display_name = "Sunken Chest"
+description = "How did this end up down there? Worth a fortune."
+icon = ExtResource("2_chest")

@@ -16,6 +16,8 @@ signal hook_durability_changed(current: int, max_val: int)
 signal bj_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int, deck_remaining: int)
 signal bj_shuffled(deck_remaining: int)
 signal bj_shoe_count(deck_remaining: int)
+signal bj_shoe_commitment(commitment: String, deck_remaining: int)
+signal bj_shoe_revealed(commitment: String, seed: String, nonce: String, dealt_cards: Array, audit_log: Array)
 signal bj_hit(card: Dictionary, new_val: int, deck_remaining: int)
 signal bj_dealer_reveal(full_hand: Array, value: int, deck_remaining: int)
 signal bj_dealer_card(card: Dictionary, value: int, deck_remaining: int)
@@ -246,6 +248,16 @@ func notify_bj_shuffled(deck_remaining: int) -> void:
 func notify_bj_shoe_count(deck_remaining: int) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	bj_shoe_count.emit(deck_remaining)
+
+@rpc("authority", "call_local", "reliable")
+func notify_bj_shoe_commitment(commitment: String, deck_remaining: int) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	bj_shoe_commitment.emit(commitment, deck_remaining)
+
+@rpc("authority", "call_local", "reliable")
+func notify_bj_shoe_revealed(commitment: String, seed: String, nonce: String, dealt_cards: Array, audit_log: Array) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	bj_shoe_revealed.emit(commitment, seed, nonce, dealt_cards, audit_log)
 
 @rpc("authority", "call_local", "reliable")
 func notify_bj_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int, deck_remaining: int) -> void:

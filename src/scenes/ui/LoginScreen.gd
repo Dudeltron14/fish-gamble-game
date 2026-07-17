@@ -2,6 +2,8 @@ extends Control
 
 const CONNECT_TIMEOUT := 5.0
 const AUTH_TIMEOUT := 5.0
+const STATUS_CONNECT_TIMEOUT := 12.0
+const STATUS_QUERY_RETRY_DELAY := 0.75
 const SERVER_URL := "wss://fishserver.dudeltron14.win"
 const SERVER_LABEL := "Production Server"
 const MENU_EFFECT_REFERENCE_SIZE := Vector2(1280.0, 720.0)
@@ -59,11 +61,11 @@ func _on_register_pressed() -> void:
 
 func _maybe_connect() -> void:
 	set_buttons_enabled(false)
-	var peer: MultiplayerPeer = multiplayer.multiplayer_peer
-	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+	var connection_status := NetworkManager.get_connection_status()
+	if connection_status == MultiplayerPeer.CONNECTION_CONNECTED:
 		_execute_pending()
 		return
-	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTING:
+	if connection_status == MultiplayerPeer.CONNECTION_CONNECTING:
 		set_status("Connecting to %s..." % SERVER_LABEL.to_lower())
 		return
 	_connect_attempt_id += 1
@@ -94,7 +96,8 @@ func _execute_pending() -> void:
 
 func _on_network_connected() -> void:
 	if _pending == _Action.NONE:
-		NetAPI.rpc_id(1, "c2s_server_status", Time.get_ticks_msec())
+		if _checking_server_status:
+			_send_server_status_query(_status_attempt_id)
 	else:
 		_execute_pending()
 
@@ -132,8 +135,7 @@ func _check_connect_timeout(attempt_id: int) -> void:
 	await get_tree().create_timer(CONNECT_TIMEOUT).timeout
 	if attempt_id != _connect_attempt_id:
 		return
-	var peer: MultiplayerPeer = multiplayer.multiplayer_peer
-	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+	if NetworkManager.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
 		return
 	NetworkManager.disconnect_from_server()
 	set_status("Connection timed out. Check the server address and port.")
@@ -153,19 +155,40 @@ func _request_server_status() -> void:
 	_status_attempt_id += 1
 	var attempt_id := _status_attempt_id
 	_set_server_status("Checking server…", true)
-	var peer: MultiplayerPeer = multiplayer.multiplayer_peer
-	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
-		NetAPI.rpc_id(1, "c2s_server_status", Time.get_ticks_msec())
-		_check_server_status_timeout(attempt_id)
+	var connection_status := NetworkManager.get_connection_status()
+	if connection_status == MultiplayerPeer.CONNECTION_CONNECTED:
+		_send_server_status_query(attempt_id)
 		return
-	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTING:
-		_check_server_status_timeout(attempt_id)
+	if connection_status == MultiplayerPeer.CONNECTION_CONNECTING:
+		_check_server_status_connection_timeout(attempt_id)
 		return
 	if NetworkManager.connect_to_url(SERVER_URL) != OK:
 		_checking_server_status = false
 		_set_server_status("Offline", false)
 		return
+	_check_server_status_connection_timeout(attempt_id)
+
+func _send_server_status_query(attempt_id: int) -> void:
+	NetAPI.rpc_id(1, "c2s_server_status", Time.get_ticks_msec())
+	_retry_server_status_query(attempt_id)
 	_check_server_status_timeout(attempt_id)
+
+func _retry_server_status_query(attempt_id: int) -> void:
+	await get_tree().create_timer(STATUS_QUERY_RETRY_DELAY).timeout
+	if attempt_id != _status_attempt_id or not _checking_server_status:
+		return
+	if NetworkManager.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		NetAPI.rpc_id(1, "c2s_server_status", Time.get_ticks_msec())
+
+func _check_server_status_connection_timeout(attempt_id: int) -> void:
+	await get_tree().create_timer(STATUS_CONNECT_TIMEOUT).timeout
+	if attempt_id != _status_attempt_id or not _checking_server_status:
+		return
+	if NetworkManager.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		return
+	_checking_server_status = false
+	NetworkManager.disconnect_from_server()
+	_set_server_status("Offline", false)
 
 func _check_server_status_timeout(attempt_id: int) -> void:
 	await get_tree().create_timer(CONNECT_TIMEOUT).timeout

@@ -341,6 +341,9 @@ func _show_result(success: bool, msg: String) -> void:
 	panel.global_position += Vector2(0, 143)
 	result_label.text = msg
 	result_label.modulate = Color(0.3, 1.0, 0.4) if success else Color(1.0, 0.4, 0.4)
+	if not success:
+		result_label.add_theme_color_override("font_outline_color", Color(0.12, 0.03, 0.03))
+		result_label.add_theme_constant_override("outline_size", 3)
 	result_label.visible = true
 	result_label.scale = Vector2(0.6, 0.6)
 	var tween := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
