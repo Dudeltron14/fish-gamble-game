@@ -39,7 +39,7 @@ func _ready() -> void:
 	_add_slider(box, "Music", 0.0, 100.0, 1.0, ClientSettings.music_volume, ClientSettings.set_music_volume)
 	_add_slider(box, "SFX", 0.0, 100.0, 1.0, ClientSettings.sfx_volume, ClientSettings.set_sfx_volume)
 	_zoom_value = _add_slider(box, "View Zoom", 1.0, 4.0, 0.25, GameManager.camera_zoom, ClientSettings.set_camera_zoom)
-	_ui_scale_value = _add_slider(box, "UI Scale", 0.75, 1.5, 0.05, ClientSettings.ui_scale, ClientSettings.set_ui_scale)
+	_ui_scale_value = _add_slider(box, "UI Scale", 0.75, 2.0, 0.05, ClientSettings.ui_scale, ClientSettings.set_ui_scale)
 	_refresh_values()
 	var close := Button.new()
 	close.text = "Close"
