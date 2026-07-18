@@ -77,3 +77,6 @@ func get_leaderboard() -> Array:
 			entries.append({"username": session.username, "coins": session.coins})
 	entries.sort_custom(func(a, b): return a.coins > b.coins)
 	return entries
+
+func broadcast_leaderboard() -> void:
+	NetAPI.rpc("notify_leaderboard", get_leaderboard())

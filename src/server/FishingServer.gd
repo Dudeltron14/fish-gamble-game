@@ -117,6 +117,7 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	var earned := int(fish.base_coin_value * fish.catch_difficulty * multiplier)
 	session.coins += earned
 	_save_coins(session)
+	GameServer.broadcast_leaderboard()
 	NetAPI.rpc_id(peer_id, "notify_fishing_result", true, fish_id, earned, session.coins)
 	NetAPI.rpc("notify_player_catch", peer_id, fish_id)
 
