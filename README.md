@@ -244,7 +244,7 @@ See [docs/FRAMEWORKS.md](docs/FRAMEWORKS.md) for the full guide.
 
 ## Tech Stack
 
-- **Engine** — Godot 4.6.3
+- **Engine** — Godot 4.7.1
 - **Networking** — WebSocket (`WebSocketMultiplayerPeer`), server-authoritative RPC
 - **Database** — SQLite via [godot-sqlite](https://github.com/2shady4u/godot-sqlite) GDExtension
 - **Assets** — Git LFS (PNG, GIF, audio, DLL)

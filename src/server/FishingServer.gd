@@ -26,12 +26,12 @@ const STARTER_COMMON_IDS := [
 	"common_tropical_bluegill",
 	"common_freshwater_snail",
 	"common_mossback_bass",
+	"uncommon_sunset_conch",
 ]
 const STARTER_UNCOMMON_IDS := [
 	"uncommon_bass",
 	"uncommon_silver_shad",
 	"uncommon_red_dock_crab",
-	"uncommon_sunset_conch",
 ]
 const RARE_CATCH_WEIGHTS := {
 	"rare_pearl_clam": 0.75,

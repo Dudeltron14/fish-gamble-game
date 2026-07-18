@@ -3,12 +3,14 @@ extends Node
 const BUS_MASTER := "Master"
 const BUS_SFX    := "SFX"
 const BUS_MUSIC  := "Music"
+const MUSIC_CONTEXT_GAIN_DB := {"menu": -3.0}
 
 # ── Music playlists ───────────────────────────────────────────────────────────
 # Edit these path arrays to assign tracks to each context.
 # Tracks cycle in order; set shuffle = true to randomise.
 
 const PLAYLISTS: Dictionary = {
+	"menu":    [],
 	"world":   [],   # populated below — fill with AudioStream paths
 	"fishing": [],
 	"shop":    [],
@@ -16,6 +18,9 @@ const PLAYLISTS: Dictionary = {
 }
 
 const PLAYLIST_PATHS: Dictionary = {
+	"menu": [
+		"res://assets/music/Brindle Harbor.mp3",
+	],
 	"world": [
 		"res://assets/music/Harbor Dice.mp3",
 		"res://assets/music/Harbor Dice (1).mp3",
@@ -128,6 +133,7 @@ var _sfx_lib: Dictionary = {}
 # ── Internal state ────────────────────────────────────────────────────────────
 
 var _music_player: AudioStreamPlayer
+var _music_fade_player: AudioStreamPlayer
 var _sfx_pool: Array[AudioStreamPlayer] = []
 const SFX_POOL_SIZE := 8
 
@@ -138,6 +144,8 @@ var _playlist_loaded: Dictionary  = {}
 var _music_vol_linear: float      = 1.0
 var _sfx_vol_linear: float        = 1.0
 var _music_tween: Tween = null
+var _music_fade_tween: Tween = null
+var _music_transition_id := 0
 
 func _ready() -> void:
 	_ensure_audio_bus(BUS_MUSIC)
@@ -147,6 +155,9 @@ func _ready() -> void:
 	_music_player.bus = BUS_MUSIC
 	_music_player.finished.connect(_on_track_finished)
 	add_child(_music_player)
+	_music_fade_player = AudioStreamPlayer.new()
+	_music_fade_player.bus = BUS_MUSIC
+	add_child(_music_fade_player)
 
 	for i in SFX_POOL_SIZE:
 		var player := AudioStreamPlayer.new()
@@ -228,7 +239,19 @@ func _play_current_track() -> void:
 	if _current_playlist.is_empty():
 		return
 	var stream: AudioStream = _current_playlist[_track_index]
-	play_music(stream, crossfade_time * 0.5)
+	play_music(stream, crossfade_time)
+	_schedule_track_crossfade(stream)
+
+func _schedule_track_crossfade(stream: AudioStream) -> void:
+	var delay := stream.get_length() - crossfade_time
+	if delay <= 0.0:
+		return
+	var transition_id := _music_transition_id
+	await get_tree().create_timer(delay).timeout
+	if transition_id != _music_transition_id or _music_player.stream != stream:
+		return
+	_track_index = (_track_index + 1) % _current_playlist.size()
+	_play_current_track()
 
 func _on_track_finished() -> void:
 	if _current_playlist.is_empty():
@@ -239,17 +262,24 @@ func _on_track_finished() -> void:
 func skip_track() -> void:
 	if _current_playlist.is_empty():
 		return
-	stop_music(crossfade_time * 0.5)
-	await get_tree().create_timer(crossfade_time * 0.5).timeout
 	_track_index = (_track_index + 1) % _current_playlist.size()
 	_play_current_track()
 
 # ── Core music controls ───────────────────────────────────────────────────────
 
 func play_music(stream: AudioStream, fade_in: float = 0.5) -> void:
-	if _music_player.playing and _music_player.stream == stream:
-		return
+	_music_transition_id += 1
 	_kill_music_tween()
+	_kill_music_fade_tween()
+	if _music_player.playing:
+		_music_fade_player.stop()
+		_music_fade_player.stream = _music_player.stream
+		_music_fade_player.volume_db = _music_player.volume_db
+		_music_fade_player.play(_music_player.get_playback_position())
+		_music_fade_tween = create_tween()
+		_music_fade_tween.tween_property(_music_fade_player, "volume_db", -80.0, fade_in)
+		_music_fade_tween.tween_callback(_music_fade_player.stop)
+	_music_player.stop()
 	_music_player.stream = stream
 	_music_player.volume_db = -80.0
 	_music_player.play()
@@ -257,9 +287,15 @@ func play_music(stream: AudioStream, fade_in: float = 0.5) -> void:
 	_music_tween.tween_property(_music_player, "volume_db", _music_volume_db(), fade_in)
 
 func stop_music(fade_out: float = 0.5) -> void:
+	_music_transition_id += 1
+	_kill_music_tween()
+	_kill_music_fade_tween()
+	if _music_fade_player.playing:
+		_music_fade_tween = create_tween()
+		_music_fade_tween.tween_property(_music_fade_player, "volume_db", -80.0, fade_out)
+		_music_fade_tween.tween_callback(_music_fade_player.stop)
 	if not _music_player.playing:
 		return
-	_kill_music_tween()
 	_music_tween = create_tween()
 	_music_tween.tween_property(_music_player, "volume_db", -80.0, fade_out)
 	_music_tween.tween_callback(_music_player.stop)
@@ -310,9 +346,14 @@ func _ensure_audio_bus(bus_name: String) -> void:
 func _music_volume_db() -> float:
 	if _music_vol_linear <= 0.0:
 		return -80.0
-	return linear_to_db(_music_vol_linear)
+	return linear_to_db(_music_vol_linear) + MUSIC_CONTEXT_GAIN_DB.get(_current_context, 0.0)
 
 func _kill_music_tween() -> void:
 	if _music_tween and _music_tween.is_valid():
 		_music_tween.kill()
 	_music_tween = null
+
+func _kill_music_fade_tween() -> void:
+	if _music_fade_tween and _music_fade_tween.is_valid():
+		_music_fade_tween.kill()
+	_music_fade_tween = null

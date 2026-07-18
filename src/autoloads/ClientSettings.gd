@@ -7,8 +7,8 @@ const UI_SCALE_VERSION := 3
 const VIEW_ZOOM_BASE := 4.0
 const VIEW_ZOOM_VERSION := 2
 
-var music_volume := 80.0
-var sfx_volume := 80.0
+var music_volume := 40.0
+var sfx_volume := 40.0
 var ui_scale := 1.0
 
 func _ready() -> void:

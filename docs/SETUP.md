@@ -39,8 +39,8 @@ godot --path /path/to/project --export-release "Preset Name" output/path
 On Windows, prefer the console executable so export errors are visible:
 
 ```powershell
-& "C:/Users/Noah/Downloads/Godot_v4.6.3-stable_win64.exe/Godot_v4.6.3-stable_win64_console.exe" --headless --path . --export-release "Linux" export/server/FishGambleGame.x86_64
-& "C:/Users/Noah/Downloads/Godot_v4.6.3-stable_win64.exe/Godot_v4.6.3-stable_win64_console.exe" --headless --path . --export-release "Web" export/web/index.html
+& "C:/Users/Noah/Downloads/Godot_v4.7.1-stable_win64.exe/Godot_v4.7.1-stable_win64_console.exe" --headless --path . --export-release "Linux" export/server/FishGambleGame.x86_64
+& "C:/Users/Noah/Downloads/Godot_v4.7.1-stable_win64.exe/Godot_v4.7.1-stable_win64_console.exe" --headless --path . --export-release "Web" export/web/index.html
 ```
 
 If this fails with missing files under `AppData/Roaming/Godot/export_templates/<version>.stable`, install export templates in Godot via:
@@ -675,7 +675,7 @@ git push origin v1.0.0
 ```
 
 GitHub Actions will automatically:
-1. Export Linux server binary + Web client (via `barichello/godot-ci:4.6.3`)
+1. Export Linux server binary + Web client (via `barichello/godot-ci:4.7.1`)
 2. Build and push Docker images to `ghcr.io/dudeltron14/fish-gamble-game` and `ghcr.io/dudeltron14/fish-gamble-game-web`
 3. Optionally deploy the Web client to Cloudflare Pages if Cloudflare secrets are configured
 4. Attach web export files to the GitHub Release for tagged releases

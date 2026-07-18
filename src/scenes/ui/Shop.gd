@@ -194,6 +194,8 @@ func _on_equip_result(ok: bool, item_id: String, slot: String) -> void:
 			"bait":   GameManager.equipped_bait_id   = item_id
 			"tackle": GameManager.equipped_tackle_id = item_id
 		GameManager.equipped_changed.emit()
+		if _gear_stats_panel and _gear_stats_panel.has_method("flash_slot"):
+			_gear_stats_panel.flash_slot(slot)
 		AudioManager.sfx("sfx_equip")
 		_populate.call_deferred()
 	else:
