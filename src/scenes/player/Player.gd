@@ -8,6 +8,9 @@ const CATCH_DISPLAY_SIZE := 32.0
 const FISH_SHEET := preload("res://assets/free fish/free fish.png")
 const FISH_FRAME_SIZE := Vector2i(16, 16)
 const FISH_SHEET_COLUMNS := 3
+const CATCH_IMPACT_BLUE := preload("res://assets/vfx/catch_impact_blue_sheet.png")
+const CATCH_SPARKLE_BLUE := preload("res://assets/vfx/catch_sparkle_blue_sheet.png")
+const CATCH_IMPACT_GOLD := preload("res://assets/vfx/catch_impact_gold_sheet.png")
 const PLAYER_RENDER_LAYER := 1000
 
 @export var player_name: String = "":
@@ -145,6 +148,8 @@ func show_catch(fish_id: String) -> void:
 	var fish := ItemRegistry.get_item(fish_id) as FishData
 	if fish == null:
 		return
+	for effect in catch_sprite.get_children():
+		effect.queue_free()
 	catch_sprite.texture = _catch_texture_for(fish)
 	if catch_sprite.texture == null:
 		return
@@ -152,6 +157,7 @@ func show_catch(fish_id: String) -> void:
 	catch_sprite.modulate = Color.WHITE
 	catch_sprite.position = Vector2(8, -41)
 	catch_sprite.visible = true
+	_play_catch_effects(fish)
 	if _catch_tween:
 		_catch_tween.kill()
 	_catch_tween = create_tween().set_parallel(true)
@@ -160,7 +166,40 @@ func show_catch(fish_id: String) -> void:
 	_catch_tween.finished.connect(func() -> void:
 		catch_sprite.visible = false
 		catch_sprite.texture = null
+		for effect in catch_sprite.get_children():
+			effect.queue_free()
 	)
+
+func _play_catch_effects(fish: FishData) -> void:
+	if fish.id.begins_with("junk_") or fish.id == "legendary_kraken":
+		return
+	if fish.id in ["legendary_chest", "legendary_key"]:
+		_play_catch_effect(CATCH_IMPACT_GOLD, Vector2i(48, 48))
+	elif fish.rarity == "rare":
+		_play_catch_effect(CATCH_IMPACT_BLUE, Vector2i(48, 48))
+		_play_catch_effect(CATCH_SPARKLE_BLUE, Vector2i(32, 32), 1.75)
+	elif fish.rarity in ["common", "uncommon"]:
+		_play_catch_effect(CATCH_IMPACT_BLUE, Vector2i(48, 48))
+
+func _play_catch_effect(sheet: Texture2D, frame_size: Vector2i, effect_scale: float = 1.0) -> void:
+	var frames := SpriteFrames.new()
+	frames.add_animation("catch")
+	var frame_count := sheet.get_width() / frame_size.x
+	frames.set_animation_speed("catch", frame_count / (CATCH_DISPLAY_SECONDS - 0.35))
+	frames.set_animation_loop("catch", false)
+	for column in frame_count:
+		var frame := AtlasTexture.new()
+		frame.atlas = sheet
+		frame.region = Rect2(Vector2(column * frame_size.x, 0), frame_size)
+		frames.add_frame("catch", frame)
+	var effect := AnimatedSprite2D.new()
+	effect.sprite_frames = frames
+	effect.animation = "catch"
+	effect.scale = Vector2.ONE / catch_sprite.scale * effect_scale
+	effect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	effect.show_behind_parent = true
+	catch_sprite.add_child(effect)
+	effect.play()
 
 func apply_remote_state(pos: Vector2, animation: String, flip_h: bool, menu_hidden: bool, bobber_cast_quality: float = -1.0) -> void:
 	_remote_target_position = pos
