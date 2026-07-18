@@ -33,6 +33,8 @@ func _ready() -> void:
 	official_server_btn.pressed.connect(_request_server_status)
 	login_btn.pressed.connect(_on_login_pressed)
 	register_btn.pressed.connect(_on_register_pressed)
+	username_field.text_submitted.connect(_on_field_submitted)
+	password_field.text_submitted.connect(_on_field_submitted)
 	NetAPI.login_result.connect(_on_login_result)
 	NetAPI.register_result.connect(_on_register_result)
 	NetAPI.server_status.connect(_on_server_status)
@@ -42,6 +44,10 @@ func _ready() -> void:
 	resized.connect(_layout_menu_effects)
 	call_deferred("_capture_menu_effect_bases")
 	_request_server_status()
+
+func _on_field_submitted(_new_text: String) -> void:
+	if not login_btn.disabled:
+		_on_login_pressed()
 
 func _on_login_pressed() -> void:
 	if not _validate():
