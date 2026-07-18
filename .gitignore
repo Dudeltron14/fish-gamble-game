@@ -29,6 +29,7 @@ test_sqlite.gd.uid
 
 # Generated script UIDs for local-only test/runtime scripts
 /src/scenes/vfx/FallingCoin.gd.uid
+/src/scenes/ui/LeaderboardPanel.gd.uid
 /src/server/BlackjackFairness.gd.uid
 /tests/*.gd.uid
 

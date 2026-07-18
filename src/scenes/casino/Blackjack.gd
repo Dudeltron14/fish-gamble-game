@@ -4,7 +4,7 @@ signal completed
 
 const RANKS := ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]
 const SUITS := ["♠","♥","♦","♣"]
-const CARD_SIZE := Vector2(55, 81)
+const CARD_SIZE := Vector2(64, 94)
 const CARD_DEAL_FLY_TIME := 0.32
 const CARD_FLIP_HALF_TIME := 0.14
 const CARD_DEAL_ARC_HEIGHT := 54.0
@@ -220,15 +220,12 @@ func _on_hit(card: Dictionary, new_val: int, deck_remaining: int) -> void:
 	double_btn.disabled = true
 
 func _on_dealer_reveal(full_hand: Array, value: int, deck_remaining: int) -> void:
-	_clear_node(dealer_hand)
 	_dealer_cards = full_hand.duplicate()
 	_dealer_hole_hidden = false
 	_update_dealer_info(value)
 	_update_deck_count(deck_remaining)
-	# Flip the hole card with stagger
-	var delay := 0.0
-	for c in full_hand:
-		_deal_card_animated(dealer_hand, _card_widget(c), delay, true); delay += 0.24
+	if full_hand.size() >= 2 and dealer_hand.get_child_count() >= 2:
+		_flip_card_in_place(dealer_hand, dealer_hand.get_child(1), _card_widget(full_hand[1]), true)
 	status_label.text = "Dealer: %d — playing…" % value
 	_set_actions(false)
 

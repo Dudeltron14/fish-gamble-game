@@ -51,6 +51,9 @@ var _expanded := false
 var _expanded_bottom := 0.0
 var _vbox: VBoxContainer
 var _shop_mode := false
+var _flash_tween: Tween
+var _flash_labels: Array[Label] = []
+var _flash_styles: Array[StyleBoxFlat] = []
 
 func _ready() -> void:
 	ClientSettings.register_ui_scale_target(panel, Vector2(1.0, 0.0))
@@ -95,6 +98,52 @@ func configure_for_shop() -> void:
 	layer = 11
 	if is_node_ready():
 		_apply_shop_mode()
+
+func flash_slot(slot: String) -> void:
+	_clear_flash()
+	var labels: Array[Label] = []
+	match slot:
+		"rod": labels = [rod_header_lbl, cast_lbl, reel_lbl, rarity_bonus_lbl]
+		"bait": labels = [bait_header_lbl, bite_lbl, common_lbl, uncommon_lbl, rare_lbl, legendary_lbl]
+		"tackle":
+			labels = [hook_header_lbl, durability_lbl, coin_lbl, react_lbl]
+			if GameManager.equipped_tackle_id == "treasure_magnet":
+				labels.append_array([bait_header_lbl, bite_lbl, common_lbl, uncommon_lbl, rare_lbl, legendary_lbl])
+		_: return
+	for label in labels:
+		var highlight := StyleBoxFlat.new()
+		highlight.bg_color = Color(1.0, 0.78, 0.12, 0.32)
+		highlight.border_width_left = 1
+		highlight.border_width_top = 1
+		highlight.border_width_right = 1
+		highlight.border_width_bottom = 1
+		highlight.border_color = Color(1.0, 0.9, 0.35, 0.9)
+		highlight.corner_radius_top_left = 2
+		highlight.corner_radius_top_right = 2
+		highlight.corner_radius_bottom_left = 2
+		highlight.corner_radius_bottom_right = 2
+		highlight.content_margin_left = 2
+		highlight.content_margin_right = 2
+		label.add_theme_stylebox_override("normal", highlight)
+		_flash_styles.append(highlight)
+	_flash_labels = labels
+	_flash_tween = create_tween()
+	_flash_tween.tween_interval(1.0)
+	_flash_tween.set_parallel(true)
+	for highlight in _flash_styles:
+		_flash_tween.tween_property(highlight, "bg_color", Color(1.0, 0.78, 0.12, 0.0), 1.5)
+		_flash_tween.tween_property(highlight, "border_color", Color(1.0, 0.9, 0.35, 0.0), 1.5)
+	_flash_tween.set_parallel(false)
+	_flash_tween.tween_callback(_clear_flash)
+
+func _clear_flash() -> void:
+	if _flash_tween and _flash_tween.is_valid():
+		_flash_tween.kill()
+	for label in _flash_labels:
+		if is_instance_valid(label):
+			label.remove_theme_stylebox_override("normal")
+	_flash_labels.clear()
+	_flash_styles.clear()
 
 func _apply_shop_mode() -> void:
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP

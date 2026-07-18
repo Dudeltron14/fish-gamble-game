@@ -126,7 +126,7 @@ theme_override_constants/margin_right = 28
 theme_override_constants/margin_bottom = 20
 
 [node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin" unique_id=671428135]
-custom_minimum_size = Vector2(500, 0)
+custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
 theme_override_constants/separation = 12
 
@@ -158,7 +158,7 @@ theme_override_constants/separation = 12
 
 [node name="DealerHand" type="HBoxContainer" parent="Center/Panel/Margin/VBox/DealerRow" unique_id=1026327009]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 85)
+custom_minimum_size = Vector2(0, 98)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
@@ -180,7 +180,7 @@ size_flags_horizontal = 3
 [node name="DeckStack" type="TextureRect" parent="Center/Panel/Margin/VBox/DeckRow" unique_id=1084433314]
 unique_name_in_owner = true
 texture_filter = 2
-custom_minimum_size = Vector2(55, 81)
+custom_minimum_size = Vector2(64, 94)
 layout_mode = 2
 texture = ExtResource("3_card_back")
 expand_mode = 1
@@ -202,7 +202,7 @@ text = "Your Hand"
 
 [node name="PlayerHand" type="HBoxContainer" parent="Center/Panel/Margin/VBox" unique_id=70004042]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 85)
+custom_minimum_size = Vector2(0, 98)
 layout_mode = 2
 theme_override_constants/separation = 6
 
