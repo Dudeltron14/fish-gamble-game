@@ -43,6 +43,10 @@ func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 	if session == null or session.current_zone != "DockZone":
 		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0, 1.0, 1.0)
 		return
+	if session.catch_inventory_is_full():
+		NetAPI.rpc_id(peer_id, "notify_catch_inventory_full")
+		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0, 1.0, 1.0)
+		return
 	if session.enforce_equipment_rules():
 		_persist_equipment(session)
 
@@ -114,11 +118,14 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	if tackle:
 		multiplier = tackle.coin_multiplier
 
-	var earned := int(fish.base_coin_value * fish.catch_difficulty * multiplier)
-	session.coins += earned
-	_save_coins(session)
-	GameServer.broadcast_leaderboard()
-	NetAPI.rpc_id(peer_id, "notify_fishing_result", true, fish_id, earned, session.coins)
+	var sell_value := int(fish.base_coin_value * fish.catch_difficulty * multiplier)
+	var db_id := _persist_catch(session, fish.id, sell_value)
+	if db_id <= 0:
+		db_id = -(session.catch_inventory.size() + 1)  # DB unavailable — session-only fallback id
+	session.catch_inventory.append({"db_id": db_id, "fish_id": fish.id, "sell_value": sell_value})
+
+	NetAPI.rpc_id(peer_id, "notify_catch_inventory_updated", session.catch_inventory)
+	NetAPI.rpc_id(peer_id, "notify_fishing_result", true, fish_id, sell_value, session.coins)
 	NetAPI.rpc("notify_player_catch", peer_id, fish_id)
 
 func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
@@ -238,7 +245,7 @@ func _candidate_weight(fish: FishData) -> float:
 func _is_junk(fish_id: String) -> bool:
 	return fish_id.begins_with("junk_")
 
-func _fish_candidates(ids: Array[String]) -> Array[FishData]:
+func _fish_candidates(ids: Array) -> Array[FishData]:
 	var candidates: Array[FishData] = []
 	for id: String in ids:
 		var fish := ItemRegistry.get_item(id) as FishData
@@ -312,14 +319,17 @@ func _persist_decrement(session: PlayerSession, item_id: String) -> void:
 		AND item_id = ?
 	""", [session.username, item_id])
 
-func _save_coins(session: PlayerSession) -> void:
+func _persist_catch(session: PlayerSession, fish_id: String, sell_value: int) -> int:
 	var auth := GameServer.get_node_or_null("AuthServer")
 	if auth == null or auth._db == null:
-		return
-	auth._db.query_with_bindings(
-		"UPDATE players SET coins = ? WHERE username = ?",
-		[session.coins, session.username]
-	)
+		return -1
+	var ok: bool = auth._db.query_with_bindings("""
+		INSERT INTO catch_inventory (player_id, fish_id, sell_value, caught_at)
+		VALUES ((SELECT id FROM players WHERE username = ?), ?, ?, ?)
+	""", [session.username, fish_id, sell_value, int(Time.get_unix_time_from_system())])
+	if not ok:
+		return -1
+	return int(auth._db.get_last_insert_rowid())
 
 func _persist_equipment(session: PlayerSession) -> void:
 	var auth := GameServer.get_node_or_null("AuthServer")

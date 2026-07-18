@@ -71,6 +71,33 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 	if item_id == "treasure_magnet":
 		NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, session.hook_durability, (item as TackleData).durability)
 
+func handle_sell_catch(peer_id: int, slot_db_id: int) -> void:
+	var session := GameServer.get_authenticated_session(peer_id)
+	if session == null or session.current_zone != "ShopZone":
+		NetAPI.rpc_id(peer_id, "notify_catch_sold", false, "Not in shop.", session.coins if session else 0)
+		return
+
+	var slot_index := -1
+	for i in session.catch_inventory.size():
+		if int(session.catch_inventory[i].db_id) == slot_db_id:
+			slot_index = i
+			break
+	if slot_index == -1:
+		NetAPI.rpc_id(peer_id, "notify_catch_sold", false, "That fish is no longer in your bag.", session.coins)
+		return
+
+	var slot: Dictionary = session.catch_inventory[slot_index]
+	var sell_value: int = int(slot.sell_value)
+	var fish := ItemRegistry.get_item(str(slot.fish_id)) as FishData
+
+	session.catch_inventory.remove_at(slot_index)
+	session.coins += sell_value
+	_persist_sell(session, slot_db_id)
+	GameServer.broadcast_leaderboard()
+
+	NetAPI.rpc_id(peer_id, "notify_catch_inventory_updated", session.catch_inventory)
+	NetAPI.rpc_id(peer_id, "notify_catch_sold", true, "Sold %s for %d coins." % [fish.display_name if fish else str(slot.fish_id), sell_value], session.coins)
+
 # ── Persistence (DB only, session is authoritative) ───────────────────────────
 
 func _persist_buy(session: PlayerSession, item_id: String, qty: int = 1) -> void:
@@ -96,6 +123,19 @@ func _persist_decrement(session: PlayerSession, item_id: String) -> void:
 		WHERE player_id = (SELECT id FROM players WHERE username = ?)
 		AND item_id = ?
 	""", [session.username, item_id])
+
+func _persist_sell(session: PlayerSession, slot_db_id: int) -> void:
+	var auth := GameServer.get_node_or_null("AuthServer")
+	if auth == null or auth._db == null:
+		return
+	auth._db.query_with_bindings(
+		"UPDATE players SET coins = ? WHERE username = ?",
+		[session.coins, session.username]
+	)
+	auth._db.query_with_bindings(
+		"DELETE FROM catch_inventory WHERE id = ? AND player_id = (SELECT id FROM players WHERE username = ?)",
+		[slot_db_id, session.username]
+	)
 
 func _persist_equipment(session: PlayerSession) -> void:
 	var auth := GameServer.get_node_or_null("AuthServer")

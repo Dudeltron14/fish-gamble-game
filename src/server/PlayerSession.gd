@@ -13,6 +13,19 @@ var owned_items: Dictionary = {}  # item_id -> quantity (authoritative server-si
 var hook_durability: int = 0      # current uses remaining on equipped hook
 var hook_durabilities: Dictionary = {}  # hook type -> uses remaining
 
+const MAX_CATCH_SLOTS := 5
+# Caught fish awaiting sale: {db_id, fish_id, sell_value}. Value is locked in at catch
+# time so swapping to a better hook before selling can't retroactively inflate it.
+#
+# Player-to-player trading (issue #14) is a FUTURE PHASE, not implemented here. It will
+# need both players to lock an offer, both confirm, one atomic server-side swap of
+# catch_inventory rows, and a safe rollback if either side disconnects mid-trade. Don't
+# bolt trading onto this array without that escrow design.
+var catch_inventory: Array[Dictionary] = []
+
+func catch_inventory_is_full() -> bool:
+	return catch_inventory.size() >= MAX_CATCH_SLOTS
+
 func add_owned(item_id: String, delta: int) -> void:
 	var q: int = owned_items.get(item_id, 0) + delta
 	if q <= 0:

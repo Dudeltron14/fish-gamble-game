@@ -5,14 +5,18 @@ signal register_result(ok: bool, reason: String)
 signal server_status(player_count: int, sent_ms: int)
 signal leaderboard_result(entries: Array)
 signal fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float, hook_react_bonus: float, auto_catch: bool)
-signal fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int)
+signal fishing_result(caught: bool, fish_id: String, sell_value: int, new_balance: int)
 signal shop_result(ok: bool, reason: String, new_balance: int)
+signal catch_sold(ok: bool, reason: String, new_balance: int)
 signal equip_result(ok: bool, item_id: String, slot: String)
 signal inventory_loaded(items: Dictionary)
 signal inventory_updated(item_id: String, new_qty: int)
+signal catch_inventory_loaded(slots: Array)
+signal catch_inventory_updated(slots: Array)
 signal equipment_loaded(rod_id: String, bait_id: String, tackle_id: String, hook_durability: int, hook_max_durability: int)
 signal bait_empty()
 signal hook_broken()
+signal catch_inventory_full()
 signal hook_durability_changed(current: int, max_val: int)
 signal bj_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance: int, deck_remaining: int)
 signal bj_shuffled(deck_remaining: int)
@@ -119,6 +123,13 @@ func c2s_shop_buy(item_id: String) -> void:
 	if s: s.handle_buy(_peer_id(), item_id)
 
 @rpc("any_peer", "call_local", "reliable")
+func c2s_sell_catch(slot_db_id: int) -> void:
+	if not multiplayer.is_server(): return
+	_refresh_peer_zone(_peer_id())
+	var s := _srv("ShopServer")
+	if s: s.handle_sell_catch(_peer_id(), slot_db_id)
+
+@rpc("any_peer", "call_local", "reliable")
 func c2s_bj_bet(amount: int) -> void:
 	if not multiplayer.is_server(): return
 	_refresh_peer_zone(_peer_id())
@@ -213,14 +224,19 @@ func notify_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_spe
 	fishing_start.emit(ok, fish_id, difficulty, cast_speed, line_strength, wait_modifier, hook_react_bonus, auto_catch)
 
 @rpc("authority", "call_local", "reliable")
-func notify_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int) -> void:
+func notify_fishing_result(caught: bool, fish_id: String, sell_value: int, new_balance: int) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
-	fishing_result.emit(caught, fish_id, earned, new_balance)
+	fishing_result.emit(caught, fish_id, sell_value, new_balance)
 
 @rpc("authority", "call_local", "reliable")
 func notify_shop_result(ok: bool, reason: String, new_balance: int) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	shop_result.emit(ok, reason, new_balance)
+
+@rpc("authority", "call_local", "reliable")
+func notify_catch_sold(ok: bool, reason: String, new_balance: int) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	catch_sold.emit(ok, reason, new_balance)
 
 @rpc("authority", "call_local", "reliable")
 func notify_equip_result(ok: bool, item_id: String, slot: String) -> void:
@@ -238,6 +254,18 @@ func notify_inventory_updated(item_id: String, new_qty: int) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	GameManager.set_owned(item_id, new_qty)
 	inventory_updated.emit(item_id, new_qty)
+
+@rpc("authority", "call_local", "reliable")
+func notify_catch_inventory_loaded(slots: Array) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	GameManager.set_catch_inventory(slots)
+	catch_inventory_loaded.emit(slots)
+
+@rpc("authority", "call_local", "reliable")
+func notify_catch_inventory_updated(slots: Array) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	GameManager.set_catch_inventory(slots)
+	catch_inventory_updated.emit(slots)
 
 @rpc("authority", "call_local", "reliable")
 func notify_equipment_loaded(rod_id: String, bait_id: String, tackle_id: String, hook_durability: int, hook_max_durability: int) -> void:
@@ -319,6 +347,11 @@ func notify_hook_broken() -> void:
 	GameManager.equipped_changed.emit()
 	GameManager.hook_durability_changed.emit(0, 0)
 	hook_broken.emit()
+
+@rpc("authority", "call_local", "reliable")
+func notify_catch_inventory_full() -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	catch_inventory_full.emit()
 
 @rpc("authority", "call_local", "reliable")
 func notify_hook_durability(current: int, max_val: int) -> void:

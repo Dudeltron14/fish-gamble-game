@@ -42,6 +42,15 @@ func _init_schema() -> void:
 		)
 	""")
 	_db.query("""
+		CREATE TABLE IF NOT EXISTS catch_inventory (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			player_id INTEGER REFERENCES players(id),
+			fish_id TEXT NOT NULL,
+			sell_value INTEGER NOT NULL,
+			caught_at INTEGER
+		)
+	""")
+	_db.query("""
 		CREATE TABLE IF NOT EXISTS blackjack_shoes (
 			commitment TEXT PRIMARY KEY,
 			seed TEXT NOT NULL,
@@ -95,6 +104,7 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 	session.authenticated = true
 	session.username = username
 	session.coins = int(row.coins)
+	_ensure_usable_equipment(username, int(row.id))
 	_load_equipped(session, int(row.id))
 
 	# Send full inventory before login confirmation
@@ -105,6 +115,16 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 	for inv_row in _db.query_result:
 		inventory[inv_row.item_id] = int(inv_row.quantity)
 	NetAPI.rpc_id(peer_id, "notify_inventory_loaded", inventory)
+	# Send caught-fish inventory (issue #14)
+	_db.query_with_bindings(
+		"SELECT id, fish_id, sell_value FROM catch_inventory WHERE player_id = ? ORDER BY id", [int(row.id)]
+	)
+	var catch_slots := []
+	for catch_row in _db.query_result:
+		var slot := {"db_id": int(catch_row.id), "fish_id": str(catch_row.fish_id), "sell_value": int(catch_row.sell_value)}
+		session.catch_inventory.append(slot)
+		catch_slots.append(slot)
+	NetAPI.rpc_id(peer_id, "notify_catch_inventory_loaded", catch_slots)
 	# Send initial hook durability
 	if session and not session.equipped_tackle_id.is_empty():
 		var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
@@ -282,7 +302,7 @@ func _load_equipped(session: PlayerSession, player_id: int) -> void:
 			elif item is TackleData and first_tackle.is_empty():
 				first_tackle = item_id
 	_db.query_with_bindings(
-		"SELECT equipped_rod_id, equipped_bait_id, equipped_tackle_id, hook_durability FROM players WHERE id = ?",
+		"SELECT equipped_rod_id, equipped_bait_id, equipped_tackle_id, hook_durability, hook_durabilities FROM players WHERE id = ?",
 		[player_id]
 	)
 	if not _db.query_result.is_empty():

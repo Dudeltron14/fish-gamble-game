@@ -54,6 +54,7 @@ func _ready() -> void:
 	ClientSettings.register_ui_scale_target(panel, Vector2(0.5, 0.5))
 	NetAPI.fishing_start.connect(_on_fishing_start)
 	NetAPI.fishing_result.connect(_on_fishing_result)
+	NetAPI.catch_inventory_full.connect(_on_catch_inventory_full)
 	AudioManager.set_music_context("fishing")
 	set_process(true)
 	set_process_input(true)
@@ -311,16 +312,19 @@ func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed:
 	_cast_speed = BASE_CAST_SPEED * cast_speed
 	_wait_timer *= wait_modifier
 
-func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int) -> void:
+func _on_catch_inventory_full() -> void:
+	if _result_shown:
+		return
+	_show_result(false, "Catch bag full! Sell fish at the shop first.")
+
+func _on_fishing_result(caught: bool, fish_id: String, _sell_value: int, _new_balance: int) -> void:
 	if _result_shown:
 		return  # _show_result already fired (e.g. missed react showed result before server responded)
 	var fish: FishData = ItemRegistry.get_item(fish_id) as FishData
 	var fish_name := fish.display_name if fish else fish_id
 	if caught:
-		GameManager.set_coins(new_balance)
 		AudioManager.sfx("sfx_catch")
-		AudioManager.sfx("sfx_coins")
-		_show_result(true, "Caught %s! +%d coins" % [fish_name, earned])
+		_show_result(true, "Caught %s! Stored in your catch bag." % fish_name)
 	else:
 		AudioManager.sfx("sfx_miss")
 		_show_result(false, "The %s escaped…" % fish_name)

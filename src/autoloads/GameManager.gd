@@ -8,6 +8,7 @@ signal owned_changed()
 signal hook_durability_changed(current: int, max_val: int)
 signal camera_zoom_changed(value: float)
 signal fishing_result_completed()
+signal catch_inventory_changed()
 
 var current_player_name: String = ""
 var current_coins: int = 0
@@ -20,6 +21,9 @@ var owned_items: Dictionary = {}  # item_id -> quantity
 var hook_durability: int = 0
 var hook_max_durability: int = 0
 var camera_zoom: float = 4.0
+var catch_inventory: Array = []  # [{db_id, fish_id, sell_value}, ...]
+
+const MAX_CATCH_SLOTS := 5
 
 const ZONE_HINTS := {
 	"DockZone":   "HOLD E to Fish",
@@ -65,6 +69,13 @@ func set_owned(item_id: String, qty: int) -> void:
 
 func get_owned(item_id: String) -> int:
 	return owned_items.get(item_id, 0)
+
+func set_catch_inventory(slots: Array) -> void:
+	catch_inventory = slots.duplicate(true)
+	catch_inventory_changed.emit()
+
+func catch_inventory_is_full() -> bool:
+	return catch_inventory.size() >= MAX_CATCH_SLOTS
 
 func set_camera_zoom(value: float) -> void:
 	camera_zoom = clampf(value, 1.0, 4.0)

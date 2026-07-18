@@ -7,6 +7,8 @@ const GEAR_STATS_SCENE := preload("res://src/scenes/ui/GearStatsPanel.tscn")
 @onready var coins_label: Label = %CoinsLabel
 @onready var item_list: VBoxContainer = %ItemList
 @onready var status_label: Label = %StatusLabel
+@onready var catch_title: Label = %CatchTitle
+@onready var catch_list: VBoxContainer = %CatchList
 
 var _gear_stats_panel: CanvasLayer = null
 
@@ -14,13 +16,16 @@ func _ready() -> void:
 	ClientSettings.register_ui_scale_target($Center/Panel, Vector2(0.5, 0.5))
 	NetAPI.shop_result.connect(_on_shop_result)
 	NetAPI.equip_result.connect(_on_equip_result)
+	NetAPI.catch_sold.connect(_on_catch_sold)
 	GameManager.owned_changed.connect(_populate.call_deferred)
 	GameManager.coins_changed.connect(_on_coins_changed)
+	GameManager.catch_inventory_changed.connect(_populate_catch)
 	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_close)
 	AudioManager.set_music_context("shop")
 	coins_label.text = "Coins: %d" % GameManager.current_coins
 	_add_gear_stats_panel()
 	_populate()
+	_populate_catch()
 
 func _populate() -> void:
 	for child in item_list.get_children():
@@ -105,6 +110,70 @@ func _make_row(item: ItemData) -> Control:
 	wrapper.add_child(row)
 	wrapper.add_child(sep)
 	return wrapper
+
+func _populate_catch() -> void:
+	catch_title.text = "Your Catch (%d/%d)" % [GameManager.catch_inventory.size(), GameManager.MAX_CATCH_SLOTS]
+	for child in catch_list.get_children():
+		child.free()
+	if GameManager.catch_inventory.is_empty():
+		var empty_lbl := Label.new()
+		empty_lbl.text = "No fish caught yet — go fishing!"
+		empty_lbl.modulate = Color(0.65, 0.65, 0.65)
+		catch_list.add_child(empty_lbl)
+		return
+	for slot in GameManager.catch_inventory:
+		catch_list.add_child(_make_catch_row(slot))
+
+func _make_catch_row(slot: Dictionary) -> Control:
+	var fish := ItemRegistry.get_item(str(slot.fish_id)) as FishData
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+
+	if fish and fish.icon:
+		var icon := TextureRect.new()
+		icon.texture = fish.icon
+		icon.custom_minimum_size = Vector2(32, 32)
+		icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(icon)
+
+	var name_lbl := Label.new()
+	name_lbl.text = fish.display_name if fish else str(slot.fish_id)
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(name_lbl)
+
+	var price_lbl := Label.new()
+	price_lbl.text = "%d c" % int(slot.sell_value)
+	price_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	price_lbl.custom_minimum_size = Vector2(52, 0)
+	price_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(price_lbl)
+
+	var sell_btn := Button.new()
+	sell_btn.text = "Sell"
+	sell_btn.custom_minimum_size = Vector2(52, 0)
+	sell_btn.pressed.connect(_on_sell_pressed.bind(int(slot.db_id), sell_btn))
+	row.add_child(sell_btn)
+
+	var sep := HSeparator.new()
+	var wrapper := VBoxContainer.new()
+	wrapper.add_child(row)
+	wrapper.add_child(sep)
+	return wrapper
+
+func _on_sell_pressed(db_id: int, btn: Button) -> void:
+	btn.disabled = true
+	status_label.text = "Selling…"
+	NetAPI.rpc_id(1, "c2s_sell_catch", db_id)
+
+func _on_catch_sold(ok: bool, reason: String, new_balance: int) -> void:
+	GameManager.set_coins(new_balance)
+	coins_label.text = "Coins: %d" % new_balance
+	status_label.text = reason
+	status_label.modulate = Color(0.3, 1.0, 0.4) if ok else Color(1.0, 0.4, 0.4)
+	if ok:
+		AudioManager.sfx("sfx_coins")
 
 func _on_buy_pressed(item_id: String, btn: Button) -> void:
 	btn.disabled = true
