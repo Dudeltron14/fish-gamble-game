@@ -1,4 +1,8 @@
-# 🎣 Fish & Gamble
+<p align="center">
+  <img src="assets/ui/brindle_logo.png" alt="Brindle" width="720">
+</p>
+
+# Brindle
 
 A **multiplayer fishing and casino game** built in Godot 4 for a small group of friends.
 Fish the island docks, upgrade your gear at the shop, and test your luck at the Blackjack table.
