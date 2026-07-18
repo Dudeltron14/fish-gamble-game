@@ -30,6 +30,7 @@ var _menu_effect_bases := {}
 @onready var status_label: Label = %StatusLabel
 
 func _ready() -> void:
+	AudioManager.set_music_context("menu")
 	ClientSettings.register_ui_scale_target(menu_panel, Vector2(0.5, 0.5))
 	official_server_btn.text = "%s - %s" % [_server_label(), _server_url().replace("wss://", "").replace("ws://", "")]
 	official_server_btn.tooltip_text = "Click to refresh server status. This client is locked to %s." % _server_url()
@@ -127,6 +128,7 @@ func _on_register_result(ok: bool, reason: String) -> void:
 	set_buttons_enabled(true)
 
 func _on_connection_failed() -> void:
+	AudioManager.set_music_context("menu")
 	_checking_server_status = false
 	_set_server_status("Offline", false)
 	set_status("Connection failed.")
@@ -134,6 +136,7 @@ func _on_connection_failed() -> void:
 	_pending = _Action.NONE
 
 func _on_server_disconnected() -> void:
+	AudioManager.set_music_context("menu")
 	if _pending == _Action.NONE:
 		_checking_server_status = false
 		_set_server_status("Offline", false)
