@@ -3,6 +3,7 @@ extends Node
 signal login_result(ok: bool, reason: String, coins: int)
 signal register_result(ok: bool, reason: String)
 signal server_status(player_count: int, sent_ms: int)
+signal leaderboard_result(entries: Array)
 signal fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float, hook_react_bonus: float, auto_catch: bool)
 signal fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int)
 signal shop_result(ok: bool, reason: String, new_balance: int)
@@ -68,6 +69,12 @@ func c2s_server_status(sent_ms: int) -> void:
 	if not multiplayer.is_server(): return
 	var peer_id := _peer_id()
 	NetAPI.rpc_id(peer_id, "notify_server_status", GameServer.get_authenticated_player_count(), sent_ms)
+
+@rpc("any_peer", "call_local", "reliable")
+func c2s_leaderboard_request() -> void:
+	if not multiplayer.is_server(): return
+	var peer_id := _peer_id()
+	NetAPI.rpc_id(peer_id, "notify_leaderboard", GameServer.get_leaderboard())
 
 @rpc("any_peer", "call_local", "unreliable_ordered")
 func c2s_player_input(input_dir: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = -1.0) -> void:
@@ -194,6 +201,11 @@ func notify_register(ok: bool, reason: String) -> void:
 func notify_server_status(player_count: int, sent_ms: int) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	server_status.emit(player_count, sent_ms)
+
+@rpc("authority", "call_local", "reliable")
+func notify_leaderboard(entries: Array) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	leaderboard_result.emit(entries)
 
 @rpc("authority", "call_local", "reliable")
 func notify_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float = 1.0, hook_react_bonus: float = 0.0, auto_catch: bool = false) -> void:

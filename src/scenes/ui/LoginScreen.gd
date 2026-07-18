@@ -31,11 +31,13 @@ var _menu_effect_bases := {}
 
 func _ready() -> void:
 	ClientSettings.register_ui_scale_target(menu_panel, Vector2(0.5, 0.5))
-	official_server_btn.text = "%s - %s" % [_server_label(), _server_url().replace("wss://", "")]
+	official_server_btn.text = "%s - %s" % [_server_label(), _server_url().replace("wss://", "").replace("ws://", "")]
 	official_server_btn.tooltip_text = "Click to refresh server status. This client is locked to %s." % _server_url()
 	official_server_btn.pressed.connect(_request_server_status)
 	login_btn.pressed.connect(_on_login_pressed)
 	register_btn.pressed.connect(_on_register_pressed)
+	username_field.text_submitted.connect(_on_field_submitted)
+	password_field.text_submitted.connect(_on_field_submitted)
 	settings_btn.pressed.connect(func(): ClientSettings.open(self))
 	NetAPI.login_result.connect(_on_login_result)
 	NetAPI.register_result.connect(_on_register_result)
@@ -46,6 +48,10 @@ func _ready() -> void:
 	resized.connect(_layout_menu_effects)
 	call_deferred("_capture_menu_effect_bases")
 	_request_server_status()
+
+func _on_field_submitted(_new_text: String) -> void:
+	if not login_btn.disabled:
+		_on_login_pressed()
 
 func _on_login_pressed() -> void:
 	if not _validate():
@@ -230,7 +236,7 @@ func _server_url() -> String:
 	return OS.get_environment("BRINDLE_SERVER_URL") if not OS.get_environment("BRINDLE_SERVER_URL").is_empty() else SERVER_URL
 
 func _server_label() -> String:
-	return "Local Staging Client" if not OS.get_environment("BRINDLE_SERVER_URL").is_empty() else SERVER_LABEL
+	return "Local Server" if not OS.get_environment("BRINDLE_SERVER_URL").is_empty() else SERVER_LABEL
 
 func set_status(msg: String) -> void:
 	status_label.text = msg

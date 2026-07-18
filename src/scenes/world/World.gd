@@ -6,6 +6,7 @@ const SHOP_SCENE    := preload("res://src/scenes/ui/Shop.tscn")
 const BJ_SCENE      := preload("res://src/scenes/casino/Blackjack.tscn")
 const HUD_SCENE     := preload("res://src/scenes/ui/HUD.tscn")
 const STATS_SCENE   := preload("res://src/scenes/ui/GearStatsPanel.tscn")
+const LEADERBOARD_SCENE := preload("res://src/scenes/ui/LeaderboardPanel.tscn")
 
 @onready var players: Node2D       = $Players
 @onready var spawn_point: Marker2D = $SpawnPoint
@@ -15,10 +16,12 @@ var _overlay: Node = null
 var _overlay_scene: PackedScene = null
 var _server_update_dialog: AcceptDialog = null
 var _stats_panel: CanvasLayer = null
+var _leaderboard_panel: CanvasLayer = null
 var _overlay_hides_player := false
 var _overlay_entry_position := Vector2.ZERO
 var _intentional_disconnect := false
 var _stats_panel_was_visible := true
+var _leaderboard_panel_was_visible := true
 
 func _ready() -> void:
 	add_to_group("world")
@@ -34,6 +37,8 @@ func _ready() -> void:
 		add_child(HUD_SCENE.instantiate())
 		_stats_panel = STATS_SCENE.instantiate()
 		add_child(_stats_panel)
+		_leaderboard_panel = LEADERBOARD_SCENE.instantiate()
+		add_child(_leaderboard_panel)
 		NetAPI.fishing_result.connect(_on_fishing_result_received)
 		NetAPI.bait_empty.connect(func(): AudioManager.sfx("sfx_bait_empty"))
 		NetAPI.hook_broken.connect(func(): AudioManager.sfx("sfx_hook_break"))
@@ -45,6 +50,8 @@ func _ready() -> void:
 		add_child(HUD_SCENE.instantiate())
 		_stats_panel = STATS_SCENE.instantiate()
 		add_child(_stats_panel)
+		_leaderboard_panel = LEADERBOARD_SCENE.instantiate()
+		add_child(_leaderboard_panel)
 		NetAPI.fishing_result.connect(_on_fishing_result_received)
 		var host_session := GameServer.get_session(1)
 		if host_session:
@@ -263,6 +270,9 @@ func _open_overlay(scene: PackedScene) -> void:
 	if scene == SHOP_SCENE and _stats_panel != null and is_instance_valid(_stats_panel):
 		_stats_panel_was_visible = _stats_panel.visible
 		_stats_panel.visible = false
+	if (scene == SHOP_SCENE or scene == BJ_SCENE) and _leaderboard_panel != null and is_instance_valid(_leaderboard_panel):
+		_leaderboard_panel_was_visible = _leaderboard_panel.visible
+		_leaderboard_panel.visible = false
 	var player := _get_local_player()
 	if player:
 		_overlay_entry_position = player.global_position
@@ -284,13 +294,22 @@ func _on_overlay_closed() -> void:
 		GameManager.fishing_result_completed.emit()
 	if _overlay_scene == SHOP_SCENE and _stats_panel != null and is_instance_valid(_stats_panel):
 		_stats_panel.visible = _stats_panel_was_visible
+	if (_overlay_scene == SHOP_SCENE or _overlay_scene == BJ_SCENE) and _leaderboard_panel != null and is_instance_valid(_leaderboard_panel):
+		_leaderboard_panel.visible = _leaderboard_panel_was_visible
 	_overlay = null
 	_overlay_scene = null
 	_overlay_hides_player = false
 
 func _can_open_settings() -> bool:
 	return _overlay == null \
-		and not ClientSettings.is_open()
+		and not ClientSettings.is_open() \
+		and not _is_leaderboard_panel_open()
+
+func _is_leaderboard_panel_open() -> bool:
+	return _leaderboard_panel != null \
+		and is_instance_valid(_leaderboard_panel) \
+		and _leaderboard_panel.has_method("is_expanded") \
+		and _leaderboard_panel.is_expanded()
 
 func disconnect_to_login() -> void:
 	_intentional_disconnect = true
