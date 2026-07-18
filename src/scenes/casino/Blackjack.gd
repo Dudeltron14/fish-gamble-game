@@ -19,6 +19,7 @@ var _dealer_cards: Array = []
 var _dealer_hole_hidden := false
 var _player_value := 0
 var _active_bet := 0
+var _all_in_confirm_pending := false
 var _last_shoe_reveal := {}
 var _win_effect_marker_positions := {}
 
@@ -101,6 +102,12 @@ func _on_deal_pressed() -> void:
 	NetAPI.rpc_id(1, "c2s_bj_bet", amount)
 
 func _on_all_in_pressed() -> void:
+	if not _all_in_confirm_pending:
+		_all_in_confirm_pending = true
+		all_in_btn.text = "Are you sure?"
+		return
+	_all_in_confirm_pending = false
+	all_in_btn.text = "ALL IN"
 	bet_spin.value = GameManager.current_coins
 	_on_deal_pressed()
 
@@ -436,6 +443,8 @@ func _on_coins_changed(new_amount: int) -> void:
 	_refresh_betting_controls()
 
 func _refresh_betting_controls() -> void:
+	_all_in_confirm_pending = false
+	all_in_btn.text = "ALL IN"
 	var balance: int = maxi(0, GameManager.current_coins)
 	if _state != State.IDLE:
 		_set_bet_input_enabled(false)
