@@ -41,6 +41,12 @@ func _ready() -> void:
 	_zoom_value = _add_slider(box, "View Zoom", 1.0, 4.0, 0.25, GameManager.camera_zoom, ClientSettings.set_camera_zoom)
 	_ui_scale_value = _add_slider(box, "UI Scale", 0.75, 1.5, 0.05, ClientSettings.ui_scale, ClientSettings.set_ui_scale)
 	_refresh_values()
+	var world := get_tree().get_first_node_in_group("world")
+	if world:
+		var disconnect := Button.new()
+		disconnect.text = "Disconnect"
+		disconnect.pressed.connect(func(): world.disconnect_to_login())
+		box.add_child(disconnect)
 	var close := Button.new()
 	close.text = "Close"
 	close.pressed.connect(queue_free)
