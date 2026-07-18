@@ -20,17 +20,15 @@
 [node name="GearStatsPanel" type="CanvasLayer" unique_id=856407416]
 layer = 2
 script = ExtResource("1")
-tooltip_opacity = 1.1
-panel_bg_opacity = 0.95
 
 [node name="Panel" type="PanelContainer" parent="." unique_id=89946165]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -258.0
-offset_top = 8.0
+offset_left = -282.0
+offset_top = 47.0
 offset_right = -8.0
-offset_bottom = 8.0
+offset_bottom = 544.0
 grow_horizontal = 0
 
 [node name="Margin" type="MarginContainer" parent="Panel" unique_id=105395771]
