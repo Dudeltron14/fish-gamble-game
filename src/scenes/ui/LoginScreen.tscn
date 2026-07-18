@@ -14,6 +14,18 @@ shader_parameter/saturation_cutoff = 0.12
 shader_parameter/brightness_cutoff = 0.42
 shader_parameter/alpha_multiplier = 0.45
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_focus"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.85, 0.3, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
 [node name="LoginScreen" type="Control" unique_id=1870668477]
 layout_mode = 3
 anchors_preset = 15
@@ -127,12 +139,14 @@ theme_override_constants/separation = 8
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_focus")
 text = "Join / Login"
 
 [node name="RegisterBtn" type="Button" parent="Center/Panel/Margin/VBox/Buttons" unique_id=1628020931]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_focus")
 text = "Register"
 
 [node name="StatusLabel" type="Label" parent="Center/Panel/Margin/VBox" unique_id=639801078]
