@@ -21,3 +21,16 @@ screenshot_*.png.import
 # Stray temp files
 ~*
 test_sqlite.gd.uid
+
+# Local Godot import metadata (source assets remain tracked)
+/assets/sfx/*.mp3.import
+/assets/vfx/*.mp3.import
+/docs/screenshots/*.png.import
+
+# Generated script UIDs for local-only test/runtime scripts
+/src/scenes/vfx/FallingCoin.gd.uid
+/src/server/BlackjackFairness.gd.uid
+/tests/*.gd.uid
+
+# Local scratch workspace
+/tmp/
