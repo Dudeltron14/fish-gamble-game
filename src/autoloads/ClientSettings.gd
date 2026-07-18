@@ -44,7 +44,7 @@ func set_sfx_volume(value: float) -> void:
 	_save_global_settings()
 
 func set_ui_scale(value: float) -> void:
-	ui_scale = clampf(value, 0.75, 1.5)
+	ui_scale = clampf(value, 0.0, 1.5)
 	_apply_ui_scale()
 	_save_global_settings()
 
@@ -81,9 +81,10 @@ func _apply_ui_scale() -> void:
 	for target in get_tree().get_nodes_in_group("ui_scale_target"):
 		_apply_ui_scale_target(target as Control)
 
-func register_ui_scale_target(control: Control, pivot: Vector2) -> void:
+func register_ui_scale_target(control: Control, pivot: Vector2, minimum_scale: float = 0.0) -> void:
 	control.add_to_group("ui_scale_target")
 	control.set_meta("ui_scale_pivot", pivot)
+	control.set_meta("ui_scale_minimum", minimum_scale)
 	control.resized.connect(_apply_ui_scale_target.bind(control))
 	_apply_ui_scale_target(control)
 
@@ -91,7 +92,7 @@ func _apply_ui_scale_target(control: Control) -> void:
 	if control == null or not is_instance_valid(control):
 		return
 	control.pivot_offset = control.size * control.get_meta("ui_scale_pivot", Vector2(0.5, 0.5))
-	control.scale = Vector2.ONE * UI_SCALE_BASE * ui_scale
+	control.scale = Vector2.ONE * UI_SCALE_BASE * maxf(ui_scale, control.get_meta("ui_scale_minimum", 0.0))
 
 func _save_global_settings() -> void:
 	var cfg := ConfigFile.new()

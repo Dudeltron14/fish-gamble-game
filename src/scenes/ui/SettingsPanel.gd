@@ -39,7 +39,7 @@ func _ready() -> void:
 	_add_slider(box, "Music", 0.0, 100.0, 1.0, ClientSettings.music_volume, ClientSettings.set_music_volume)
 	_add_slider(box, "SFX", 0.0, 100.0, 1.0, ClientSettings.sfx_volume, ClientSettings.set_sfx_volume)
 	_zoom_value = _add_slider(box, "View Zoom", 0.25, 1.0, 0.0625, ClientSettings.get_view_zoom_scale(), ClientSettings.set_camera_zoom)
-	_ui_scale_value = _add_slider(box, "UI Scale", 0.75, 1.5, 0.05, ClientSettings.ui_scale, ClientSettings.set_ui_scale)
+	_ui_scale_value = _add_slider(box, "UI Scale", 0.0, 1.5, 0.05, ClientSettings.ui_scale, ClientSettings.set_ui_scale)
 	_refresh_values()
 	var world := get_tree().get_first_node_in_group("world")
 	if world:
@@ -51,7 +51,7 @@ func _ready() -> void:
 	close.text = "Close"
 	close.pressed.connect(queue_free)
 	box.add_child(close)
-	ClientSettings.register_ui_scale_target(panel, Vector2(0.5, 0.5))
+	ClientSettings.register_ui_scale_target(panel, Vector2(0.5, 0.5), 0.25)
 
 func _add_slider(parent: VBoxContainer, text: String, min_value: float, max_value: float, step: float, value: float, callback: Callable) -> Label:
 	var row := HBoxContainer.new()

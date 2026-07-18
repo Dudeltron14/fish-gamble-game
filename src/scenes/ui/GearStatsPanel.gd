@@ -48,12 +48,14 @@ const MAGNET_TRASH_ICON := preload("res://assets/User_Gen_ChatGPT/Fish/junk_boot
 const MAGNET_CHEST_ICON := preload("res://assets/User_Gen_ChatGPT/Fish/overflowing_gold_chest.png")
 const MAGNET_KEY_ICON := preload("res://assets/User_Gen_ChatGPT/Fish/ancient_key.png")
 var _expanded := false
+var _expanded_bottom := 0.0
 var _vbox: VBoxContainer
 var _shop_mode := false
 
 func _ready() -> void:
 	ClientSettings.register_ui_scale_target(panel, Vector2(1.0, 0.0))
 	_vbox = $Panel/Margin/VBox
+	_expanded_bottom = panel.offset_bottom
 	_set_expanded(false)   # collapsed by default — only title shows
 
 	for node: Control in [rod_icon, cast_icon, reel_icon, rarity_bonus_icon,
@@ -76,6 +78,11 @@ func _set_expanded(expand: bool) -> void:
 	# Index 0 = Title label — always visible. Hide everything else when collapsed.
 	for i in range(1, _vbox.get_child_count()):
 		_vbox.get_child(i).visible = expand
+	if not _shop_mode:
+		call_deferred("_resize_panel", expand)
+
+func _resize_panel(expand: bool) -> void:
+	panel.offset_bottom = _expanded_bottom if expand else panel.offset_top + panel.get_combined_minimum_size().y
 
 func is_expanded() -> bool:
 	return _expanded

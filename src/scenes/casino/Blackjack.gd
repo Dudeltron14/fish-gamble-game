@@ -4,7 +4,7 @@ signal completed
 
 const RANKS := ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]
 const SUITS := ["♠","♥","♦","♣"]
-const CARD_SIZE := Vector2(48, 70)
+const CARD_SIZE := Vector2(55, 81)
 const CARD_DEAL_FLY_TIME := 0.32
 const CARD_FLIP_HALF_TIME := 0.14
 const CARD_DEAL_ARC_HEIGHT := 54.0
