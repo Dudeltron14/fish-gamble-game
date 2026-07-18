@@ -290,7 +290,7 @@ func _load_equipped(session: PlayerSession, player_id: int) -> void:
 		var rod_id := str(row.equipped_rod_id)
 		var bait_id := str(row.equipped_bait_id)
 		var tackle_id := str(row.equipped_tackle_id)
-		var saved_durabilities := JSON.parse_string(str(row.hook_durabilities))
+		var saved_durabilities = JSON.parse_string(str(row.hook_durabilities))
 		if saved_durabilities is Dictionary:
 			session.hook_durabilities = saved_durabilities
 		session.equipped_rod_id = rod_id if _is_owned_slot_item(session, rod_id, "rod") else first_rod
