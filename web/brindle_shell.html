@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>$GODOT_PROJECT_NAME</title>
+    <link rel="icon" type="image/png" href="brindle_web_icon.png">
+    $GODOT_HEAD_INCLUDE
+    <style>
+        html, body, canvas { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #130a04; }
+        #brindle-loading { position: fixed; inset: 0; z-index: 1; display: grid; place-content: center; gap: 22px; background: radial-gradient(circle, #713000, #130a04 70%); color: #f8d486; font: 600 18px sans-serif; text-align: center; }
+        #brindle-loading img { width: min(70vw, 560px); height: auto; image-rendering: auto; }
+    </style>
+</head>
+<body>
+    <div id="brindle-loading"><img src="brindle_web_icon.png" alt="Brindle"><span>Loading the catch…</span></div>
+    <canvas id="canvas"></canvas>
+    <script src="$GODOT_URL"></script>
+    <script>
+        const loader = document.getElementById("brindle-loading");
+        new Engine($GODOT_CONFIG).startGame().then(() => loader.remove());
+    </script>
+</body>
+</html>

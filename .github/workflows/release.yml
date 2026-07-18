@@ -52,6 +52,7 @@ jobs:
         run: |
           mkdir -p export/web
           godot --headless --export-release "Web" export/web/index.html
+          cp assets/ui/brindle_web_icon.png export/web/brindle_web_icon.png
 
       - name: Add Cloudflare Pages headers for Godot Web
         run: |
