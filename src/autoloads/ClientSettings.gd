@@ -61,7 +61,20 @@ func _apply_global_settings() -> void:
 	_apply_ui_scale()
 
 func _apply_ui_scale() -> void:
-	ThemeDB.get_project_theme().default_base_scale = ui_scale
+	for target in get_tree().get_nodes_in_group("ui_scale_target"):
+		_apply_ui_scale_target(target as Control)
+
+func register_ui_scale_target(control: Control, pivot: Vector2) -> void:
+	control.add_to_group("ui_scale_target")
+	control.set_meta("ui_scale_pivot", pivot)
+	control.resized.connect(_apply_ui_scale_target.bind(control))
+	_apply_ui_scale_target(control)
+
+func _apply_ui_scale_target(control: Control) -> void:
+	if control == null or not is_instance_valid(control):
+		return
+	control.pivot_offset = control.size * control.get_meta("ui_scale_pivot", Vector2(0.5, 0.5))
+	control.scale = Vector2.ONE * ui_scale
 
 func _save_global_settings() -> void:
 	var cfg := ConfigFile.new()

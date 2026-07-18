@@ -52,6 +52,7 @@ var _vbox: VBoxContainer
 var _shop_mode := false
 
 func _ready() -> void:
+	ClientSettings.register_ui_scale_target(panel, Vector2(1.0, 0.0))
 	_vbox = $Panel/Margin/VBox
 	_set_expanded(false)   # collapsed by default — only title shows
 

@@ -12,6 +12,11 @@ var _last_hook_max := 0
 var _has_seen_hook_state := false
 
 func _ready() -> void:
+	ClientSettings.register_ui_scale_target($TopPanel, Vector2.ZERO)
+	ClientSettings.register_ui_scale_target(context_hint, Vector2(0.5, 1.0))
+	ClientSettings.register_ui_scale_target(bait_warning_label, Vector2(0.5, 0.0))
+	ClientSettings.register_ui_scale_target(hook_warning_label, Vector2(0.5, 0.0))
+	ClientSettings.register_ui_scale_target(%SettingsBtn, Vector2(1.0, 0.0))
 	_style_context_hint()
 	_style_warning_label(bait_warning_label)
 	_style_warning_label(hook_warning_label)

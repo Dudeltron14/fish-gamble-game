@@ -20,6 +20,7 @@ var _checking_server_status := false
 var _menu_effect_bases := {}
 
 @onready var official_server_btn: Button = %OfficialServerBtn
+@onready var menu_panel: PanelContainer = $Center/Panel
 @onready var server_status_label: Label = %ServerStatusLabel
 @onready var username_field: LineEdit = %UsernameField
 @onready var password_field: LineEdit = %PasswordField
@@ -29,6 +30,7 @@ var _menu_effect_bases := {}
 @onready var status_label: Label = %StatusLabel
 
 func _ready() -> void:
+	ClientSettings.register_ui_scale_target(menu_panel, Vector2(0.5, 0.5))
 	official_server_btn.text = "%s - %s" % [SERVER_LABEL, SERVER_URL.replace("wss://", "")]
 	official_server_btn.tooltip_text = "Click to refresh server status. This client is locked to %s." % SERVER_URL
 	official_server_btn.pressed.connect(_request_server_status)

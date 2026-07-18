@@ -44,6 +44,7 @@ var _win_effect_marker_positions := {}
 @onready var win_effect_emitters: Node2D = $WinEffectEmitters
 
 func _ready() -> void:
+	ClientSettings.register_ui_scale_target($Center/Panel, Vector2(0.5, 0.5))
 	AudioManager.set_music_context("casino")
 	AudioManager.sfx("sfx_cards_pack_open")
 	AudioManager.sfx("sfx_cards_pack_take_out")

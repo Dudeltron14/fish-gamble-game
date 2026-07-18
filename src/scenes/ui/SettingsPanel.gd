@@ -51,6 +51,7 @@ func _ready() -> void:
 	close.text = "Close"
 	close.pressed.connect(queue_free)
 	box.add_child(close)
+	ClientSettings.register_ui_scale_target(panel, Vector2(0.5, 0.5))
 
 func _add_slider(parent: VBoxContainer, text: String, min_value: float, max_value: float, step: float, value: float, callback: Callable) -> Label:
 	var row := HBoxContainer.new()
