@@ -51,6 +51,7 @@ var _escape_timer := ESCAPE_TIME_MAX  # drains when off fish, fills when on — 
 @onready var result_label: Label = %ResultLabel
 
 func _ready() -> void:
+	ClientSettings.register_ui_scale_target(panel, Vector2(0.5, 0.5))
 	NetAPI.fishing_start.connect(_on_fishing_start)
 	NetAPI.fishing_result.connect(_on_fishing_result)
 	AudioManager.set_music_context("fishing")

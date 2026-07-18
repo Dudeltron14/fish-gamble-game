@@ -12,6 +12,11 @@ var _last_hook_max := 0
 var _has_seen_hook_state := false
 
 func _ready() -> void:
+	ClientSettings.register_ui_scale_target($TopPanel, Vector2.ZERO)
+	ClientSettings.register_ui_scale_target(context_hint, Vector2(0.5, 1.0))
+	ClientSettings.register_ui_scale_target(bait_warning_label, Vector2(0.5, 0.0))
+	ClientSettings.register_ui_scale_target(hook_warning_label, Vector2(0.5, 0.0))
+	ClientSettings.register_ui_scale_target(%SettingsBtn, Vector2(1.0, 0.0))
 	_style_context_hint()
 	_style_warning_label(bait_warning_label)
 	_style_warning_label(hook_warning_label)
@@ -23,6 +28,7 @@ func _ready() -> void:
 	GameManager.fishing_result_completed.connect(_hide_warnings_after_fishing_result)
 	NetAPI.bait_empty.connect(func(): _show_warning(bait_warning_label, "Bait ran out. Buy or equip more bait."))
 	NetAPI.hook_broken.connect(func(): _show_warning(hook_warning_label, "Hook broke. Buy or equip another hook."))
+	%SettingsBtn.pressed.connect(func(): ClientSettings.open(self))
 	_on_coins_changed(GameManager.current_coins)
 	_refresh_equipped()
 

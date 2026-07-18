@@ -11,6 +11,7 @@ const GEAR_STATS_SCENE := preload("res://src/scenes/ui/GearStatsPanel.tscn")
 var _gear_stats_panel: CanvasLayer = null
 
 func _ready() -> void:
+	ClientSettings.register_ui_scale_target($Center/Panel, Vector2(0.5, 0.5))
 	NetAPI.shop_result.connect(_on_shop_result)
 	NetAPI.equip_result.connect(_on_equip_result)
 	GameManager.owned_changed.connect(_populate.call_deferred)

@@ -20,14 +20,17 @@ var _checking_server_status := false
 var _menu_effect_bases := {}
 
 @onready var official_server_btn: Button = %OfficialServerBtn
+@onready var menu_panel: PanelContainer = $Center/Panel
 @onready var server_status_label: Label = %ServerStatusLabel
 @onready var username_field: LineEdit = %UsernameField
 @onready var password_field: LineEdit = %PasswordField
 @onready var login_btn: Button = %LoginBtn
 @onready var register_btn: Button = %RegisterBtn
+@onready var settings_btn: Button = %SettingsBtn
 @onready var status_label: Label = %StatusLabel
 
 func _ready() -> void:
+	ClientSettings.register_ui_scale_target(menu_panel, Vector2(0.5, 0.5))
 	official_server_btn.text = "%s - %s" % [_server_label(), _server_url().replace("wss://", "").replace("ws://", "")]
 	official_server_btn.tooltip_text = "Click to refresh server status. This client is locked to %s." % _server_url()
 	official_server_btn.pressed.connect(_request_server_status)
@@ -35,6 +38,7 @@ func _ready() -> void:
 	register_btn.pressed.connect(_on_register_pressed)
 	username_field.text_submitted.connect(_on_field_submitted)
 	password_field.text_submitted.connect(_on_field_submitted)
+	settings_btn.pressed.connect(func(): ClientSettings.open(self))
 	NetAPI.login_result.connect(_on_login_result)
 	NetAPI.register_result.connect(_on_register_result)
 	NetAPI.server_status.connect(_on_server_status)
@@ -111,6 +115,7 @@ func _on_login_result(ok: bool, reason: String, coins: int) -> void:
 	_auth_attempt_id += 1
 	if ok:
 		GameManager.set_player_data(_pending_username, coins)
+		ClientSettings.load_player_settings()
 		GameManager.go_to_scene("res://src/scenes/world/World.tscn")
 	else:
 		set_status(reason)

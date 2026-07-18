@@ -14,7 +14,6 @@ const LEADERBOARD_SCENE := preload("res://src/scenes/ui/LeaderboardPanel.tscn")
 var _local_zone := ""
 var _overlay: Node = null
 var _overlay_scene: PackedScene = null
-var _disconnect_dialog: ConfirmationDialog = null
 var _server_update_dialog: AcceptDialog = null
 var _stats_panel: CanvasLayer = null
 var _leaderboard_panel: CanvasLayer = null
@@ -70,14 +69,14 @@ func _ready() -> void:
 			spawn_player(1, host_session.username)
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and _can_show_disconnect_dialog():
-		_show_disconnect_dialog()
+	if event.is_action_pressed("ui_cancel") and _can_open_settings():
+		ClientSettings.open(self)
 		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
-		if _can_show_disconnect_dialog():
-			_show_disconnect_dialog()
+		if _can_open_settings():
+			ClientSettings.open(self)
 			get_viewport().set_input_as_handled()
 		return
 	if not event.is_action_pressed("interact") or _overlay != null:
@@ -301,30 +300,11 @@ func _on_overlay_closed() -> void:
 	_overlay_scene = null
 	_overlay_hides_player = false
 
-func _show_disconnect_dialog() -> void:
-	if _disconnect_dialog != null and is_instance_valid(_disconnect_dialog):
-		_disconnect_dialog.popup_centered()
-		return
-	_disconnect_dialog = ConfirmationDialog.new()
-	_disconnect_dialog.title = "Disconnect?"
-	_disconnect_dialog.dialog_text = "Leave the current server and return to the login screen?"
-	_disconnect_dialog.ok_button_text = "Disconnect"
-	_disconnect_dialog.cancel_button_text = "Stay"
-	_disconnect_dialog.confirmed.connect(_disconnect_to_login)
-	_disconnect_dialog.canceled.connect(_disconnect_dialog.queue_free)
-	_disconnect_dialog.close_requested.connect(_disconnect_dialog.queue_free)
-	_disconnect_dialog.tree_exited.connect(func(): _disconnect_dialog = null)
-	add_child(_disconnect_dialog)
-	_disconnect_dialog.popup_centered()
-
-func _can_show_disconnect_dialog() -> bool:
+func _can_open_settings() -> bool:
 	return _overlay == null \
-		and not _is_disconnect_dialog_open() \
+		and not ClientSettings.is_open() \
 		and not _is_stats_panel_open() \
 		and not _is_leaderboard_panel_open()
-
-func _is_disconnect_dialog_open() -> bool:
-	return _disconnect_dialog != null and is_instance_valid(_disconnect_dialog) and _disconnect_dialog.visible
 
 func _is_stats_panel_open() -> bool:
 	return _stats_panel != null \
@@ -338,7 +318,7 @@ func _is_leaderboard_panel_open() -> bool:
 		and _leaderboard_panel.has_method("is_expanded") \
 		and _leaderboard_panel.is_expanded()
 
-func _disconnect_to_login() -> void:
+func disconnect_to_login() -> void:
 	_intentional_disconnect = true
 	NetworkManager.disconnect_from_server()
 	_reset_session_and_go_to_login()
