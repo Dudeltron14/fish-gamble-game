@@ -179,6 +179,7 @@ size_flags_horizontal = 3
 
 [node name="DeckStack" type="TextureRect" parent="Center/Panel/Margin/VBox/DeckRow" unique_id=1084433314]
 unique_name_in_owner = true
+texture_filter = 2
 custom_minimum_size = Vector2(48, 70)
 layout_mode = 2
 texture = ExtResource("3_card_back")

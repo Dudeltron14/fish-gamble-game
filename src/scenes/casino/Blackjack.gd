@@ -292,6 +292,7 @@ func _card_widget(card: Dictionary) -> Control:
 	if tex:
 		var rect := TextureRect.new()
 		rect.texture = tex
+		rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		rect.custom_minimum_size = CARD_SIZE
 		rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -313,6 +314,7 @@ func _hidden_widget() -> Control:
 	if back_tex:
 		var rect := TextureRect.new()
 		rect.texture = back_tex
+		rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		rect.custom_minimum_size = CARD_SIZE
 		rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
