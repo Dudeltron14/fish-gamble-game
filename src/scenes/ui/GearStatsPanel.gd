@@ -97,10 +97,6 @@ func configure_for_shop() -> void:
 		_apply_shop_mode()
 
 func _apply_shop_mode() -> void:
-	panel.offset_left = -258.0
-	panel.offset_top = 16.0
-	panel.offset_right = -8.0
-	panel.offset_bottom = 16.0
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	_set_expanded(get_viewport().get_visible_rect().size.x >= 980.0)
 
