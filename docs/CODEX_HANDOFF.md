@@ -164,7 +164,7 @@ Before Worm tuning:
 
 - `git diff --check` passed.
 - Godot MCP project state reported:
-  - Godot `4.6.3`
+  - Godot `4.7.1`
   - `compile_error_count: 0`
   - `error_count: 0`
   - `warning_count: 0`
