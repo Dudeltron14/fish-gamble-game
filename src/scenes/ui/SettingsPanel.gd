@@ -65,7 +65,7 @@ func _add_slider(parent: VBoxContainer, text: String, min_value: float, max_valu
 	slider.step = step
 	slider.value = value
 	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	slider.value_changed.connect(func(next_value): callback.call(next_value); _refresh_values())
+	slider.value_changed.connect(_on_slider_value_changed.bind(callback))
 	row.add_child(slider)
 	var value_label := Label.new()
 	value_label.custom_minimum_size = Vector2(42, 0)
@@ -73,6 +73,10 @@ func _add_slider(parent: VBoxContainer, text: String, min_value: float, max_valu
 	row.add_child(value_label)
 	parent.add_child(row)
 	return value_label
+
+func _on_slider_value_changed(value: float, callback: Callable) -> void:
+	callback.call(value)
+	_refresh_values()
 
 func _refresh_values() -> void:
 	if _zoom_value:
