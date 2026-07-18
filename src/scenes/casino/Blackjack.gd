@@ -11,6 +11,7 @@ const CARD_DEAL_ARC_HEIGHT := 54.0
 const MAX_BET := 999999
 const COIN_BURST_SCENE := preload("res://src/scenes/vfx/CoinBurst.tscn")
 const FAIRNESS := preload("res://src/server/BlackjackFairness.gd")
+const CASINO_LOG_FONT := preload("res://assets/fonts/NotoSans-Variable.ttf")
 const WIN_EFFECT_DESIGN_SIZE := Vector2(1280.0, 720.0)
 
 enum State { IDLE, PLAYER_TURN }
@@ -179,6 +180,7 @@ func _show_casino_log() -> void:
 	dialog.title = "Completed Shoe Casino Log"
 	var log_view := TextEdit.new()
 	log_view.editable = false
+	log_view.add_theme_font_override("font", CASINO_LOG_FONT)
 	log_view.position = Vector2(16, 44)
 	log_view.size = Vector2(568, 350)
 	log_view.text = _casino_log_text()
