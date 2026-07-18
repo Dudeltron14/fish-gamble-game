@@ -69,3 +69,11 @@ func is_username_authenticated(username: String) -> bool:
 		if session.authenticated and session.username == username:
 			return true
 	return false
+
+func get_leaderboard() -> Array:
+	var entries := []
+	for session: PlayerSession in sessions.values():
+		if session.authenticated:
+			entries.append({"username": session.username, "coins": session.coins})
+	entries.sort_custom(func(a, b): return a.coins > b.coins)
+	return entries
