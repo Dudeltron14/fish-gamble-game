@@ -2,6 +2,7 @@ extends Node
 
 const SETTINGS_FILE := "user://settings.cfg"
 const SETTINGS_PANEL := preload("res://src/scenes/ui/SettingsPanel.gd")
+const UI_SCALE_BASE := 1.4
 
 var music_volume := 80.0
 var sfx_volume := 80.0
@@ -74,7 +75,7 @@ func _apply_ui_scale_target(control: Control) -> void:
 	if control == null or not is_instance_valid(control):
 		return
 	control.pivot_offset = control.size * control.get_meta("ui_scale_pivot", Vector2(0.5, 0.5))
-	control.scale = Vector2.ONE * ui_scale
+	control.scale = Vector2.ONE * UI_SCALE_BASE * ui_scale
 
 func _save_global_settings() -> void:
 	var cfg := ConfigFile.new()
