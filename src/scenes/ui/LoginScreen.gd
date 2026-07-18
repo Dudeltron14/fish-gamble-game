@@ -28,8 +28,8 @@ var _menu_effect_bases := {}
 @onready var status_label: Label = %StatusLabel
 
 func _ready() -> void:
-	official_server_btn.text = "%s - %s" % [SERVER_LABEL, SERVER_URL.replace("wss://", "")]
-	official_server_btn.tooltip_text = "Click to refresh server status. This client is locked to %s." % SERVER_URL
+	official_server_btn.text = "%s - %s" % [_server_label(), _server_url().replace("wss://", "").replace("ws://", "")]
+	official_server_btn.tooltip_text = "Click to refresh server status. This client is locked to %s." % _server_url()
 	official_server_btn.pressed.connect(_request_server_status)
 	login_btn.pressed.connect(_on_login_pressed)
 	register_btn.pressed.connect(_on_register_pressed)
@@ -66,12 +66,12 @@ func _maybe_connect() -> void:
 		_execute_pending()
 		return
 	if connection_status == MultiplayerPeer.CONNECTION_CONNECTING:
-		set_status("Connecting to %s..." % SERVER_LABEL.to_lower())
+		set_status("Connecting to %s..." % _server_label().to_lower())
 		return
 	_connect_attempt_id += 1
 	var attempt_id: int = _connect_attempt_id
-	set_status("Connecting to %s..." % SERVER_LABEL.to_lower())
-	var err := NetworkManager.connect_to_url(SERVER_URL)
+	set_status("Connecting to %s..." % _server_label().to_lower())
+	var err := NetworkManager.connect_to_url(_server_url())
 
 	if err != OK:
 		set_status("Connection error: " + error_string(err))
@@ -162,7 +162,7 @@ func _request_server_status() -> void:
 	if connection_status == MultiplayerPeer.CONNECTION_CONNECTING:
 		_check_server_status_connection_timeout(attempt_id)
 		return
-	if NetworkManager.connect_to_url(SERVER_URL) != OK:
+	if NetworkManager.connect_to_url(_server_url()) != OK:
 		_checking_server_status = false
 		_set_server_status("Offline", false)
 		return
@@ -220,6 +220,12 @@ func _hash_password(password: String) -> String:
 	ctx.start(HashingContext.HASH_SHA256)
 	ctx.update(password.to_utf8_buffer())
 	return ctx.finish().hex_encode()
+
+func _server_url() -> String:
+	return OS.get_environment("BRINDLE_SERVER_URL") if not OS.get_environment("BRINDLE_SERVER_URL").is_empty() else SERVER_URL
+
+func _server_label() -> String:
+	return "Local Server" if not OS.get_environment("BRINDLE_SERVER_URL").is_empty() else SERVER_LABEL
 
 func set_status(msg: String) -> void:
 	status_label.text = msg

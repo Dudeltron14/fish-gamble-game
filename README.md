@@ -107,7 +107,7 @@ git lfs pull
 1. To play the latest deployed Web build, open `https://fishgame.dudeltron14.win`
 2. Register or log in from the main menu; the client connects to `wss://fishserver.dudeltron14.win`.
 3. For local development, open **Godot 4.6.x**, import `project.godot`, and press **Play** to run the client.
-4. Run a dedicated server separately when testing server changes locally.
+4. On Linux, run `./scripts/play_local.sh` to test uncommitted client and server changes together. It starts a local server on port 7073, opens a local client, and stops the server when the client closes. Set `GODOT_BIN=godot4` first if that is your Godot command.
 
 ---
 
