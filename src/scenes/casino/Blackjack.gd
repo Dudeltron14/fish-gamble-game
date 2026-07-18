@@ -4,13 +4,14 @@ signal completed
 
 const RANKS := ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]
 const SUITS := ["♠","♥","♦","♣"]
-const CARD_SIZE := Vector2(48, 70)
+const CARD_SIZE := Vector2(55, 81)
 const CARD_DEAL_FLY_TIME := 0.32
 const CARD_FLIP_HALF_TIME := 0.14
 const CARD_DEAL_ARC_HEIGHT := 54.0
 const MAX_BET := 999999
 const COIN_BURST_SCENE := preload("res://src/scenes/vfx/CoinBurst.tscn")
 const FAIRNESS := preload("res://src/server/BlackjackFairness.gd")
+const CASINO_LOG_FONT := preload("res://assets/fonts/NotoSans-Variable.ttf")
 const WIN_EFFECT_DESIGN_SIZE := Vector2(1280.0, 720.0)
 
 enum State { IDLE, PLAYER_TURN }
@@ -44,6 +45,7 @@ var _win_effect_marker_positions := {}
 @onready var win_effect_emitters: Node2D = $WinEffectEmitters
 
 func _ready() -> void:
+	ClientSettings.register_ui_scale_target($Center/Panel, Vector2(0.5, 0.5))
 	AudioManager.set_music_context("casino")
 	AudioManager.sfx("sfx_cards_pack_open")
 	AudioManager.sfx("sfx_cards_pack_take_out")
@@ -140,6 +142,17 @@ func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance
 
 func _on_shuffled(_deck_remaining: int) -> void:
 	AudioManager.sfx("sfx_card_shuffle")
+	deck_stack.pivot_offset = deck_stack.size * 0.5
+	deck_stack.rotation = 0.0
+	deck_stack.scale = Vector2.ONE
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(deck_stack, "rotation", TAU * 2.0, 0.45)
+	tween.tween_property(deck_stack, "scale", Vector2.ONE * 1.15, 0.2)
+	tween.tween_property(deck_stack, "scale", Vector2.ONE, 0.25).set_delay(0.2)
+	tween.finished.connect(func() -> void:
+		deck_stack.rotation = 0.0
+		deck_stack.scale = Vector2.ONE
+	)
 
 func _on_shoe_commitment(commitment: String, deck_remaining: int) -> void:
 	fairness_label.text = _masked_commitment(commitment)
@@ -175,6 +188,7 @@ func _show_casino_log() -> void:
 	dialog.title = "Completed Shoe Casino Log"
 	var log_view := TextEdit.new()
 	log_view.editable = false
+	log_view.add_theme_font_override("font", CASINO_LOG_FONT)
 	log_view.position = Vector2(16, 44)
 	log_view.size = Vector2(568, 350)
 	log_view.text = _casino_log_text()
@@ -246,7 +260,10 @@ func _on_result(outcome: String, dh: Array, payout: int, new_balance: int) -> vo
 		"win":
 			AudioManager.sfx("sfx_blackjack_win")
 			AudioManager.sfx("sfx_casino_chips")
+			AudioManager.sfx("sfx_blackjack_win_sting")
 			if payout > 0:
+				if payout >= 100:
+					AudioManager.sfx("sfx_jackpot_coin_loop")
 				_spawn_coin_bursts(payout)
 		"bust", "lose": AudioManager.sfx("sfx_blackjack_lose")
 		"push": AudioManager.sfx("sfx_blackjack_push")
@@ -283,6 +300,7 @@ func _card_widget(card: Dictionary) -> Control:
 	if tex:
 		var rect := TextureRect.new()
 		rect.texture = tex
+		rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		rect.custom_minimum_size = CARD_SIZE
 		rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -304,6 +322,7 @@ func _hidden_widget() -> Control:
 	if back_tex:
 		var rect := TextureRect.new()
 		rect.texture = back_tex
+		rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		rect.custom_minimum_size = CARD_SIZE
 		rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -492,33 +511,33 @@ func _update_player_value() -> void:
 	player_value_label.text = "Your hand: %d" % _player_value
 
 func _spawn_coin_bursts(payout: int) -> void:
-	var bursts_per_corner := 1
+	var emitter_count := 4
 	var loops := 1
 	if payout >= 500:
-		bursts_per_corner = 7
+		emitter_count = win_effect_emitters.get_child_count()
 		loops = 3
 	elif payout >= 100:
-		bursts_per_corner = 4
+		emitter_count = 8
 		loops = 2
-	elif payout >= 50:
-		bursts_per_corner = 2
 
+	var emitters: Array[Node] = win_effect_emitters.get_children()
+	var start := randi() % emitters.size()
 	var burst_index := 0
-	for emitter: Marker2D in win_effect_emitters.get_children():
-		for i in bursts_per_corner:
-			var burst := COIN_BURST_SCENE.instantiate() as CoinBurst
-			add_child(burst)
-			var jitter := Vector2(randf_range(-42.0, 42.0), randf_range(-42.0, 42.0))
-			burst.global_position = emitter.global_position + jitter
-			burst.rotation = emitter.global_rotation
-			burst.scale *= 3.0
-			burst.configure(loops)
-			if burst_index > 0:
-				burst.modulate.a = 0.0
-				var tween := create_tween()
-				tween.tween_interval(float(burst_index) * 0.035)
-				tween.tween_property(burst, "modulate:a", 1.0, 0.01)
-			burst_index += 1
+	for index in emitter_count:
+		var emitter: Marker2D = emitters[(start + index * emitters.size() / emitter_count) % emitters.size()]
+		var burst := COIN_BURST_SCENE.instantiate() as CoinBurst
+		add_child(burst)
+		var jitter := Vector2(randf_range(-42.0, 42.0), randf_range(-42.0, 42.0))
+		burst.global_position = emitter.global_position + jitter
+		burst.rotation = emitter.global_rotation
+		burst.scale *= 3.0
+		burst.configure(loops)
+		if burst_index > 0:
+			burst.modulate.a = 0.0
+			var tween := create_tween()
+			tween.tween_interval(float(burst_index) * 0.035)
+			tween.tween_property(burst, "modulate:a", 1.0, 0.01)
+		burst_index += 1
 
 func _clear_node(node: Node) -> void:
 	for c in node.get_children():

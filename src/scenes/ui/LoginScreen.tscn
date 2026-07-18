@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://src/scenes/ui/menu_effects/MenuDustMote.tscn" id="6_av0tn"]
 [ext_resource type="PackedScene" path="res://src/scenes/ui/menu_effects/MenuLanternFlame.tscn" id="7_av0tn"]
 [ext_resource type="PackedScene" path="res://src/scenes/ui/menu_effects/MenuBrassGlint.tscn" id="8_4wa3p"]
+[ext_resource type="Texture2D" path="res://assets/ui/brindle_logo.png" id="9_logo"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_d0v0i"]
 shader = ExtResource("5_yffci")
@@ -84,11 +85,12 @@ custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Title" type="Label" parent="Center/Panel/Margin/VBox" unique_id=1607141243]
+[node name="Title" type="TextureRect" parent="Center/Panel/Margin/VBox" unique_id=1607141243]
+custom_minimum_size = Vector2(320, 102)
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
-text = "Fish Gamble Game"
-horizontal_alignment = 1
+texture = ExtResource("9_logo")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Sep" type="HSeparator" parent="Center/Panel/Margin/VBox" unique_id=2144778347]
 layout_mode = 2
@@ -148,6 +150,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_focus")
 text = "Register"
+
+[node name="SettingsBtn" type="Button" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Settings"
 
 [node name="StatusLabel" type="Label" parent="Center/Panel/Margin/VBox" unique_id=639801078]
 unique_name_in_owner = true

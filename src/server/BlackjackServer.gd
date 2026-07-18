@@ -47,7 +47,7 @@ func handle_bet(peer_id: int, amount: int) -> void:
 	NetAPI.rpc_id(peer_id, "notify_bj_deal", ph, dh[0], amount, session.coins, _shoe.size())
 
 	if _val(ph) == 21:
-		_run_dealer(peer_id, session)
+		_resolve_natural_blackjack(peer_id, session)
 
 func handle_hit(peer_id: int) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
@@ -113,6 +113,11 @@ func _run_dealer(peer_id: int, session: PlayerSession) -> void:
 		NetAPI.rpc_id(peer_id, "notify_bj_dealer_card", card, _val(dh), _shoe.size())
 
 	session.set_meta("bj_dh",   dh)
+	_resolve(peer_id, session)
+
+func _resolve_natural_blackjack(peer_id: int, session: PlayerSession) -> void:
+	var dh: Array = session.get_meta("bj_dh")
+	NetAPI.rpc_id(peer_id, "notify_bj_dealer_reveal", dh, _val(dh), _shoe.size())
 	_resolve(peer_id, session)
 
 func _resolve(peer_id: int, session: PlayerSession) -> void:

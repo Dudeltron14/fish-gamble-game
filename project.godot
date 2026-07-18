@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="fish_game"
+config/name="Brindle"
 run/main_scene="res://src/scenes/main/Main.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
@@ -23,6 +23,7 @@ GameManager="*res://src/autoloads/GameManager.gd"
 NetworkManager="*res://src/autoloads/NetworkManager.gd"
 ItemRegistry="*res://src/autoloads/ItemRegistry.gd"
 AudioManager="*res://src/autoloads/AudioManager.gd"
+ClientSettings="*res://src/autoloads/ClientSettings.gd"
 NetAPI="*res://src/autoloads/NetAPI.gd"
 GameServer="*res://src/autoloads/GameServer.gd"
 

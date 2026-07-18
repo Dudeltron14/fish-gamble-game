@@ -1,8 +1,8 @@
 extends CharacterBody2D
 
 const SPEED := 100.0
-const STATE_SEND_INTERVAL := 0.05
-const REMOTE_LERP_SPEED := 12.0
+const STATE_SEND_INTERVAL := 1.0 / 30.0
+const REMOTE_LERP_SPEED := 18.0
 const CATCH_DISPLAY_SECONDS := 2.0
 const CATCH_DISPLAY_SIZE := 32.0
 const FISH_SHEET := preload("res://assets/free fish/free fish.png")

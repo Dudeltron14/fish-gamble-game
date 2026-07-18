@@ -19,7 +19,7 @@ var is_hosting: bool = false
 var owned_items: Dictionary = {}  # item_id -> quantity
 var hook_durability: int = 0
 var hook_max_durability: int = 0
-var camera_zoom: float = 2.0
+var camera_zoom: float = 4.0
 
 const ZONE_HINTS := {
 	"DockZone":   "HOLD E to Fish",
