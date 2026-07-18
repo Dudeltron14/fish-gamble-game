@@ -43,6 +43,8 @@ enabled=PackedStringArray("res://addons/godot-sqlite/plugin.cfg", "res://addons/
 [gui]
 
 theme/custom="res://src/themes/ui_flat_theme.tres"
+theme/default_font_multichannel_signed_distance_field=true
+theme/default_font_generate_mipmaps=true
 
 [input]
 
@@ -88,3 +90,4 @@ stats_toggle={
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+textures/canvas_textures/default_texture_filter=0
