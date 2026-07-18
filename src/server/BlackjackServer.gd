@@ -46,8 +46,10 @@ func handle_bet(peer_id: int, amount: int) -> void:
 
 	NetAPI.rpc_id(peer_id, "notify_bj_deal", ph, dh[0], amount, session.coins, _shoe.size())
 
-	if _val(ph) == 21:
-		_resolve_natural_blackjack(peer_id, session)
+	if _dealer_peeks_blackjack(dh):
+		_resolve_initial_blackjack(peer_id, session)
+	elif _val(ph) == 21:
+		_resolve_initial_blackjack(peer_id, session)
 
 func handle_hit(peer_id: int) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
@@ -115,7 +117,7 @@ func _run_dealer(peer_id: int, session: PlayerSession) -> void:
 	session.set_meta("bj_dh",   dh)
 	_resolve(peer_id, session)
 
-func _resolve_natural_blackjack(peer_id: int, session: PlayerSession) -> void:
+func _resolve_initial_blackjack(peer_id: int, session: PlayerSession) -> void:
 	var dh: Array = session.get_meta("bj_dh")
 	NetAPI.rpc_id(peer_id, "notify_bj_dealer_reveal", dh, _val(dh), _shoe.size())
 	_resolve(peer_id, session)
@@ -211,6 +213,9 @@ func _val(hand: Array) -> int:
 		total -= 10
 		aces  -= 1
 	return total
+
+func _dealer_peeks_blackjack(hand: Array) -> bool:
+	return hand.size() == 2 and hand[0]["rank"] == 0 and _val(hand) == 21
 
 func _in_player_turn(session: PlayerSession) -> bool:
 	return session != null and session.get_meta("bj_state", -1) == State.PLAYER_TURN

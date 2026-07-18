@@ -17,37 +17,16 @@ When the shoe is replaced at the three-deck cut card, the previous shoe's seed, 
 
 ## Independent verification
 
-The game performs this check locally, but anyone can repeat it independently. Save the copied JSON as `reveal.json`, then run this Python 3 script in the same directory:
+The game performs this check locally, but anyone can repeat it independently. Save the copied JSON as `reveal.json`, then run:
 
-```python
-import hashlib
-import json
+```sh
+python scripts/verify_blackjack_fairness.py reveal.json
+```
 
-VERSION = "fish-gamble-blackjack-v1"
+For the strongest check, save the full commitment displayed before the shoe began and pass it too:
 
-def sha256(text):
-    return hashlib.sha256(text.encode()).digest()
-
-def commitment(seed, nonce):
-    return sha256(f"{VERSION}|{seed}|{nonce}").hex()
-
-def make_shoe(seed, nonce):
-    cards = [
-        {"suit": suit, "rank": rank}
-        for _deck in range(6)
-        for suit in range(4)
-        for rank in range(13)
-    ]
-    for i in range(len(cards) - 1, 0, -1):
-        index = int.from_bytes(sha256(f"{seed}|{nonce}|{i}")[:4], "big") % (i + 1)
-        cards[i], cards[index] = cards[index], cards[i]
-    return cards
-
-reveal = json.load(open("reveal.json", encoding="utf-8"))
-shoe = make_shoe(reveal["seed"], reveal["nonce"])
-valid_commitment = commitment(reveal["seed"], reveal["nonce"]) == reveal["commitment"]
-valid_log = all(card == shoe.pop() for card in reveal["dealt_cards"])
-print("VERIFIED" if valid_commitment and valid_log else "FAILED")
+```sh
+python scripts/verify_blackjack_fairness.py reveal.json --commitment <full-commitment>
 ```
 
 `VERIFIED` confirms both of these facts:

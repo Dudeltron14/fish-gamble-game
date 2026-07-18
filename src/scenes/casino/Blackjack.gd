@@ -178,7 +178,7 @@ func _copy_fairness_reveal() -> void:
 	if _last_shoe_reveal.is_empty():
 		status_label.text = "The current shoe is committed; reveal data arrives after it is replaced."
 		return
-	DisplayServer.clipboard_set(JSON.stringify(_last_shoe_reveal))
+	DisplayServer.clipboard_set(JSON.stringify(_last_shoe_reveal, "\t"))
 	status_label.text = "Fairness reveal copied for independent verification."
 
 func _show_casino_log() -> void:

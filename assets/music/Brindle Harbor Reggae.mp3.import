@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cl3w6b0i4yy2y"
+path="res://.godot/imported/Brindle Harbor Reggae.mp3-20104b75e30d232da4d35cb5564a3da1.mp3str"
+
+[deps]
+
+source_file="res://assets/music/Brindle Harbor Reggae.mp3"
+dest_files=["res://.godot/imported/Brindle Harbor Reggae.mp3-20104b75e30d232da4d35cb5564a3da1.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

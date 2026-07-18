@@ -35,3 +35,6 @@ test_sqlite.gd.uid
 
 # Local scratch workspace
 /tmp/
+
+# Python verifier bytecode
+__pycache__/
