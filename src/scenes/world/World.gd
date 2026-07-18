@@ -290,14 +290,7 @@ func _on_overlay_closed() -> void:
 
 func _can_open_settings() -> bool:
 	return _overlay == null \
-		and not ClientSettings.is_open() \
-		and not _is_stats_panel_open()
-
-func _is_stats_panel_open() -> bool:
-	return _stats_panel != null \
-		and is_instance_valid(_stats_panel) \
-		and _stats_panel.has_method("is_expanded") \
-		and _stats_panel.is_expanded()
+		and not ClientSettings.is_open()
 
 func disconnect_to_login() -> void:
 	_intentional_disconnect = true
