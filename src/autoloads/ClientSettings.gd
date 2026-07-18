@@ -5,7 +5,7 @@ const SETTINGS_PANEL := preload("res://src/scenes/ui/SettingsPanel.gd")
 
 var music_volume := 80.0
 var sfx_volume := 80.0
-var ui_scale := 1.5
+var ui_scale := 1.0
 
 func _ready() -> void:
 	_load_global_settings()
@@ -37,7 +37,7 @@ func set_sfx_volume(value: float) -> void:
 	_save_global_settings()
 
 func set_ui_scale(value: float) -> void:
-	ui_scale = clampf(value, 0.75, 2.0)
+	ui_scale = clampf(value, 0.75, 1.5)
 	get_window().content_scale_factor = ui_scale
 	_save_global_settings()
 

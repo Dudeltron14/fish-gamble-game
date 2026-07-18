@@ -7,7 +7,6 @@ const STATUS_QUERY_RETRY_DELAY := 0.75
 const SERVER_URL := "wss://fishserver.dudeltron14.win"
 const SERVER_LABEL := "Production Server"
 const MENU_EFFECT_REFERENCE_SIZE := Vector2(1280.0, 720.0)
-const MENU_SCALE := 0.9
 
 enum _Action { NONE, LOGIN, REGISTER }
 
@@ -21,7 +20,6 @@ var _checking_server_status := false
 var _menu_effect_bases := {}
 
 @onready var official_server_btn: Button = %OfficialServerBtn
-@onready var menu_panel: Control = $Center/Panel
 @onready var server_status_label: Label = %ServerStatusLabel
 @onready var username_field: LineEdit = %UsernameField
 @onready var password_field: LineEdit = %PasswordField
@@ -44,9 +42,7 @@ func _ready() -> void:
 	NetworkManager.connection_failed.connect(_on_connection_failed)
 	NetworkManager.server_disconnected.connect(_on_server_disconnected)
 	resized.connect(_layout_menu_effects)
-	resized.connect(_scale_menu_panel)
 	call_deferred("_capture_menu_effect_bases")
-	call_deferred("_scale_menu_panel")
 	_request_server_status()
 
 func _on_login_pressed() -> void:
@@ -247,10 +243,6 @@ func _capture_menu_effect_bases() -> void:
 			"scale": sprite.scale,
 		}
 	_layout_menu_effects()
-
-func _scale_menu_panel() -> void:
-	menu_panel.pivot_offset = menu_panel.size * 0.5
-	menu_panel.scale = Vector2.ONE * MENU_SCALE
 
 func _layout_menu_effects() -> void:
 	if _menu_effect_bases.is_empty():
