@@ -75,7 +75,7 @@ theme_override_constants/separation = 10
 [node name="Title" type="Label" parent="Center/Panel/Margin/VBox" unique_id=1607141243]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "Fish Gamble Game"
+text = "Brindle"
 horizontal_alignment = 1
 
 [node name="Sep" type="HSeparator" parent="Center/Panel/Margin/VBox" unique_id=2144778347]
