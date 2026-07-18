@@ -2,7 +2,10 @@ extends Node
 
 const SETTINGS_FILE := "user://settings.cfg"
 const SETTINGS_PANEL := preload("res://src/scenes/ui/SettingsPanel.gd")
-const UI_SCALE_BASE := 1.4
+const UI_SCALE_BASE := 2.1
+const UI_SCALE_VERSION := 2
+const VIEW_ZOOM_BASE := 4.0
+const VIEW_ZOOM_VERSION := 2
 
 var music_volume := 80.0
 var sfx_volume := 80.0
@@ -22,10 +25,13 @@ func is_open() -> bool:
 
 func load_player_settings() -> void:
 	var cfg := ConfigFile.new()
-	if cfg.load(_zoom_settings_file()) == OK:
-		GameManager.set_camera_zoom(cfg.get_value("gameplay", "camera_zoom", 2.0))
-	else:
-		GameManager.set_camera_zoom(2.0)
+	if cfg.load(_zoom_settings_file()) != OK or cfg.get_value("gameplay", "zoom_version", 1) < VIEW_ZOOM_VERSION:
+		GameManager.set_camera_zoom(VIEW_ZOOM_BASE)
+		cfg.set_value("gameplay", "camera_zoom", VIEW_ZOOM_BASE)
+		cfg.set_value("gameplay", "zoom_version", VIEW_ZOOM_VERSION)
+		cfg.save(_zoom_settings_file())
+		return
+	GameManager.set_camera_zoom(cfg.get_value("gameplay", "camera_zoom", VIEW_ZOOM_BASE))
 
 func set_music_volume(value: float) -> void:
 	music_volume = clampf(value, 0.0, 100.0)
@@ -43,10 +49,14 @@ func set_ui_scale(value: float) -> void:
 	_save_global_settings()
 
 func set_camera_zoom(value: float) -> void:
-	GameManager.set_camera_zoom(value)
+	GameManager.set_camera_zoom(value * VIEW_ZOOM_BASE)
 	var cfg := ConfigFile.new()
 	cfg.set_value("gameplay", "camera_zoom", GameManager.camera_zoom)
+	cfg.set_value("gameplay", "zoom_version", VIEW_ZOOM_VERSION)
 	cfg.save(_zoom_settings_file())
+
+func get_view_zoom_scale() -> float:
+	return GameManager.camera_zoom / VIEW_ZOOM_BASE
 
 func _load_global_settings() -> void:
 	var cfg := ConfigFile.new()
@@ -54,7 +64,13 @@ func _load_global_settings() -> void:
 		return
 	music_volume = cfg.get_value("audio", "music_volume", music_volume)
 	sfx_volume = cfg.get_value("audio", "sfx_volume", sfx_volume)
-	ui_scale = cfg.get_value("display", "ui_scale", ui_scale)
+	if cfg.get_value("display", "ui_scale_version", 1) < UI_SCALE_VERSION:
+		ui_scale = 1.0
+		cfg.set_value("display", "ui_scale", ui_scale)
+		cfg.set_value("display", "ui_scale_version", UI_SCALE_VERSION)
+		cfg.save(SETTINGS_FILE)
+	else:
+		ui_scale = cfg.get_value("display", "ui_scale", ui_scale)
 
 func _apply_global_settings() -> void:
 	AudioManager.set_music_volume(music_volume / 100.0)
@@ -83,6 +99,7 @@ func _save_global_settings() -> void:
 	cfg.set_value("audio", "music_volume", music_volume)
 	cfg.set_value("audio", "sfx_volume", sfx_volume)
 	cfg.set_value("display", "ui_scale", ui_scale)
+	cfg.set_value("display", "ui_scale_version", UI_SCALE_VERSION)
 	cfg.save(SETTINGS_FILE)
 
 func _zoom_settings_file() -> String:

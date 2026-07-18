@@ -38,8 +38,8 @@ func _ready() -> void:
 	box.add_child(HSeparator.new())
 	_add_slider(box, "Music", 0.0, 100.0, 1.0, ClientSettings.music_volume, ClientSettings.set_music_volume)
 	_add_slider(box, "SFX", 0.0, 100.0, 1.0, ClientSettings.sfx_volume, ClientSettings.set_sfx_volume)
-	_zoom_value = _add_slider(box, "View Zoom", 1.0, 4.0, 0.25, GameManager.camera_zoom, ClientSettings.set_camera_zoom)
-	_ui_scale_value = _add_slider(box, "UI Scale", 0.75, 1.5, 0.05, ClientSettings.ui_scale, ClientSettings.set_ui_scale)
+	_zoom_value = _add_slider(box, "View Zoom", 0.25, 1.0, 0.0625, ClientSettings.get_view_zoom_scale(), ClientSettings.set_camera_zoom)
+	_ui_scale_value = _add_slider(box, "UI Scale", 0.5, 1.0, 0.05, ClientSettings.ui_scale, ClientSettings.set_ui_scale)
 	_refresh_values()
 	var world := get_tree().get_first_node_in_group("world")
 	if world:
@@ -81,7 +81,7 @@ func _on_slider_value_changed(value: float, callback: Callable) -> void:
 
 func _refresh_values() -> void:
 	if _zoom_value:
-		_zoom_value.text = "%d%%" % int(round(GameManager.camera_zoom * 100.0))
+		_zoom_value.text = "%d%%" % int(round(ClientSettings.get_view_zoom_scale() * 100.0))
 	if _ui_scale_value:
 		_ui_scale_value.text = "%d%%" % int(round(ClientSettings.ui_scale * 100.0))
 
