@@ -10,15 +10,23 @@
         html, body, canvas { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #130a04; }
         #brindle-loading { position: fixed; inset: 0; z-index: 1; display: grid; place-content: center; gap: 22px; background: radial-gradient(circle, #713000, #130a04 70%); color: #f8d486; font: 600 18px sans-serif; text-align: center; }
         #brindle-loading img { width: min(62vw, 360px); aspect-ratio: 1; object-fit: cover; box-sizing: border-box; border: 4px solid #e9b63e; border-radius: 50%; background: #07172c; box-shadow: 0 0 0 5px #4a2105, 0 14px 32px #0009; }
+        #brindle-progress { width: min(62vw, 360px); height: 12px; accent-color: #e9b63e; }
     </style>
 </head>
 <body>
-    <div id="brindle-loading"><img src="brindle_web_icon.png" alt="Brindle"><span>Loading the catch…</span></div>
+    <div id="brindle-loading"><img src="brindle_web_icon.png" alt="Brindle"><span id="brindle-loading-text">Loading the catch…</span><progress id="brindle-progress" max="100" value="0"></progress></div>
     <canvas id="canvas"></canvas>
     <script src="$GODOT_URL"></script>
     <script>
         const loader = document.getElementById("brindle-loading");
-        new Engine($GODOT_CONFIG).startGame().then(() => loader.remove());
+        const progress = document.getElementById("brindle-progress");
+        const loadingText = document.getElementById("brindle-loading-text");
+        new Engine($GODOT_CONFIG).startGame({ onProgress(current, total) {
+            if (total > 0) {
+                progress.value = current / total * 100;
+                loadingText.textContent = `Loading the catch… ${Math.round(progress.value)}%`;
+            }
+        }}).then(() => loader.remove());
     </script>
 </body>
 </html>

@@ -23,6 +23,8 @@ func _check() -> void:
 	assert(server._shoe.size() == 311 and server._shoe.count(dealt) == 5 and card_counts[dealt_key] == 6)
 	assert(FAIRNESS.verify_reveal(FAIRNESS.commitment(seed, nonce), seed, nonce, [dealt]))
 	assert(not FAIRNESS.verify_reveal(FAIRNESS.commitment(seed, nonce), seed, nonce, [{"suit": 9, "rank": 9}]))
+	assert(server._dealer_peeks_blackjack([{"suit": 0, "rank": 0}, {"suit": 1, "rank": 12}]))
+	assert(not server._dealer_peeks_blackjack([{"suit": 0, "rank": 0}, {"suit": 1, "rank": 8}]))
 	server._shuffle_shoe(seed, nonce)
 	var audited_card: Dictionary = server._draw_card("Tester", "deal")
 	assert(server._shoe_audit == [{"actor": "Tester", "action": "deal", "card": audited_card}])
