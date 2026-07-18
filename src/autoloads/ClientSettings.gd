@@ -38,7 +38,7 @@ func set_sfx_volume(value: float) -> void:
 
 func set_ui_scale(value: float) -> void:
 	ui_scale = clampf(value, 0.75, 1.5)
-	get_window().content_scale_factor = ui_scale
+	_apply_ui_scale()
 	_save_global_settings()
 
 func set_camera_zoom(value: float) -> void:
@@ -58,7 +58,10 @@ func _load_global_settings() -> void:
 func _apply_global_settings() -> void:
 	AudioManager.set_music_volume(music_volume / 100.0)
 	AudioManager.set_sfx_volume(sfx_volume / 100.0)
-	get_window().content_scale_factor = ui_scale
+	_apply_ui_scale()
+
+func _apply_ui_scale() -> void:
+	ThemeDB.get_project_theme().default_base_scale = ui_scale
 
 func _save_global_settings() -> void:
 	var cfg := ConfigFile.new()
