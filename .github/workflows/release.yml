@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  GODOT_VERSION: 4.6.3
+  GODOT_VERSION: 4.7.1
   REGISTRY: ghcr.io
   IMAGE_NAME: dudeltron14/fish-gamble-game
   WEB_IMAGE_NAME: dudeltron14/fish-gamble-game-web
@@ -24,7 +24,7 @@ jobs:
     name: Export Godot builds
     runs-on: ubuntu-latest
     container:
-      image: barichello/godot-ci:4.6.3
+      image: barichello/godot-ci:4.7.1
 
     steps:
       - name: Checkout
