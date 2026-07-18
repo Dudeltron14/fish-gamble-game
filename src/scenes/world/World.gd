@@ -270,9 +270,11 @@ func _open_overlay(scene: PackedScene) -> void:
 	if scene == SHOP_SCENE and _stats_panel != null and is_instance_valid(_stats_panel):
 		_stats_panel_was_visible = _stats_panel.visible
 		_stats_panel.visible = false
-	if (scene == SHOP_SCENE or scene == BJ_SCENE) and _leaderboard_panel != null and is_instance_valid(_leaderboard_panel):
+	if scene == SHOP_SCENE and _leaderboard_panel != null and is_instance_valid(_leaderboard_panel):
 		_leaderboard_panel_was_visible = _leaderboard_panel.visible
 		_leaderboard_panel.visible = false
+	if scene == BJ_SCENE and _leaderboard_panel != null and is_instance_valid(_leaderboard_panel):
+		_leaderboard_panel.layer = 11
 	var player := _get_local_player()
 	if player:
 		_overlay_entry_position = player.global_position
@@ -294,22 +296,17 @@ func _on_overlay_closed() -> void:
 		GameManager.fishing_result_completed.emit()
 	if _overlay_scene == SHOP_SCENE and _stats_panel != null and is_instance_valid(_stats_panel):
 		_stats_panel.visible = _stats_panel_was_visible
-	if (_overlay_scene == SHOP_SCENE or _overlay_scene == BJ_SCENE) and _leaderboard_panel != null and is_instance_valid(_leaderboard_panel):
+	if _overlay_scene == SHOP_SCENE and _leaderboard_panel != null and is_instance_valid(_leaderboard_panel):
 		_leaderboard_panel.visible = _leaderboard_panel_was_visible
+	if _overlay_scene == BJ_SCENE and _leaderboard_panel != null and is_instance_valid(_leaderboard_panel):
+		_leaderboard_panel.layer = 2
 	_overlay = null
 	_overlay_scene = null
 	_overlay_hides_player = false
 
 func _can_open_settings() -> bool:
 	return _overlay == null \
-		and not ClientSettings.is_open() \
-		and not _is_leaderboard_panel_open()
-
-func _is_leaderboard_panel_open() -> bool:
-	return _leaderboard_panel != null \
-		and is_instance_valid(_leaderboard_panel) \
-		and _leaderboard_panel.has_method("is_expanded") \
-		and _leaderboard_panel.is_expanded()
+		and not ClientSettings.is_open()
 
 func disconnect_to_login() -> void:
 	_intentional_disconnect = true
