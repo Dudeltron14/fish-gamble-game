@@ -24,6 +24,7 @@ func handle_buy(peer_id: int, item_id: String) -> void:
 	session.add_owned(item_id, qty)
 	var auto_equipped := _auto_equip_if_empty(peer_id, session, item, item_id)
 	_persist_buy(session, item_id, qty)
+	GameServer.broadcast_leaderboard()
 	NetAPI.rpc_id(peer_id, "notify_inventory_updated", item_id, session.get_owned(item_id))
 	var result_msg := "Purchased %s!" % item.display_name
 	if auto_equipped:

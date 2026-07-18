@@ -96,6 +96,7 @@ func handle_forfeit(peer_id: int) -> void:
 		if session.has_meta(key):
 			session.remove_meta(key)
 	_save_coins(session)  # persist — bet was already deducted, no refund
+	GameServer.broadcast_leaderboard()
 
 # ── Internal ──────────────────────────────────────────────────────────────────
 
@@ -141,6 +142,7 @@ func _resolve(peer_id: int, session: PlayerSession) -> void:
 
 	session.coins += payout
 	_save_coins(session)
+	GameServer.broadcast_leaderboard()
 
 	for key in ["bj_state", "bj_ph", "bj_dh", "bj_bet"]:
 		if session.has_meta(key):
