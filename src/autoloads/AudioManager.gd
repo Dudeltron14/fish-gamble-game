@@ -28,6 +28,7 @@ const PLAYLIST_PATHS: Dictionary = {
 		"res://assets/music/Velvet Reel (1).mp3",
 		"res://assets/music/Dockside Dice.mp3",
 		"res://assets/music/Dockside Dice (1).mp3",
+		"res://assets/music/Brindle Harbor Reggae.mp3",
 	],
 	"fishing": [
 		"res://assets/music/Harbor Dice.mp3",
@@ -36,6 +37,7 @@ const PLAYLIST_PATHS: Dictionary = {
 		"res://assets/music/Velvet Reel (1).mp3",
 		"res://assets/music/Dockside Dice.mp3",
 		"res://assets/music/Dockside Dice (1).mp3",
+		"res://assets/music/Brindle Harbor Reggae.mp3",
 	],
 	"shop": [
 		"res://assets/music/Harbor Dice.mp3",
@@ -44,6 +46,7 @@ const PLAYLIST_PATHS: Dictionary = {
 		"res://assets/music/Velvet Reel (1).mp3",
 		"res://assets/music/Dockside Dice.mp3",
 		"res://assets/music/Dockside Dice (1).mp3",
+		"res://assets/music/Brindle Harbor Reggae.mp3",
 	],
 	"casino": [
 		"res://assets/music/Dockside Jackpot.mp3",
