@@ -12,6 +12,9 @@ const CATCH_IMPACT_BLUE := preload("res://assets/vfx/catch_impact_blue_sheet.png
 const CATCH_SPARKLE_BLUE := preload("res://assets/vfx/catch_sparkle_blue_sheet.png")
 const CATCH_IMPACT_GOLD := preload("res://assets/vfx/catch_impact_gold_sheet.png")
 const PLAYER_RENDER_LAYER := 1000
+const CHAT_BUBBLE_MAX_WIDTH := 260.0
+const CHAT_BUBBLE_MIN_WIDTH := 72.0
+const CHAT_BUBBLE_LINE_HEIGHT := 16.0
 
 @export var player_name: String = "":
 	set(v):
@@ -22,6 +25,8 @@ const PLAYER_RENDER_LAYER := 1000
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var name_label: Label = $NameLabel
 @onready var chat_bubble: Label = $ChatBubble
+@onready var chat_tail: Polygon2D = $ChatTail
+@onready var chat_tail_inner: Polygon2D = $ChatTailInner
 @onready var camera: Camera2D = $Camera2D
 @onready var bobber_visual: Node2D = $BobberVisual
 @onready var catch_sprite: Sprite2D = $CatchSprite
@@ -173,15 +178,36 @@ func show_catch(fish_id: String) -> void:
 	)
 
 func show_chat_bubble(message: String) -> void:
-	chat_bubble.text = message
+	chat_bubble.text = "%s: %s" % [player_name, message]
+	var font := chat_bubble.get_theme_font("font")
+	var text_width := font.get_string_size(chat_bubble.text, HORIZONTAL_ALIGNMENT_LEFT, -1, chat_bubble.get_theme_font_size("font_size")).x
+	var width := clampf(text_width + 16.0, CHAT_BUBBLE_MIN_WIDTH, CHAT_BUBBLE_MAX_WIDTH)
+	var lines := ceili(text_width / (width - 16.0))
+	var height := 2.0 + CHAT_BUBBLE_LINE_HEIGHT * maxf(1.0, lines)
+	chat_bubble.size = Vector2(width, height)
+	chat_bubble.position = Vector2(-width * 0.5, -42.0 - height)
+	chat_tail.position = Vector2(0.0, -38.0)
+	chat_tail_inner.position = chat_tail.position
 	chat_bubble.modulate = Color.WHITE
+	chat_tail.modulate = Color.WHITE
+	chat_tail_inner.modulate = Color.WHITE
+	name_label.hide()
 	chat_bubble.visible = true
+	chat_tail.show()
+	chat_tail_inner.show()
 	if _chat_tween:
 		_chat_tween.kill()
 	_chat_tween = create_tween()
-	_chat_tween.tween_interval(4.0)
+	_chat_tween.tween_interval(5.0)
 	_chat_tween.tween_property(chat_bubble, "modulate:a", 0.0, 0.4)
-	_chat_tween.finished.connect(func() -> void: chat_bubble.visible = false)
+	_chat_tween.parallel().tween_property(chat_tail, "modulate:a", 0.0, 0.4)
+	_chat_tween.parallel().tween_property(chat_tail_inner, "modulate:a", 0.0, 0.4)
+	_chat_tween.finished.connect(func() -> void:
+		chat_bubble.hide()
+		chat_tail.hide()
+		chat_tail_inner.hide()
+		name_label.show()
+	)
 
 func _play_catch_effects(fish: FishData) -> void:
 	if fish.id.begins_with("junk_") or fish.id == "legendary_kraken":
