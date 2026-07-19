@@ -27,7 +27,7 @@ signal bj_error(msg: String)
 
 const CHAT_RANGE := 360.0
 const CHAT_COOLDOWN_MS := 1_000
-const CHAT_MAX_LENGTH := 96
+const CHAT_MAX_LENGTH := 48
 
 # ── Client → Server ───────────────────────────────────────────────────────────
 # call_local so that in Host & Play mode the host (peer 1 = server+client)

@@ -8,10 +8,15 @@
 [ext_resource type="Script" path="res://src/scenes/player/BobberVisual.gd" id="5_bobber"]
 [ext_resource type="FontFile" uid="uid://cmv6od8e8mh1p" path="res://assets/fonts/m5x7.ttf" id="6_namefont"]
 [ext_resource type="FontFile" path="res://assets/fonts/PixelifySans[wght].ttf" id="7_pixelfont"]
+[ext_resource type="FontFile" uid="uid://8fysf4g5x32r" path="res://assets/fonts/NotoSans-Variable.ttf" id="8_chatfont"]
 
 [sub_resource type="FontVariation" id="FontVariation_pixelfont_bold"]
 base_font = ExtResource("7_pixelfont")
 variation_opentype = {"wght": 700}
+
+[sub_resource type="FontVariation" id="FontVariation_pixelfont_chat"]
+base_font = ExtResource("8_chatfont")
+spacing_glyph = 1
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chat_bubble"]
 bg_color = Color(0.08, 0.07, 0.05, 0.94)
@@ -243,12 +248,12 @@ offset_right = 48.0
 offset_bottom = -42.0
 horizontal_alignment = 1
 vertical_alignment = 1
-autowrap_mode = 2
-theme_override_fonts/font = ExtResource("7_pixelfont")
+autowrap_mode = 1
+theme_override_fonts/font = SubResource("FontVariation_pixelfont_chat")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.05, 0.06, 0.11, 1)
 theme_override_font_sizes/font_size = 14
-theme_override_constants/outline_size = 1
+theme_override_constants/outline_size = 0
 theme_override_styles/normal = SubResource("StyleBoxFlat_chat_bubble")
 
 [node name="ChatTail" type="Polygon2D" parent="."]

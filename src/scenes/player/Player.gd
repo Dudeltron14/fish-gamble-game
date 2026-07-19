@@ -12,9 +12,13 @@ const CATCH_IMPACT_BLUE := preload("res://assets/vfx/catch_impact_blue_sheet.png
 const CATCH_SPARKLE_BLUE := preload("res://assets/vfx/catch_sparkle_blue_sheet.png")
 const CATCH_IMPACT_GOLD := preload("res://assets/vfx/catch_impact_gold_sheet.png")
 const PLAYER_RENDER_LAYER := 1000
+const SPRITE_RIGHT_POSITION := Vector2(8, -2)
+const SPRITE_LEFT_POSITION := Vector2(-10, -2)
 const CHAT_BUBBLE_MAX_WIDTH := 260.0
 const CHAT_BUBBLE_MIN_WIDTH := 72.0
 const CHAT_BUBBLE_LINE_HEIGHT := 16.0
+const CHAT_BUBBLE_MAX_LINES := 3
+const CHAT_BUBBLE_MAX_CHARACTERS := 64
 
 @export var player_name: String = "":
 	set(v):
@@ -84,7 +88,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if not _is_local_authority():
 		return
-	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	var dir := Vector2.ZERO if get_viewport().gui_get_focus_owner() is LineEdit else Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	velocity = dir * SPEED
 	move_and_slide()
 	_update_animation(dir)
@@ -99,8 +103,12 @@ func _update_animation(dir: Vector2) -> void:
 	if dir == Vector2.ZERO:
 		sprite.play("idle")
 	else:
-		sprite.flip_h = dir.x < 0
+		_set_sprite_direction(dir.x < 0)
 		sprite.play("walk_right")
+
+func _set_sprite_direction(flip: bool) -> void:
+	sprite.flip_h = flip
+	sprite.position = SPRITE_LEFT_POSITION if flip else SPRITE_RIGHT_POSITION
 
 func start_fishing() -> void:
 	_is_fishing = true
@@ -178,15 +186,16 @@ func show_catch(fish_id: String) -> void:
 	)
 
 func show_chat_bubble(message: String) -> void:
-	chat_bubble.text = "%s: %s" % [player_name, message]
+	var text := "%s: %s" % [player_name, message]
+	chat_bubble.text = text.left(CHAT_BUBBLE_MAX_CHARACTERS - 1) + "…" if text.length() > CHAT_BUBBLE_MAX_CHARACTERS else text
 	var font := chat_bubble.get_theme_font("font")
 	var text_width := font.get_string_size(chat_bubble.text, HORIZONTAL_ALIGNMENT_LEFT, -1, chat_bubble.get_theme_font_size("font_size")).x
 	var width := clampf(text_width + 16.0, CHAT_BUBBLE_MIN_WIDTH, CHAT_BUBBLE_MAX_WIDTH)
-	var lines := ceili(text_width / (width - 16.0))
+	var lines := mini(ceili(text_width / (width - 16.0)), CHAT_BUBBLE_MAX_LINES)
 	var height := 2.0 + CHAT_BUBBLE_LINE_HEIGHT * maxf(1.0, lines)
 	chat_bubble.size = Vector2(width, height)
 	chat_bubble.position = Vector2(-width * 0.5, -42.0 - height)
-	chat_tail.position = Vector2(0.0, -38.0)
+	chat_tail.position = Vector2(0.0, chat_bubble.position.y + height)
 	chat_tail_inner.position = chat_tail.position
 	chat_bubble.modulate = Color.WHITE
 	chat_tail.modulate = Color.WHITE
@@ -249,7 +258,7 @@ func apply_remote_state(pos: Vector2, animation: String, flip_h: bool, menu_hidd
 	visible = not menu_hidden
 	if sprite.sprite_frames and sprite.animation != animation:
 		sprite.play(animation)
-	sprite.flip_h = flip_h
+	_set_sprite_direction(flip_h)
 	_bobber_cast_quality = -1.0 if bobber_cast_quality < 0.0 else clampf(bobber_cast_quality, 0.0, 1.0)
 	_update_bobber(animation == "fishing")
 
@@ -271,7 +280,7 @@ func apply_server_input(input_dir: Vector2, animation: String, flip_h: bool, men
 		_is_fishing = false
 	if sprite.sprite_frames and sprite.animation != animation:
 		sprite.play(animation)
-	sprite.flip_h = flip_h
+	_set_sprite_direction(flip_h)
 	_bobber_cast_quality = -1.0 if bobber_cast_quality < 0.0 else clampf(bobber_cast_quality, 0.0, 1.0)
 	_update_bobber(_is_fishing)
 
