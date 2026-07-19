@@ -4,7 +4,7 @@ const SETTINGS_FILE := "user://settings.cfg"
 const SETTINGS_PANEL := preload("res://src/scenes/ui/SettingsPanel.gd")
 const UI_SCALE_BASE := 1.0
 const UI_SCALE_VERSION := 3
-const VIEW_ZOOM_BASE := 4.0
+const VIEW_ZOOM_BASE := 2.0
 const VIEW_ZOOM_VERSION := 2
 
 var music_volume := 40.0
