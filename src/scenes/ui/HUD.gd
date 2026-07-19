@@ -5,6 +5,7 @@ extends CanvasLayer
 @onready var context_hint: Label   = %ContextHint
 @onready var bait_warning_label: Label = %WarningLabel
 @onready var hook_warning_label: Label = %HookWarningLabel
+@onready var chat_input: LineEdit = %ChatInput
 
 var _warning_clear_token := 0
 var _last_hook_durability := -1
@@ -17,6 +18,7 @@ func _ready() -> void:
 	ClientSettings.register_ui_scale_target(bait_warning_label, Vector2(0.5, 0.0))
 	ClientSettings.register_ui_scale_target(hook_warning_label, Vector2(0.5, 0.0))
 	ClientSettings.register_ui_scale_target(%SettingsBtn, Vector2(1.0, 0.0))
+	ClientSettings.register_ui_scale_target(chat_input, Vector2(0.5, 1.0))
 	_style_context_hint()
 	_style_warning_label(bait_warning_label)
 	_style_warning_label(hook_warning_label)
@@ -29,8 +31,28 @@ func _ready() -> void:
 	NetAPI.bait_empty.connect(func(): _show_warning(bait_warning_label, "Bait ran out. Buy or equip more bait."))
 	NetAPI.hook_broken.connect(func(): _show_warning(hook_warning_label, "Hook broke. Buy or equip another hook."))
 	%SettingsBtn.pressed.connect(func(): ClientSettings.open(self))
+	chat_input.text_submitted.connect(_send_chat)
 	_on_coins_changed(GameManager.current_coins)
 	_refresh_equipped()
+
+func _input(event: InputEvent) -> void:
+	if chat_input.visible:
+		if event.is_action_pressed("ui_cancel"):
+			chat_input.hide()
+			chat_input.release_focus()
+			get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_T:
+		chat_input.show()
+		chat_input.grab_focus()
+		get_viewport().set_input_as_handled()
+
+func _send_chat(message: String) -> void:
+	chat_input.clear()
+	chat_input.hide()
+	chat_input.release_focus()
+	if not message.strip_edges().is_empty() and multiplayer.multiplayer_peer:
+		NetAPI.rpc_id(1, "c2s_chat_send", message)
 
 func _on_coins_changed(amount: int) -> void:
 	coins_label.text = "Coins: %d" % amount

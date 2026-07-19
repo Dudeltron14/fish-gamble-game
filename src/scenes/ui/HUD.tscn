@@ -98,3 +98,19 @@ offset_right = -10.0
 offset_bottom = 40.0
 grow_horizontal = 0
 text = "Settings [ESC]"
+
+[node name="ChatInput" type="LineEdit" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 3
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -180.0
+offset_top = -104.0
+offset_right = 180.0
+offset_bottom = -70.0
+grow_horizontal = 2
+placeholder_text = "Say something..."
+max_length = 96

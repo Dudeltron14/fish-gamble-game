@@ -25,6 +25,10 @@ signal bj_dealer_card(card: Dictionary, value: int, deck_remaining: int)
 signal bj_result(outcome: String, dealer_hand: Array, payout: int, new_balance: int)
 signal bj_error(msg: String)
 
+const CHAT_RANGE := 360.0
+const CHAT_COOLDOWN_MS := 1_000
+const CHAT_MAX_LENGTH := 96
+
 # ── Client → Server ───────────────────────────────────────────────────────────
 # call_local so that in Host & Play mode the host (peer 1 = server+client)
 # can call these on itself. get_remote_sender_id() returns 0 on local calls,
@@ -155,6 +159,33 @@ func c2s_bj_forfeit() -> void:
 	var bj := _srv("BlackjackServer")
 	if bj: bj.handle_forfeit(_peer_id())
 
+@rpc("any_peer", "call_local", "reliable")
+func c2s_chat_send(text: String) -> void:
+	if not multiplayer.is_server(): return
+	var peer_id := _peer_id()
+	var sender := GameServer.get_authenticated_session(peer_id)
+	if sender == null:
+		return
+	var message := text.strip_escapes().strip_edges().replace("\n", " ").replace("\r", " ").replace("\t", " ").left(CHAT_MAX_LENGTH)
+	if message.is_empty():
+		return
+	var now := Time.get_ticks_msec()
+	if now - sender.last_chat_ms < CHAT_COOLDOWN_MS:
+		return
+	sender.last_chat_ms = now
+	_refresh_peer_zone(peer_id)
+	for world in get_tree().get_nodes_in_group("world"):
+		var sender_player := world.get_node_or_null("Players/%d" % peer_id) as Node2D
+		if sender_player == null:
+			continue
+		for recipient_id in GameServer.sessions:
+			var recipient := GameServer.get_authenticated_session(recipient_id)
+			if recipient == null or recipient.current_zone != sender.current_zone:
+				continue
+			var recipient_player := world.get_node_or_null("Players/%d" % recipient_id) as Node2D
+			if recipient_player and sender_player.global_position.distance_squared_to(recipient_player.global_position) <= CHAT_RANGE * CHAT_RANGE:
+				NetAPI.rpc_id(recipient_id, "notify_chat_bubble", peer_id, message)
+
 # ── Server → Client ───────────────────────────────────────────────────────────
 # call_local so that in Host & Play mode, rpc_id(1, ...) executes locally
 # on the host (who is both server and client).
@@ -191,6 +222,13 @@ func notify_player_catch(peer_id: int, fish_id: String) -> void:
 	for world in get_tree().get_nodes_in_group("world"):
 		if world.has_method("show_player_catch"):
 			world.show_player_catch(peer_id, fish_id)
+
+@rpc("authority", "call_local", "reliable")
+func notify_chat_bubble(peer_id: int, message: String) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	for world in get_tree().get_nodes_in_group("world"):
+		if world.has_method("show_player_chat_bubble"):
+			world.show_player_chat_bubble(peer_id, message)
 
 @rpc("authority", "call_local", "reliable")
 func notify_register(ok: bool, reason: String) -> void:

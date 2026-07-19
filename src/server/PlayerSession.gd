@@ -12,6 +12,7 @@ var equipped_tackle_id: String = ""
 var owned_items: Dictionary = {}  # item_id -> quantity (authoritative server-side cache)
 var hook_durability: int = 0      # current uses remaining on equipped hook
 var hook_durabilities: Dictionary = {}  # hook type -> uses remaining
+var last_chat_ms: int = 0
 
 func add_owned(item_id: String, delta: int) -> void:
 	var q: int = owned_items.get(item_id, 0) + delta

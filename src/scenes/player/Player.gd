@@ -21,6 +21,7 @@ const PLAYER_RENDER_LAYER := 1000
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var name_label: Label = $NameLabel
+@onready var chat_bubble: Label = $ChatBubble
 @onready var camera: Camera2D = $Camera2D
 @onready var bobber_visual: Node2D = $BobberVisual
 @onready var catch_sprite: Sprite2D = $CatchSprite
@@ -34,6 +35,7 @@ var _server_input_dir := Vector2.ZERO
 var _remote_target_position := Vector2.ZERO
 var _bobber_cast_quality := -1.0
 var _catch_tween: Tween = null
+var _chat_tween: Tween = null
 
 func _ready() -> void:
 	_update_local_control()
@@ -169,6 +171,17 @@ func show_catch(fish_id: String) -> void:
 		for effect in catch_sprite.get_children():
 			effect.queue_free()
 	)
+
+func show_chat_bubble(message: String) -> void:
+	chat_bubble.text = message
+	chat_bubble.modulate = Color.WHITE
+	chat_bubble.visible = true
+	if _chat_tween:
+		_chat_tween.kill()
+	_chat_tween = create_tween()
+	_chat_tween.tween_interval(4.0)
+	_chat_tween.tween_property(chat_bubble, "modulate:a", 0.0, 0.4)
+	_chat_tween.finished.connect(func() -> void: chat_bubble.visible = false)
 
 func _play_catch_effects(fish: FishData) -> void:
 	if fish.id.begins_with("junk_") or fish.id == "legendary_kraken":
