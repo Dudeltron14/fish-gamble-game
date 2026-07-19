@@ -129,9 +129,10 @@ func _make_catch_row(slot: Dictionary) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 
-	if fish and fish.icon:
+	var fish_texture := fish.get_display_texture() if fish else null
+	if fish_texture:
 		var icon := TextureRect.new()
-		icon.texture = fish.icon
+		icon.texture = fish_texture
 		icon.custom_minimum_size = Vector2(32, 32)
 		icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED

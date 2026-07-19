@@ -5,9 +5,6 @@ const STATE_SEND_INTERVAL := 1.0 / 30.0
 const REMOTE_LERP_SPEED := 18.0
 const CATCH_DISPLAY_SECONDS := 2.0
 const CATCH_DISPLAY_SIZE := 32.0
-const FISH_SHEET := preload("res://assets/free fish/free fish.png")
-const FISH_FRAME_SIZE := Vector2i(16, 16)
-const FISH_SHEET_COLUMNS := 3
 const CATCH_IMPACT_BLUE := preload("res://assets/vfx/catch_impact_blue_sheet.png")
 const CATCH_SPARKLE_BLUE := preload("res://assets/vfx/catch_sparkle_blue_sheet.png")
 const CATCH_IMPACT_GOLD := preload("res://assets/vfx/catch_impact_gold_sheet.png")
@@ -283,20 +280,7 @@ func _update_bobber(force_visible: bool) -> void:
 		bobber_visual.set_cast_visible(show_bobber, sprite.flip_h, maxf(_bobber_cast_quality, 0.0))
 
 func _catch_texture_for(fish: FishData) -> Texture2D:
-	if fish.icon:
-		return fish.icon
-	if fish.sprite_frame < 0:
-		return null
-	var atlas := AtlasTexture.new()
-	var frame := maxi(fish.sprite_frame, 0)
-	var column := frame % FISH_SHEET_COLUMNS
-	var row := floori(float(frame) / float(FISH_SHEET_COLUMNS))
-	atlas.atlas = FISH_SHEET
-	atlas.region = Rect2(
-		Vector2(column * FISH_FRAME_SIZE.x, row * FISH_FRAME_SIZE.y),
-		FISH_FRAME_SIZE
-	)
-	return atlas
+	return fish.get_display_texture()
 
 func _catch_display_scale(texture: Texture2D) -> float:
 	var visible_size := _visible_texture_size(texture)

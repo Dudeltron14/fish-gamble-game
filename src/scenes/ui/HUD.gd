@@ -175,7 +175,7 @@ func _refresh_catch_bar() -> void:
 			continue
 		var slot: Dictionary = slots[i]
 		var fish := ItemRegistry.get_item(str(slot.fish_id)) as FishData
-		icon.texture = fish.icon if fish else null
+		icon.texture = fish.get_display_texture() if fish else null
 		icon.tooltip_text = "%s — %d coins" % [fish.display_name if fish else str(slot.fish_id), int(slot.sell_value)]
 		value_lbl.text = str(int(slot.sell_value))
 
