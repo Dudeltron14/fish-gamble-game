@@ -43,7 +43,14 @@ jobs:
           persist-credentials: false
 
       - name: Download Forgejo LFS assets
-        run: git lfs pull
+        env:
+          FORGEJO_LFS_TOKEN: ${{ secrets.FORGEJO_LFS_TOKEN }}
+        run: |
+          test -n "$FORGEJO_LFS_TOKEN" || { echo "FORGEJO_LFS_TOKEN is not configured"; exit 1; }
+          git config --global credential.helper store
+          printf 'protocol=https\nhost=lfs.dudeltron14.win\nusername=Dudeltron14\npassword=%s\n\n' "$FORGEJO_LFS_TOKEN" | git credential approve
+          git config --global lfs.https://lfs.dudeltron14.win/Dudeltron14/Brindle.git/info/lfs.access basic
+          git lfs pull
 
       - name: Lock client to staging lane server
         run: |
