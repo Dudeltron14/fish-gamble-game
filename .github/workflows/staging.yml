@@ -45,7 +45,7 @@ jobs:
           persist-credentials: false
 
       - name: Download Forgejo LFS assets
-        run: git lfs pull
+        run: git -C "$GITHUB_WORKSPACE" lfs pull
 
       - name: Install Godot Linux runtime dependencies
         run: |
