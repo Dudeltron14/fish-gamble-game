@@ -23,10 +23,6 @@ jobs:
   export:
     name: Export Godot builds
     runs-on: ubuntu-latest
-    env:
-      GIT_CONFIG_COUNT: 1
-      GIT_CONFIG_KEY_0: lfs.url
-      GIT_CONFIG_VALUE_0: https://lfs.dudeltron14.win/Dudeltron14/Brindle.git/info/lfs
     container:
       image: barichello/godot-ci:4.7.1
 
