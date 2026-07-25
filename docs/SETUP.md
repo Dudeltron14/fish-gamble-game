@@ -1,12 +1,15 @@
-# Fish Gamble Game — Setup Guide
+# Brindle — Setup Guide
 
 ## Collaborator Quickstart (5 steps)
 
 ```bash
 git clone https://github.com/Dudeltron14/fish-gamble-game.git
 cd fish-gamble-game
-git lfs pull                        # downloads all PNG/audio assets
+git lfs install
+git lfs pull                        # downloads assets from self-hosted Forgejo LFS
 ```
+
+GitHub remains the source and pull-request host. Large assets are served by `https://lfs.dudeltron14.win/Dudeltron14/Brindle.git/info/lfs`, configured in `.lfsconfig`; do not enable or consume GitHub LFS. Public clones can download assets without a Forgejo account. Contributors who add LFS assets need a Forgejo account with repository write access and authenticate once through Git Credential Manager.
 1. Open Godot 4, import `project.godot`
 2. Hit **Run** — game starts in client mode and uses the official deployed server route by default: `wss://fishserver.dudeltron14.win`.
 3. For most playtesting, use the public Web client at `https://fishgame.dudeltron14.win`.
@@ -370,7 +373,7 @@ feature/fix branch
   -> Staging GitHub Action auto-builds :staging images
   -> VM pulls/recreates staging containers
   -> playtest staging URLs
-  -> merge staging into master only after sign-off
+  -> open and merge a staging -> master PR only after sign-off
 ```
 
 Do not use `master` as the first place to test risky gameplay, networking, casino, or deployment changes. `master` should represent production-ready code.
@@ -571,14 +574,9 @@ https://admin-staging2.dudeltron14.win
 
 When Noah's main staging lane passes, promote the tested `staging` branch to production:
 
-```bash
-git checkout master
-git pull --ff-only origin master
-git merge --ff-only origin/staging
-git push origin master
-```
-
-If a fast-forward merge is not possible, stop and inspect the divergence before proceeding. Do not force-push `master`.
+1. Open a pull request with `base: master` and `compare: staging`.
+2. Verify the PR has no conflicts and the staging deployment has passed playtesting.
+3. Merge the PR. Do not push directly to or force-push `master`.
 
 When Alex's isolated lane passes, promote the tested `staging2` branch to production:
 
@@ -679,7 +677,7 @@ GitHub Actions will automatically:
 2. Build and push Docker images to `ghcr.io/dudeltron14/fish-gamble-game` and `ghcr.io/dudeltron14/fish-gamble-game-web`
 3. Optionally deploy the Web client to Cloudflare Pages if Cloudflare secrets are configured
 4. Attach web export files to the GitHub Release for tagged releases
-5. Watchtower on your VPS pulls the new images within 5 minutes
+5. Watchtower on your VPS pulls the new images within 60 seconds
 
 ---
 

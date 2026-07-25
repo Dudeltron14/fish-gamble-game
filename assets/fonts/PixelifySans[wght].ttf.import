@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://8fysf4g5x32r"
-path="res://.godot/imported/NotoSans-Variable.ttf-9bf16f73425566867d8fb02a47ec2d7d.fontdata"
+uid="uid://cp38kpk6j5plb"
+path="res://.godot/imported/PixelifySans[wght].ttf-efcae97d4e6d6503b59c787b93cd80d3.fontdata"
 
 [deps]
 
-source_file="res://assets/fonts/NotoSans-Variable.ttf"
-dest_files=["res://.godot/imported/NotoSans-Variable.ttf-9bf16f73425566867d8fb02a47ec2d7d.fontdata"]
+source_file="res://assets/fonts/PixelifySans[wght].ttf"
+dest_files=["res://.godot/imported/PixelifySans[wght].ttf-efcae97d4e6d6503b59c787b93cd80d3.fontdata"]
 
 [params]
 

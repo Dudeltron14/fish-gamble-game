@@ -56,7 +56,7 @@ const PLAYLIST_PATHS: Dictionary = {
 	],
 }
 
-@export var shuffle_playlists: bool = false
+@export var shuffle_playlists: bool = true
 @export var crossfade_time: float   = 1.5
 @export var context_fade_out: float = 0.8
 
@@ -149,6 +149,8 @@ var _sfx_vol_linear: float        = 1.0
 var _music_tween: Tween = null
 var _music_fade_tween: Tween = null
 var _music_transition_id := 0
+var _world_resume_stream: AudioStream
+var _world_resume_position := 0.0
 
 func _ready() -> void:
 	_ensure_audio_bus(BUS_MUSIC)
@@ -222,6 +224,9 @@ func _preload_playlists() -> void:
 func set_music_context(context: String) -> void:
 	if context == _current_context:
 		return
+	if _current_context == "world" and context == "casino" and _music_player.playing:
+		_world_resume_stream = _music_player.stream
+		_world_resume_position = _music_player.get_playback_position()
 	# If new context shares the same playlist paths, just relabel — don't restart
 	var new_paths: Array = PLAYLIST_PATHS.get(context, [])
 	var old_paths: Array = PLAYLIST_PATHS.get(_current_context, [])
@@ -235,14 +240,20 @@ func set_music_context(context: String) -> void:
 	_current_playlist = playlist.duplicate()
 	if shuffle_playlists:
 		_current_playlist.shuffle()
+	if context == "world" and _world_resume_stream and _current_playlist.has(_world_resume_stream):
+		_track_index = _current_playlist.find(_world_resume_stream)
+		_play_current_track(_world_resume_position)
+		_world_resume_stream = null
+		_world_resume_position = 0.0
+		return
 	_track_index = 0
 	_play_current_track()
 
-func _play_current_track() -> void:
+func _play_current_track(start_position: float = 0.0) -> void:
 	if _current_playlist.is_empty():
 		return
 	var stream: AudioStream = _current_playlist[_track_index]
-	play_music(stream, crossfade_time)
+	play_music(stream, crossfade_time, start_position)
 	_schedule_track_crossfade(stream)
 
 func _schedule_track_crossfade(stream: AudioStream) -> void:
@@ -270,7 +281,7 @@ func skip_track() -> void:
 
 # ── Core music controls ───────────────────────────────────────────────────────
 
-func play_music(stream: AudioStream, fade_in: float = 0.5) -> void:
+func play_music(stream: AudioStream, fade_in: float = 0.5, start_position: float = 0.0) -> void:
 	_music_transition_id += 1
 	_kill_music_tween()
 	_kill_music_fade_tween()
@@ -285,7 +296,7 @@ func play_music(stream: AudioStream, fade_in: float = 0.5) -> void:
 	_music_player.stop()
 	_music_player.stream = stream
 	_music_player.volume_db = -80.0
-	_music_player.play()
+	_music_player.play(start_position)
 	_music_tween = create_tween()
 	_music_tween.tween_property(_music_player, "volume_db", _music_volume_db(), fade_in)
 
@@ -307,6 +318,8 @@ func clear_music_context(fade_out: float = 0.5) -> void:
 	_current_context = ""
 	_current_playlist.clear()
 	_track_index = 0
+	_world_resume_stream = null
+	_world_resume_position = 0.0
 	stop_music(fade_out)
 
 # ── SFX ───────────────────────────────────────────────────────────────────────

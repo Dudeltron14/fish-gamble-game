@@ -31,20 +31,19 @@ jobs:
   export:
     name: Export staging builds
     runs-on: ubuntu-latest
-    container:
-      image: barichello/godot-ci:4.7.1
 
     steps:
       - name: Checkout requested ref
         uses: actions/checkout@v4
+        env:
+          GIT_LFS_SKIP_SMUDGE: "1"
         with:
           ref: ${{ env.BUILD_REF }}
-          lfs: true
+          lfs: false
+          persist-credentials: false
 
-      - name: Install Godot Linux runtime dependencies
-        run: |
-          apt-get update
-          apt-get install -y --no-install-recommends fontconfig libfontconfig1 python3
+      - name: Download Forgejo LFS assets
+        run: git lfs pull
 
       - name: Lock client to staging lane server
         run: |
@@ -72,22 +71,16 @@ jobs:
           print(f"Locked Web client to {server_label}: {server_url}")
           PY
 
-      - name: Setup Godot export templates
+      - name: Export Godot builds
         run: |
-          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
-          cp -r /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable/* \
-                ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/ || true
-
-      - name: Export Linux server binary
-        run: |
-          mkdir -p export/server
-          godot --headless --export-release "Linux" export/server/FishGambleGame.x86_64
-
-      - name: Export Web client
-        run: |
-          mkdir -p export/web
-          godot --headless --export-release "Web" export/web/index.html
-          cp assets/ui/brindle_web_icon.png export/web/brindle_web_icon.png
+          docker run --rm -v "$GITHUB_WORKSPACE:/workspace" -w /workspace --entrypoint sh \
+            barichello/godot-ci:${GODOT_VERSION} -lc '
+              mkdir -p export/server export/web
+              godot --headless --export-release "Linux" export/server/FishGambleGame.x86_64
+              godot --headless --export-release "Web" export/web/index.html
+              cp assets/ui/brindle_web_icon.png export/web/brindle_web_icon.png
+            '
+          sudo chown -R "$(id -u):$(id -g)" export
 
       - name: Add Godot Web headers
         run: |

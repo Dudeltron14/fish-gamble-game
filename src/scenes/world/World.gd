@@ -138,6 +138,11 @@ func show_player_catch(peer_id: int, fish_id: String) -> void:
 	if player and player.has_method("show_catch"):
 		player.show_catch(fish_id)
 
+func show_player_chat_bubble(peer_id: int, message: String) -> void:
+	var player := players.get_node_or_null(str(peer_id))
+	if player and player.has_method("show_chat_bubble"):
+		player.show_chat_bubble(message)
+
 func despawn_remote_player(peer_id: int) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting:
 		return

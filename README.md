@@ -95,7 +95,7 @@ Junk catches currently include Old Boot, Tin Can, and Clump of Seaweed for 0c.
 
 ## Quick Start (Playing)
 
-> **Requires [Git LFS](https://git-lfs.com)** — large assets such as PNGs, audio, and native binaries are stored in LFS.
+> **Requires [Git LFS](https://git-lfs.com)** — large assets such as PNGs, audio, and native binaries are stored in the project's self-hosted Forgejo LFS server, not GitHub LFS.
 > Install it once, then run `git lfs install`:
 > - macOS: `brew install git-lfs`
 > - Arch Linux: `pacman -S git-lfs`
@@ -110,7 +110,7 @@ git lfs pull
 
 1. To play the latest deployed Web build, open `https://fishgame.dudeltron14.win`
 2. Register or log in from the main menu; the client connects to `wss://fishserver.dudeltron14.win`.
-3. For local development, open **Godot 4.6.x**, import `project.godot`, and press **Play** to run the client.
+3. For local development, open **Godot 4.7.1**, import `project.godot`, and press **Play** to run the client.
 4. For UI, assets, sounds, and other client-only changes, run `./scripts/play_local_client.ps1`. It launches the uncommitted working tree against the staging server without building or deploying. Server or RPC changes still need the local-server workflow.
 5. On Linux, run `./scripts/play_local.sh` to test uncommitted client and server changes together. It starts a local server on port 7073, opens a local client, and stops the server when the client closes. Set `GODOT_BIN=godot4` first if that is your Godot command.
 
@@ -142,7 +142,7 @@ The Compose stack runs:
 - `watchtower` for automatic image updates
 
 SQLite database persists in `./data/` on the host.
-Watchtower checks for new images every 5 minutes and updates automatically.
+Watchtower checks for new images every 60 seconds and updates automatically.
 
 The current public routes are `https://fishgame.dudeltron14.win` for the Web client and `wss://fishserver.dudeltron14.win` for the game server. See [docs/SETUP.md](docs/SETUP.md) for the full deployment guide.
 
@@ -154,7 +154,7 @@ Use `staging` as the shared pre-production branch. Feature branches should be re
 
 Use `staging2` for an isolated rapid-iteration contributor lane, currently intended for Alex or another contributor who needs to test a feature without disturbing the main staging environment. Every push directly to `staging2` publishes `:staging2` images and uses separate Docker ports, Cloudflare routes, and database storage.
 
-When staging has been playtested and signed off, merge `staging` into `master`. Every push to `master` builds and pushes production `:latest` Docker images. Watchtower on the VPS should pick production images up automatically.
+When staging has been playtested and signed off, open and merge a `staging` → `master` pull request. Every push to `master` builds and pushes production `:latest` Docker images. Watchtower on the VPS should pick production images up automatically.
 
 Deployment flow:
 
@@ -163,7 +163,7 @@ feature/fix branch
   -> pull request into staging
   -> staging auto-builds ghcr.io/...:staging
   -> test https://fishgame-staging.dudeltron14.win
-  -> merge staging into master when production-ready
+  -> open and merge a staging -> master PR when production-ready
   -> production auto-builds ghcr.io/...:latest
   -> test https://fishgame.dudeltron14.win
 ```
@@ -195,12 +195,13 @@ git push origin v1.0.0
 ```
 
 GitHub Actions will:
-1. Export Linux server binary + Web client (Godot CI)
-2. Build and push Docker images to `ghcr.io/dudeltron14/fish-gamble-game` and `ghcr.io/dudeltron14/fish-gamble-game-web`
-3. Publish `:staging` from the `staging` branch or `:latest` from `master`
-4. Deploy the Web client to Cloudflare Pages when the Cloudflare secrets are configured
-5. Attach Web export files to the GitHub Release page for version tags
-6. Watchtower picks up new Docker images on the VPS within 5 minutes
+1. Check out source without GitHub LFS smudging, then download assets from Forgejo LFS.
+2. Export Linux server binary + Web client with Godot 4.7.1.
+3. Build and push Docker images to `ghcr.io/dudeltron14/fish-gamble-game` and `ghcr.io/dudeltron14/fish-gamble-game-web`.
+4. Publish `:staging` from the `staging` branch or `:latest` from `master`.
+5. Deploy the Web client to Cloudflare Pages when the Cloudflare secrets are configured.
+6. Attach Web export files to the GitHub Release page for version tags.
+7. Watchtower picks up new Docker images on the VPS within 60 seconds.
 
 ---
 
@@ -247,7 +248,7 @@ See [docs/FRAMEWORKS.md](docs/FRAMEWORKS.md) for the full guide.
 - **Engine** — Godot 4.7.1
 - **Networking** — WebSocket (`WebSocketMultiplayerPeer`), server-authoritative RPC
 - **Database** — SQLite via [godot-sqlite](https://github.com/2shady4u/godot-sqlite) GDExtension
-- **Assets** — Git LFS (PNG, GIF, audio, DLL)
+- **Assets** — Git LFS served by self-hosted Forgejo (PNG, GIF, audio, DLL)
 - **Server** — Docker on Linux VPS, auto-deploy via GitHub Actions + Watchtower
 - **Export** — Linux dedicated server + WebAssembly web client
 
