@@ -45,7 +45,8 @@ jobs:
           persist-credentials: false
 
       - name: Download Forgejo LFS assets
-        run: git -C "$GITHUB_WORKSPACE" lfs pull
+        working-directory: /__w/fish-gamble-game/fish-gamble-game
+        run: git lfs pull
 
       - name: Install Godot Linux runtime dependencies
         run: |
