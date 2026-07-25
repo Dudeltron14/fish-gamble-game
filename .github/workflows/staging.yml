@@ -39,7 +39,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ env.BUILD_REF }}
-          lfs: true
+          lfs: false
+
+      - name: Download LFS assets from configured server
+        run: git lfs pull
 
       - name: Install Godot Linux runtime dependencies
         run: |

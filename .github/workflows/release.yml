@@ -30,7 +30,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: true
+          lfs: false
+
+      - name: Download LFS assets from configured server
+        run: git lfs pull
 
       - name: Install Godot Linux runtime dependencies
         run: |
