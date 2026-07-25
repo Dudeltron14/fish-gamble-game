@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping with Fish & Gamble. The project is close to a closed beta, so the most useful contributions are focused fixes, clean reproduction notes, and small pull requests that other contributors can understand quickly.
+Thanks for helping with Brindle. The project is close to a closed beta, so the most useful contributions are focused fixes, clean reproduction notes, and small pull requests that other contributors can understand quickly.
 
 ## Source Of Truth
 
@@ -13,12 +13,14 @@ Avoid duplicating the same checklist item across multiple docs. If a bug becomes
 
 ## Local Setup
 
-Use Godot 4.6.3 and Git LFS.
+Use Godot 4.7.1 and Git LFS. GitHub hosts source and pull requests; `lfs.dudeltron14.win` hosts the LFS objects.
 
 ```bash
 git lfs install
 git lfs pull
 ```
+
+LFS downloads are public. To add or replace an LFS-tracked asset, ask a maintainer for a Forgejo account on `lfs.dudeltron14.win`; Git Credential Manager will ask you to sign in once when your first push needs LFS write access. Do not add GitHub LFS credentials or use GitHub's LFS storage.
 
 Open `project.godot` in Godot for client work. Server and Web deployment details live in `docs/SETUP.md`.
 
@@ -67,7 +69,7 @@ Use this flow for most work:
 4. Wait for the Staging GitHub Action to publish :staging images.
 5. Pull/recreate the staging containers on the VM.
 6. Test https://fishgame-staging.dudeltron14.win against wss://fishserver-staging.dudeltron14.win.
-7. When staging is good, merge staging into master for production.
+7. When staging is good, open and merge a `staging` → `master` PR for production.
 ```
 
 For Alex's isolated environment, work directly on `staging2` so every push deploys to that lane:
@@ -123,14 +125,7 @@ sudo docker compose -f docker-compose.staging.yml ps
 
 Use `https://admin-staging2.dudeltron14.win` for staging2 troubleshooting. That dashboard is filtered to the staging2 game server and uses a Dozzle username/password instead of Cloudflare Access. The all-server dashboard at `https://admin-servers.dudeltron14.win` includes production, staging, staging2, and Watchtower logs and should be limited to owner/admin users.
 
-Only production release managers should promote a tested branch to master. For Noah's main lane, this usually means `staging -> master`:
-
-```bash
-git checkout master
-git pull --ff-only origin master
-git merge --ff-only origin/staging
-git push origin master
-```
+Only production release managers should promote a tested branch to master. For Noah's main lane, open a `staging` → `master` PR, verify it has no conflicts, and merge it after review. Do not push directly to `master`.
 
 For Alex's lane, promote `staging2 -> master` only after the staging2 environment has been tested and approved:
 
@@ -155,7 +150,7 @@ git push origin staging
 For code or scene changes, run the Godot headless load check before opening a PR:
 
 ```powershell
-& 'C:\Users\Noah\Downloads\Godot_v4.6.3-stable_win64.exe\Godot_v4.6.3-stable_win64_console.exe' --headless --path . --quit
+& 'C:\Users\Noah\Downloads\Godot_v4.7.1-stable_win64.exe\Godot_v4.7.1-stable_win64_console.exe' --headless --path . --quit
 ```
 
 For networking changes, also test against the Docker server or clearly say why that was not possible.
