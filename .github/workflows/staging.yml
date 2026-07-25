@@ -92,6 +92,7 @@ jobs:
               godot --headless --export-release "Web" export/web/index.html
               cp assets/ui/brindle_web_icon.png export/web/brindle_web_icon.png
             '
+          sudo chown -R "$(id -u):$(id -g)" export
 
       - name: Add Godot Web headers
         run: |
