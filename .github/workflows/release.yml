@@ -33,7 +33,10 @@ jobs:
         run: git clone --depth 1 --branch "$GITHUB_REF_NAME" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" .
 
       - name: Download Forgejo LFS assets
-        run: git lfs pull
+        run: |
+          repo="$(find /__w /github/workspace -maxdepth 4 -type d -name .git -print -quit 2>/dev/null)"
+          test -n "$repo" || { echo "No shared checkout: PWD=$PWD GITHUB_WORKSPACE=$GITHUB_WORKSPACE"; exit 1; }
+          git -C "${repo%/.git}" lfs pull
 
       - name: Install Godot Linux runtime dependencies
         run: |
