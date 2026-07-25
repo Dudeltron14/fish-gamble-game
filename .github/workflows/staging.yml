@@ -32,9 +32,11 @@ jobs:
     name: Export staging builds
     runs-on: ubuntu-latest
     env:
-      GIT_CONFIG_COUNT: 1
+      GIT_CONFIG_COUNT: 2
       GIT_CONFIG_KEY_0: lfs.url
-      GIT_CONFIG_VALUE_0: https://Dudeltron14:${{ secrets.FORGEJO_LFS_TOKEN }}@lfs.dudeltron14.win/Dudeltron14/Brindle.git/info/lfs
+      GIT_CONFIG_VALUE_0: https://lfs.dudeltron14.win/Dudeltron14/Brindle.git/info/lfs
+      GIT_CONFIG_KEY_1: credential.helper
+      GIT_CONFIG_VALUE_1: "!f() { echo username=Dudeltron14; echo password=${{ secrets.FORGEJO_LFS_TOKEN }}; }; f"
     container:
       image: barichello/godot-ci:4.7.1
 
