@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORGEJO_LFS_TOKEN: ${{ secrets.FORGEJO_LFS_TOKEN }}
+      GITHUB_TOKEN: ${{ github.token }}
     container:
       image: barichello/godot-ci:4.7.1
 
@@ -36,10 +37,12 @@ jobs:
 
       - name: Download LFS assets from Forgejo
         run: |
-          repo=$(find / -maxdepth 4 -name .git -print -quit 2>/dev/null)
+          repo=$(mktemp -d)
+          GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 --branch "$GITHUB_REF_NAME" "https://x-access-token:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git" "$repo"
           auth=$(printf 'Dudeltron14:%s' "$FORGEJO_LFS_TOKEN" | base64 -w 0)
-          git -C "${repo%/.git}" config --local http.https://lfs.dudeltron14.win/.extraheader "Authorization: Basic $auth"
-          git -C "${repo%/.git}" lfs pull
+          git -C "$repo" config --local http.https://lfs.dudeltron14.win/.extraheader "Authorization: Basic $auth"
+          git -C "$repo" lfs pull
+          cp -a "$repo"/. .
 
       - name: Install Godot Linux runtime dependencies
         run: |
