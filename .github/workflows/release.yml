@@ -30,18 +30,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: false
-
-      - name: Restore Git LFS objects
-        uses: actions/cache@v4
-        with:
-          path: .git/lfs
-          key: ${{ runner.os }}-git-lfs-${{ hashFiles('**/*.png', '**/*.gif', '**/*.jpg', '**/*.jpeg', '**/*.wav', '**/*.ogg', '**/*.mp3', '**/*.svg', '**/*.webp', '**/*.dll', '**/*.so', '**/*.dylib', '**/*.a', '**/*.wasm') }}
-          restore-keys: |
-            ${{ runner.os }}-git-lfs-
-
-      - name: Materialize Git LFS assets
-        run: git lfs pull
+          lfs: true
 
       - name: Install Godot Linux runtime dependencies
         run: |
