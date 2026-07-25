@@ -33,7 +33,7 @@ jobs:
           lfs: false
 
       - name: Download LFS assets from configured server
-        run: git -C "$GITHUB_WORKSPACE" lfs pull
+        run: git -C /__w/fish-gamble-game/fish-gamble-game lfs pull
 
       - name: Install Godot Linux runtime dependencies
         run: |
