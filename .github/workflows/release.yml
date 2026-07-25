@@ -39,9 +39,8 @@ jobs:
         run: |
           repo=$(mktemp -d)
           GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 --branch "$GITHUB_REF_NAME" "https://x-access-token:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git" "$repo"
-          printf '%s\n' '#!/bin/sh' 'case "$1" in *Username*) echo Dudeltron14;; *Password*) echo "$FORGEJO_LFS_TOKEN";; esac' > "$repo/askpass"
-          chmod 700 "$repo/askpass"
-          GIT_ASKPASS="$repo/askpass" GIT_TERMINAL_PROMPT=0 git -C "$repo" lfs pull
+          git -C "$repo" config credential.helper "!f() { echo username=Dudeltron14; echo password=$FORGEJO_LFS_TOKEN; }; f"
+          git -C "$repo" lfs pull
           cp -a "$repo"/. .
 
       - name: Install Godot Linux runtime dependencies
