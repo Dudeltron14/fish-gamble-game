@@ -27,16 +27,12 @@ jobs:
       image: barichello/godot-ci:4.7.1
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Clone release ref
         env:
           GIT_LFS_SKIP_SMUDGE: "1"
-        with:
-          lfs: false
-          persist-credentials: false
+        run: git clone --depth 1 --branch "$GITHUB_REF_NAME" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" .
 
       - name: Download Forgejo LFS assets
-        working-directory: /__w/fish-gamble-game/fish-gamble-game
         run: git lfs pull
 
       - name: Install Godot Linux runtime dependencies
