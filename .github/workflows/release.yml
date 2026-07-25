@@ -23,6 +23,10 @@ jobs:
   export:
     name: Export Godot builds
     runs-on: ubuntu-latest
+    env:
+      GIT_CONFIG_COUNT: 1
+      GIT_CONFIG_KEY_0: lfs.url
+      GIT_CONFIG_VALUE_0: https://lfs.dudeltron14.win/Dudeltron14/Brindle.git/info/lfs
     container:
       image: barichello/godot-ci:4.7.1
 
@@ -30,10 +34,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: false
-
-      - name: Download LFS assets from configured server
-        run: git -C /__w/fish-gamble-game/fish-gamble-game lfs pull
+          lfs: true
 
       - name: Install Godot Linux runtime dependencies
         run: |
