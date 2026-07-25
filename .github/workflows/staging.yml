@@ -42,8 +42,9 @@ jobs:
 
       - name: Download Forgejo LFS assets
         run: |
-          repo="$(find /__w /github/workspace -maxdepth 4 -type d -name .git -print -quit 2>/dev/null)"
+          repo="$(find /__w /github/workspace -type d -path '*/fish-gamble-game/.git' -print -quit 2>/dev/null)"
           test -n "$repo" || { echo "No shared checkout: PWD=$PWD GITHUB_WORKSPACE=$GITHUB_WORKSPACE"; exit 1; }
+          echo "LFS worktree: ${repo%/.git}"
           git -C "${repo%/.git}" lfs pull
 
       - name: Install Godot Linux runtime dependencies
