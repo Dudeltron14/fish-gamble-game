@@ -37,8 +37,8 @@ jobs:
       - name: Download LFS assets from Forgejo
         run: |
           auth=$(printf 'Dudeltron14:%s' "$FORGEJO_LFS_TOKEN" | base64 -w 0)
-          git config --local http.https://lfs.dudeltron14.win/.extraheader "Authorization: Basic $auth"
-          git lfs pull
+          git -C "$GITHUB_WORKSPACE" config --local http.https://lfs.dudeltron14.win/.extraheader "Authorization: Basic $auth"
+          git -C "$GITHUB_WORKSPACE" lfs pull
 
       - name: Install Godot Linux runtime dependencies
         run: |
