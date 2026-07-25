@@ -56,7 +56,7 @@ const PLAYLIST_PATHS: Dictionary = {
 	],
 }
 
-@export var shuffle_playlists: bool = false
+@export var shuffle_playlists: bool = true
 @export var crossfade_time: float   = 1.5
 @export var context_fade_out: float = 0.8
 
