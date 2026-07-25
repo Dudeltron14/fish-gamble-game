@@ -23,43 +23,28 @@ jobs:
   export:
     name: Export Godot builds
     runs-on: ubuntu-latest
-    container:
-      image: barichello/godot-ci:4.7.1
 
     steps:
-      - name: Clone release ref
+      - name: Checkout release ref
+        uses: actions/checkout@v4
         env:
           GIT_LFS_SKIP_SMUDGE: "1"
-        run: git clone --depth 1 --branch "$GITHUB_REF_NAME" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" .
+        with:
+          lfs: false
+          persist-credentials: false
 
       - name: Download Forgejo LFS assets
-        run: |
-          repo="$(find /__w /github/workspace -type d -path '*/fish-gamble-game/.git' -print -quit 2>/dev/null)"
-          test -n "$repo" || { echo "No shared checkout: PWD=$PWD GITHUB_WORKSPACE=$GITHUB_WORKSPACE"; exit 1; }
-          echo "LFS worktree: ${repo%/.git}"
-          git -C "${repo%/.git}" lfs pull
+        run: git lfs pull
 
-      - name: Install Godot Linux runtime dependencies
+      - name: Export Godot builds
         run: |
-          apt-get update
-          apt-get install -y --no-install-recommends fontconfig libfontconfig1
-
-      - name: Setup Godot export templates
-        run: |
-          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
-          cp -r /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable/* \
-                ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/ || true
-
-      - name: Export Linux server binary
-        run: |
-          mkdir -p export/server
-          godot --headless --export-release "Linux" export/server/FishGambleGame.x86_64
-
-      - name: Export Web client
-        run: |
-          mkdir -p export/web
-          godot --headless --export-release "Web" export/web/index.html
-          cp assets/ui/brindle_web_icon.png export/web/brindle_web_icon.png
+          docker run --rm -v "$GITHUB_WORKSPACE:/workspace" -w /workspace --entrypoint sh \
+            barichello/godot-ci:${GODOT_VERSION} -lc '
+              mkdir -p export/server export/web
+              godot --headless --export-release "Linux" export/server/FishGambleGame.x86_64
+              godot --headless --export-release "Web" export/web/index.html
+              cp assets/ui/brindle_web_icon.png export/web/brindle_web_icon.png
+            '
 
       - name: Add Cloudflare Pages headers for Godot Web
         run: |
