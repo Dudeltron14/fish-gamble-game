@@ -32,11 +32,7 @@ jobs:
     name: Export staging builds
     runs-on: ubuntu-latest
     env:
-      GIT_CONFIG_COUNT: 2
-      GIT_CONFIG_KEY_0: lfs.url
-      GIT_CONFIG_VALUE_0: https://lfs.dudeltron14.win/Dudeltron14/Brindle.git/info/lfs
-      GIT_CONFIG_KEY_1: credential.helper
-      GIT_CONFIG_VALUE_1: "!f() { echo username=Dudeltron14; echo password=${{ secrets.FORGEJO_LFS_TOKEN }}; }; f"
+      FORGEJO_LFS_TOKEN: ${{ secrets.FORGEJO_LFS_TOKEN }}
     container:
       image: barichello/godot-ci:4.7.1
 
@@ -45,7 +41,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ env.BUILD_REF }}
-          lfs: true
+          lfs: false
+
+      - name: Download LFS assets from Forgejo
+        run: |
+          auth=$(printf 'Dudeltron14:%s' "$FORGEJO_LFS_TOKEN" | base64 -w 0)
+          git config --local http.https://lfs.dudeltron14.win/.extraheader "Authorization: Basic $auth"
+          git lfs pull
 
       - name: Install Godot Linux runtime dependencies
         run: |
