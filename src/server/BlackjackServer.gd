@@ -9,6 +9,7 @@ var _shoe_nonce := ""
 var _shoe_commitment := ""
 var _shoe_dealt: Array = []
 var _shoe_audit: Array = []
+var _next_hand_id := 1
 
 func handle_shoe_count(peer_id: int) -> void:
 	if _shoe.is_empty():
@@ -30,15 +31,18 @@ func handle_bet(peer_id: int, amount: int) -> void:
 	if amount > session.coins:
 		_err(peer_id, "Not enough coins."); return
 
-	session.coins -= amount
-	session.set_meta("bj_bet", amount)
-
 	if _shoe.size() <= SHUFFLE_CUT_CARD:
 		_start_new_shoe()
 		NetAPI.rpc_id(peer_id, "notify_bj_shuffled", _shoe.size())
+
+	session.coins -= amount
+	session.set_meta("bj_bet", amount)
+	var hand_id := _next_hand_id
+	_next_hand_id += 1
+	session.set_meta("bj_hand_id", hand_id)
 	var player_name := session.username if not session.username.is_empty() else "Player"
-	var ph: Array = [_draw_card(player_name, "deal"), _draw_card(player_name, "deal")]
-	var dh: Array = [_draw_card("Dealer", "deal"), _draw_card("Dealer", "deal")]
+	var ph: Array = [_draw_card(player_name, "deal", hand_id), _draw_card(player_name, "deal", hand_id)]
+	var dh: Array = [_draw_card("Dealer", "deal", hand_id), _draw_card("Dealer", "deal", hand_id)]
 	_broadcast_shoe_count()
 	session.set_meta("bj_state", State.PLAYER_TURN)
 	session.set_meta("bj_ph",    ph)
@@ -55,7 +59,7 @@ func handle_hit(peer_id: int) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
 	if not _in_player_turn(session): return
 	var ph: Array   = session.get_meta("bj_ph")
-	var card := _draw_card(session.username, "hit")
+	var card := _draw_card(session.username, "hit", session.get_meta("bj_hand_id"))
 	ph.append(card)
 	_broadcast_shoe_count()
 	session.set_meta("bj_ph",   ph)
@@ -68,6 +72,7 @@ func handle_hit(peer_id: int) -> void:
 func handle_stand(peer_id: int) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
 	if not _in_player_turn(session): return
+	_record_audit(session.username, "stand", session.get_meta("bj_hand_id"))
 	_run_dealer(peer_id, session)
 
 func handle_double(peer_id: int) -> void:
@@ -81,7 +86,7 @@ func handle_double(peer_id: int) -> void:
 	var extra := bet
 	session.coins -= extra
 	session.set_meta("bj_bet", bet + extra)
-	var card := _draw_card(session.username, "double")
+	var card := _draw_card(session.username, "double", session.get_meta("bj_hand_id"))
 	ph.append(card)
 	_broadcast_shoe_count()
 	session.set_meta("bj_ph",   ph)
@@ -94,7 +99,7 @@ func handle_double(peer_id: int) -> void:
 func handle_forfeit(peer_id: int) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
 	if session == null: return
-	for key in ["bj_state", "bj_ph", "bj_dh", "bj_bet"]:
+	for key in ["bj_state", "bj_ph", "bj_dh", "bj_bet", "bj_hand_id"]:
 		if session.has_meta(key):
 			session.remove_meta(key)
 	_save_coins(session)  # persist — bet was already deducted, no refund
@@ -109,7 +114,7 @@ func _run_dealer(peer_id: int, session: PlayerSession) -> void:
 	NetAPI.rpc_id(peer_id, "notify_bj_dealer_reveal", dh, _val(dh), _shoe.size())
 
 	while _val(dh) < 17:
-		var card := _draw_card("Dealer", "draw")
+		var card := _draw_card("Dealer", "draw", session.get_meta("bj_hand_id"))
 		dh.append(card)
 		_broadcast_shoe_count()
 		NetAPI.rpc_id(peer_id, "notify_bj_dealer_card", card, _val(dh), _shoe.size())
@@ -128,6 +133,7 @@ func _resolve(peer_id: int, session: PlayerSession) -> void:
 	var bet: int  = session.get_meta("bj_bet")
 	var pv := _val(ph)
 	var dv := _val(dh)
+	var hand_id: int = session.get_meta("bj_hand_id")
 
 	var outcome := "lose"
 	var payout  := 0
@@ -143,10 +149,11 @@ func _resolve(peer_id: int, session: PlayerSession) -> void:
 		payout = bet
 
 	session.coins += payout
+	_record_audit(session.username, outcome, hand_id)
 	_save_coins(session)
 	GameServer.broadcast_leaderboard()
 
-	for key in ["bj_state", "bj_ph", "bj_dh", "bj_bet"]:
+	for key in ["bj_state", "bj_ph", "bj_dh", "bj_bet", "bj_hand_id"]:
 		if session.has_meta(key):
 			session.remove_meta(key)
 
@@ -166,13 +173,18 @@ func _shuffle_shoe(seed: String = "", nonce: String = "") -> void:
 	_shoe = BlackjackFairness.make_shoe(_shoe_seed, _shoe_nonce)
 	_shoe_dealt.clear()
 	_shoe_audit.clear()
+	_next_hand_id = 1
 
-func _draw_card(actor: String, action: String) -> Dictionary:
+func _draw_card(actor: String, action: String, hand_id: int) -> Dictionary:
 	var card: Dictionary = _shoe.pop_back()
 	_shoe_dealt.append(card)
-	_shoe_audit.append({"actor": actor, "action": action, "card": card})
+	_shoe_audit.append({"actor": actor, "action": action, "card": card, "hand_id": hand_id})
 	_persist_shoe(false)
 	return card
+
+func _record_audit(actor: String, action: String, hand_id: int) -> void:
+	_shoe_audit.append({"actor": actor, "action": action, "hand_id": hand_id})
+	_persist_shoe(false)
 
 func _reveal_current_shoe() -> void:
 	_persist_shoe(true)

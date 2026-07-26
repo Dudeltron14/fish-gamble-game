@@ -199,11 +199,30 @@ func _show_casino_log() -> void:
 
 func _casino_log_text() -> String:
 	var lines := ["Completed shoe audit — cards were fixed before play began."]
+	var hands := {}
+	var hand_ids: Array = []
 	for index in _last_shoe_reveal.get("audit_log", []).size():
 		var entry: Dictionary = _last_shoe_reveal["audit_log"][index]
-		var card: Dictionary = entry.get("card", {})
-		var card_name := "%s%s" % [RANKS[int(card.get("rank", 0))], SUITS[int(card.get("suit", 0))]]
-		lines.append("%03d  %s — %s: %s" % [index + 1, entry.get("actor", "Dealer"), entry.get("action", "deal"), card_name])
+		var hand_id := int(entry.get("hand_id", 0))
+		if not hands.has(hand_id):
+			hands[hand_id] = []
+			hand_ids.append(hand_id)
+		hands[hand_id].append({"index": index + 1, "entry": entry})
+	for hand_id in hand_ids:
+		var entries: Array = hands[hand_id]
+		var player := "Player"
+		for record in entries:
+			var actor: String = record["entry"].get("actor", "Dealer")
+			if actor != "Dealer":
+				player = actor
+				break
+		lines.append("\nHand #%d — %s" % [hand_id, player])
+		for record in entries:
+			var entry: Dictionary = record["entry"]
+			var card: Dictionary = entry.get("card", {})
+			var action: String = entry.get("action", "deal")
+			var detail := "%s%s" % [RANKS[int(card.get("rank", 0))], SUITS[int(card.get("suit", 0))]] if not card.is_empty() else action.capitalize()
+			lines.append("%03d  %s — %s" % [record["index"], entry.get("actor", "Dealer"), "%s: %s" % [action, detail] if not card.is_empty() else detail])
 	return "\n".join(lines)
 
 func _on_hit(card: Dictionary, new_val: int, deck_remaining: int) -> void:

@@ -7,8 +7,12 @@ const GEAR_STATS_SCENE := preload("res://src/scenes/ui/GearStatsPanel.tscn")
 @onready var coins_label: Label = %CoinsLabel
 @onready var item_list: VBoxContainer = %ItemList
 @onready var status_label: Label = %StatusLabel
+@onready var rods_tab: Button = %RodsTab
+@onready var bait_tab: Button = %BaitTab
+@onready var tackle_tab: Button = %TackleTab
 
 var _gear_stats_panel: CanvasLayer = null
+var _category := "rods"
 
 func _ready() -> void:
 	ClientSettings.register_ui_scale_target($Center/Panel, Vector2(0.5, 0.5))
@@ -17,6 +21,9 @@ func _ready() -> void:
 	GameManager.owned_changed.connect(_populate.call_deferred)
 	GameManager.coins_changed.connect(_on_coins_changed)
 	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_close)
+	rods_tab.pressed.connect(_select_category.bind("rods"))
+	bait_tab.pressed.connect(_select_category.bind("baits"))
+	tackle_tab.pressed.connect(_select_category.bind("tackle"))
 	AudioManager.set_music_context("shop")
 	coins_label.text = "Coins: %d" % GameManager.current_coins
 	_add_gear_stats_panel()
@@ -26,14 +33,18 @@ func _populate() -> void:
 	for child in item_list.get_children():
 		child.free()
 
-	var shop_items: Array = []
-	shop_items.append_array(ItemRegistry.rods.values())
-	shop_items.append_array(ItemRegistry.baits.values())
-	shop_items.append_array(ItemRegistry.tackle.values())
+	var shop_items: Array = ItemRegistry.get(_category).values()
 	shop_items = shop_items.filter(func(i: ItemData) -> bool: return i.buy_price > 0)
 	shop_items.sort_custom(func(a: ItemData, b: ItemData) -> bool: return a.buy_price < b.buy_price)
 	for item in shop_items:
 		item_list.add_child(_make_row(item))
+
+func _select_category(category: String) -> void:
+	_category = category
+	rods_tab.disabled = category == "rods"
+	bait_tab.disabled = category == "baits"
+	tackle_tab.disabled = category == "tackle"
+	_populate()
 
 func _make_row(item: ItemData) -> Control:
 	var owned := GameManager.get_owned(item.id)

@@ -62,6 +62,25 @@ text = "Coins: 0"
 
 [node name="Sep" type="HSeparator" parent="Center/Panel/Margin/VBox"]
 
+[node name="Categories" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+theme_override_constants/separation = 8
+
+[node name="RodsTab" type="Button" parent="Center/Panel/Margin/VBox/Categories"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+text = "Rods"
+disabled = true
+
+[node name="BaitTab" type="Button" parent="Center/Panel/Margin/VBox/Categories"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+text = "Bait"
+
+[node name="TackleTab" type="Button" parent="Center/Panel/Margin/VBox/Categories"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+text = "Hooks / Tackle"
+
 [node name="Scroll" type="ScrollContainer" parent="Center/Panel/Margin/VBox"]
 custom_minimum_size = Vector2(0, 320)
 
