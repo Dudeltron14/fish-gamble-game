@@ -7,6 +7,7 @@ const STARTER_COINS := 50
 const STARTER_ROD_ID := "starter_rod"
 const STARTER_BAIT_ID := "worm"
 const STARTER_TACKLE_ID := "basic_hook"
+const LEADERBOARD_LIMIT := 20
 
 func init_server() -> void:
 	if _active:
@@ -17,6 +18,7 @@ func init_server() -> void:
 		"res://src/server/FishingServer.gd",
 		"res://src/server/ShopServer.gd",
 		"res://src/server/BlackjackServer.gd",
+		"res://src/server/MailboxServer.gd",
 	]:
 		var node: Node = load(script_path).new()
 		node.name = script_path.get_file().get_basename().to_pascal_case()
@@ -71,6 +73,10 @@ func is_username_authenticated(username: String) -> bool:
 	return false
 
 func get_leaderboard() -> Array:
+	var auth := get_node_or_null("AuthServer")
+	if auth != null and auth._db != null:
+		auth._db.query("SELECT username, coins FROM players ORDER BY coins DESC, username ASC LIMIT %d" % LEADERBOARD_LIMIT)
+		return auth._db.query_result
 	var entries := []
 	for session: PlayerSession in sessions.values():
 		if session.authenticated:
