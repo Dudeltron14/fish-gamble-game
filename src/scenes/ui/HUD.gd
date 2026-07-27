@@ -31,6 +31,7 @@ func _ready() -> void:
 	NetAPI.bait_empty.connect(func(): _show_warning(bait_warning_label, "Bait ran out. Buy or equip more bait."))
 	NetAPI.hook_broken.connect(func(): _show_warning(hook_warning_label, "Hook broke. Buy or equip another hook."))
 	%SettingsBtn.pressed.connect(func(): ClientSettings.open(self))
+	chat_input.max_length = NetAPI.CHAT_MAX_LENGTH
 	chat_input.text_submitted.connect(_send_chat)
 	_on_coins_changed(GameManager.current_coins)
 	_refresh_equipped()

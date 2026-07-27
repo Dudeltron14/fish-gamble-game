@@ -52,6 +52,78 @@ func _init_schema() -> void:
 			revealed_at INTEGER
 		)
 	""")
+	_db.query("""
+		CREATE TABLE IF NOT EXISTS mailbox_messages (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			sender_username TEXT NOT NULL,
+			recipient_username TEXT NOT NULL,
+			body TEXT NOT NULL,
+			sent_at INTEGER NOT NULL
+		)
+	""")
+	_db.query("""
+		CREATE TABLE IF NOT EXISTS player_fish_stats (
+			player_id INTEGER NOT NULL,
+			fish_id TEXT NOT NULL,
+			caught_count INTEGER NOT NULL DEFAULT 0,
+			got_away_count INTEGER NOT NULL DEFAULT 0,
+			best_measurement REAL NOT NULL DEFAULT 0,
+			PRIMARY KEY(player_id, fish_id)
+		)
+	""")
+	_ensure_fish_stat_column("got_away_count", "INTEGER NOT NULL DEFAULT 0")
+	_ensure_fish_stat_column("best_measurement", "REAL NOT NULL DEFAULT 0")
+	_db.query("""
+		CREATE TABLE IF NOT EXISTS player_career_stats (
+			player_id INTEGER PRIMARY KEY,
+			casino_won INTEGER NOT NULL DEFAULT 0,
+			casino_lost INTEGER NOT NULL DEFAULT 0,
+			fish_caught INTEGER NOT NULL DEFAULT 0,
+			lines_cast INTEGER NOT NULL DEFAULT 0,
+			fish_got_away INTEGER NOT NULL DEFAULT 0,
+			perfect_casts INTEGER NOT NULL DEFAULT 0,
+			hands_played INTEGER NOT NULL DEFAULT 0,
+			hands_won INTEGER NOT NULL DEFAULT 0,
+			hands_lost INTEGER NOT NULL DEFAULT 0,
+			double_downs INTEGER NOT NULL DEFAULT 0,
+			double_downs_won INTEGER NOT NULL DEFAULT 0,
+			biggest_win INTEGER NOT NULL DEFAULT 0,
+			biggest_loss INTEGER NOT NULL DEFAULT 0,
+			chat_messages INTEGER NOT NULL DEFAULT 0,
+			shop_spent INTEGER NOT NULL DEFAULT 0,
+			items_bought INTEGER NOT NULL DEFAULT 0,
+			time_played_seconds INTEGER NOT NULL DEFAULT 0
+		)
+	""")
+	_db.query("CREATE TABLE IF NOT EXISTS player_gear_stats (player_id INTEGER NOT NULL, item_id TEXT NOT NULL, uses INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(player_id, item_id))")
+	_db.query("CREATE TABLE IF NOT EXISTS player_login_days (player_id INTEGER NOT NULL, day_key TEXT NOT NULL, PRIMARY KEY(player_id, day_key))")
+	_db.query("CREATE TABLE IF NOT EXISTS player_encounters (player_id INTEGER NOT NULL, other_player_id INTEGER NOT NULL, PRIMARY KEY(player_id, other_player_id))")
+	for column in ["lines_cast INTEGER NOT NULL DEFAULT 0", "fish_got_away INTEGER NOT NULL DEFAULT 0", "perfect_casts INTEGER NOT NULL DEFAULT 0", "hands_played INTEGER NOT NULL DEFAULT 0", "hands_won INTEGER NOT NULL DEFAULT 0", "hands_lost INTEGER NOT NULL DEFAULT 0", "double_downs INTEGER NOT NULL DEFAULT 0", "double_downs_won INTEGER NOT NULL DEFAULT 0", "biggest_win INTEGER NOT NULL DEFAULT 0", "biggest_loss INTEGER NOT NULL DEFAULT 0", "chat_messages INTEGER NOT NULL DEFAULT 0", "chat_messages_received INTEGER NOT NULL DEFAULT 0", "shop_spent INTEGER NOT NULL DEFAULT 0", "items_bought INTEGER NOT NULL DEFAULT 0", "time_played_seconds INTEGER NOT NULL DEFAULT 0", "total_gold_earned INTEGER NOT NULL DEFAULT 0", "total_gold_spent INTEGER NOT NULL DEFAULT 0", "highest_balance INTEGER NOT NULL DEFAULT 0", "skins_purchased INTEGER NOT NULL DEFAULT 0", "treasure_found INTEGER NOT NULL DEFAULT 0", "junk_caught INTEGER NOT NULL DEFAULT 0", "rare_catches INTEGER NOT NULL DEFAULT 0", "legendary_catches INTEGER NOT NULL DEFAULT 0", "highest_catch_value INTEGER NOT NULL DEFAULT 0", "biggest_fish_length REAL NOT NULL DEFAULT 0", "heaviest_junk REAL NOT NULL DEFAULT 0", "fastest_catch_ms INTEGER NOT NULL DEFAULT 0", "blackjacks INTEGER NOT NULL DEFAULT 0", "pushes INTEGER NOT NULL DEFAULT 0", "busts INTEGER NOT NULL DEFAULT 0", "total_wagered INTEGER NOT NULL DEFAULT 0", "longest_win_streak INTEGER NOT NULL DEFAULT 0", "longest_loss_streak INTEGER NOT NULL DEFAULT 0", "current_win_streak INTEGER NOT NULL DEFAULT 0", "current_loss_streak INTEGER NOT NULL DEFAULT 0", "current_fish_streak INTEGER NOT NULL DEFAULT 0", "longest_fish_streak INTEGER NOT NULL DEFAULT 0", "longest_login_streak INTEGER NOT NULL DEFAULT 0", "letters_sent INTEGER NOT NULL DEFAULT 0", "letters_received INTEGER NOT NULL DEFAULT 0", "unique_players_encountered INTEGER NOT NULL DEFAULT 0", "derbies_entered INTEGER NOT NULL DEFAULT 0", "derbies_won INTEGER NOT NULL DEFAULT 0", "best_derby_place INTEGER NOT NULL DEFAULT 0", "derby_fish_caught INTEGER NOT NULL DEFAULT 0"]:
+		var parts: PackedStringArray = column.split(" ", false, 1)
+		_ensure_career_stat_column(parts[0], parts[1])
+	_db.query("""
+		CREATE TABLE IF NOT EXISTS daily_quest_state (
+			player_id INTEGER NOT NULL,
+			day_key TEXT NOT NULL,
+			free_rerolls_used INTEGER NOT NULL DEFAULT 0,
+			PRIMARY KEY(player_id, day_key)
+		)
+	""")
+	_db.query("""
+		CREATE TABLE IF NOT EXISTS daily_quests (
+			player_id INTEGER NOT NULL,
+			day_key TEXT NOT NULL,
+			slot INTEGER NOT NULL,
+			kind TEXT NOT NULL,
+			fish_id TEXT NOT NULL DEFAULT '',
+			target INTEGER NOT NULL,
+			progress INTEGER NOT NULL DEFAULT 0,
+			reward INTEGER NOT NULL,
+			difficulty TEXT NOT NULL,
+			claimed INTEGER NOT NULL DEFAULT 0,
+			PRIMARY KEY(player_id, day_key, slot)
+		)
+	""")
 	_ensure_blackjack_shoe_column("audit_log", "TEXT NOT NULL DEFAULT '[]'")
 	_ensure_player_column("equipped_rod_id", "TEXT DEFAULT ''")
 	_ensure_player_column("equipped_bait_id", "TEXT DEFAULT ''")
@@ -95,6 +167,7 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 	session.authenticated = true
 	session.username = username
 	session.coins = int(row.coins)
+	_record_login_day(int(row.id))
 	_load_equipped(session, int(row.id))
 
 	# Send full inventory before login confirmation
@@ -354,6 +427,32 @@ func _ensure_blackjack_shoe_column(column_name: String, column_def: String) -> v
 		if str(row.name) == column_name:
 			return
 	_db.query("ALTER TABLE blackjack_shoes ADD COLUMN %s %s" % [column_name, column_def])
+
+func _ensure_career_stat_column(column_name: String, column_def: String) -> void:
+	_db.query("PRAGMA table_info(player_career_stats)")
+	for row in _db.query_result:
+		if str(row.name) == column_name:
+			return
+	_db.query("ALTER TABLE player_career_stats ADD COLUMN %s %s" % [column_name, column_def])
+
+func _ensure_fish_stat_column(column_name: String, column_def: String) -> void:
+	_db.query("PRAGMA table_info(player_fish_stats)")
+	for row in _db.query_result:
+		if str(row.name) == column_name:
+			return
+	_db.query("ALTER TABLE player_fish_stats ADD COLUMN %s %s" % [column_name, column_def])
+
+func _record_login_day(player_id: int) -> void:
+	_db.query_with_bindings("INSERT OR IGNORE INTO player_login_days (player_id, day_key) VALUES (?, ?)", [player_id, Time.get_datetime_string_from_system(false).left(10)])
+	_db.query_with_bindings("SELECT day_key FROM player_login_days WHERE player_id = ? ORDER BY day_key DESC", [player_id])
+	var streak := 0
+	var expected := Time.get_unix_time_from_datetime_string(Time.get_datetime_string_from_system(false).left(10) + "T00:00:00")
+	for row in _db.query_result:
+		var timestamp := Time.get_unix_time_from_datetime_string(str(row.day_key) + "T00:00:00")
+		if timestamp != expected: break
+		streak += 1
+		expected -= 86_400
+	_db.query_with_bindings("INSERT INTO player_career_stats (player_id, longest_login_streak) VALUES (?, ?) ON CONFLICT(player_id) DO UPDATE SET longest_login_streak = MAX(longest_login_streak, excluded.longest_login_streak)", [player_id, streak])
 
 func _generate_salt() -> String:
 	var bytes := PackedByteArray()

@@ -20,6 +20,8 @@ func handle_buy(peer_id: int, item_id: String) -> void:
 		return
 
 	session.coins -= item.buy_price
+	var progression := GameServer.get_node_or_null("ProgressionServer")
+	if progression: progression.record_shop_purchase(session, item.buy_price)
 	var qty: int = (item as BaitData).uses_per_stack if item is BaitData else 1
 	session.add_owned(item_id, qty)
 	var auto_equipped := _auto_equip_if_empty(peer_id, session, item, item_id)

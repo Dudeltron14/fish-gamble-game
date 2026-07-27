@@ -19,6 +19,7 @@ func init_server() -> void:
 		"res://src/server/ShopServer.gd",
 		"res://src/server/BlackjackServer.gd",
 		"res://src/server/MailboxServer.gd",
+		"res://src/server/ProgressionServer.gd",
 	]:
 		var node: Node = load(script_path).new()
 		node.name = script_path.get_file().get_basename().to_pascal_case()
@@ -32,6 +33,10 @@ func _on_peer_connected(peer_id: int) -> void:
 	print("GameServer: peer %d connected (%d total)" % [peer_id, sessions.size()])
 
 func _on_peer_disconnected(peer_id: int) -> void:
+	var session: PlayerSession = sessions.get(peer_id, null)
+	if session:
+		var progression := get_node_or_null("ProgressionServer")
+		if progression: progression.record_time_played(session, Time.get_ticks_msec() - session.connected_at_ms)
 	if sessions.erase(peer_id):
 		print("GameServer: peer %d disconnected (%d remaining)" % [peer_id, sessions.size()])
 	for world in get_tree().get_nodes_in_group("world"):

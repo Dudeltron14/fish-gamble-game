@@ -5,7 +5,7 @@ signal register_result(ok: bool, reason: String)
 signal server_status(player_count: int, sent_ms: int)
 signal leaderboard_result(entries: Array)
 signal fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float, hook_react_bonus: float, auto_catch: bool)
-signal fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int)
+signal fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int, measurement: float, measurement_unit: String, personal_record: bool)
 signal shop_result(ok: bool, reason: String, new_balance: int)
 signal equip_result(ok: bool, item_id: String, slot: String)
 signal inventory_loaded(items: Dictionary)
@@ -24,6 +24,11 @@ signal bj_dealer_reveal(full_hand: Array, value: int, deck_remaining: int)
 signal bj_dealer_card(card: Dictionary, value: int, deck_remaining: int)
 signal bj_result(outcome: String, dealer_hand: Array, payout: int, new_balance: int)
 signal bj_error(msg: String)
+signal mailbox_loaded(messages: Array)
+signal mailbox_result(ok: bool, reason: String)
+signal harbor_stats_loaded(stats: Dictionary)
+signal daily_quests_loaded(ledger: Dictionary)
+signal daily_quest_result(ok: bool, reason: String)
 
 const CHAT_RANGE := 360.0
 const CHAT_COOLDOWN_MS := 1_000
@@ -173,6 +178,8 @@ func c2s_chat_send(text: String) -> void:
 	if now - sender.last_chat_ms < CHAT_COOLDOWN_MS:
 		return
 	sender.last_chat_ms = now
+	var progression := _srv("ProgressionServer")
+	if progression: progression.record_chat_message(sender)
 	_refresh_peer_zone(peer_id)
 	for world in get_tree().get_nodes_in_group("world"):
 		var sender_player := world.get_node_or_null("Players/%d" % peer_id) as Node2D
@@ -185,6 +192,43 @@ func c2s_chat_send(text: String) -> void:
 			var recipient_player := world.get_node_or_null("Players/%d" % recipient_id) as Node2D
 			if recipient_player and sender_player.global_position.distance_squared_to(recipient_player.global_position) <= CHAT_RANGE * CHAT_RANGE:
 				NetAPI.rpc_id(recipient_id, "notify_chat_bubble", peer_id, message)
+				if progression: progression.record_chat_received(recipient)
+
+@rpc("any_peer", "call_local", "reliable")
+func c2s_mailbox_fetch() -> void:
+	if multiplayer.is_server():
+		var mailbox := _srv("MailboxServer")
+		if mailbox: mailbox.handle_fetch(_peer_id())
+
+@rpc("any_peer", "call_local", "reliable")
+func c2s_mailbox_send(recipient: String, body: String) -> void:
+	if multiplayer.is_server():
+		var mailbox := _srv("MailboxServer")
+		if mailbox: mailbox.handle_send(_peer_id(), recipient, body)
+
+@rpc("any_peer", "call_local", "reliable")
+func c2s_harbor_stats() -> void:
+	if multiplayer.is_server():
+		var progression := _srv("ProgressionServer")
+		if progression: progression.handle_stats(_peer_id())
+
+@rpc("any_peer", "call_local", "reliable")
+func c2s_daily_quests() -> void:
+	if multiplayer.is_server():
+		var progression := _srv("ProgressionServer")
+		if progression: progression.handle_quests(_peer_id())
+
+@rpc("any_peer", "call_local", "reliable")
+func c2s_daily_quest_reroll(slot: int) -> void:
+	if multiplayer.is_server():
+		var progression := _srv("ProgressionServer")
+		if progression: progression.handle_reroll(_peer_id(), slot)
+
+@rpc("any_peer", "call_local", "reliable")
+func c2s_daily_quest_claim(slot: int) -> void:
+	if multiplayer.is_server():
+		var progression := _srv("ProgressionServer")
+		if progression: progression.handle_claim(_peer_id(), slot)
 
 # ── Server → Client ───────────────────────────────────────────────────────────
 # call_local so that in Host & Play mode, rpc_id(1, ...) executes locally
@@ -217,11 +261,11 @@ func notify_player_state(peer_id: int, pos: Vector2, animation: String, flip_h: 
 			world.apply_remote_player_state(peer_id, pos, animation, flip_h, hidden, bobber_cast_quality)
 
 @rpc("authority", "call_local", "reliable")
-func notify_player_catch(peer_id: int, fish_id: String) -> void:
+func notify_player_catch(peer_id: int, fish_id: String, trophy: bool = false) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	for world in get_tree().get_nodes_in_group("world"):
 		if world.has_method("show_player_catch"):
-			world.show_player_catch(peer_id, fish_id)
+			world.show_player_catch(peer_id, fish_id, trophy)
 
 @rpc("authority", "call_local", "reliable")
 func notify_chat_bubble(peer_id: int, message: String) -> void:
@@ -229,6 +273,31 @@ func notify_chat_bubble(peer_id: int, message: String) -> void:
 	for world in get_tree().get_nodes_in_group("world"):
 		if world.has_method("show_player_chat_bubble"):
 			world.show_player_chat_bubble(peer_id, message)
+
+@rpc("authority", "call_local", "reliable")
+func notify_mailbox_loaded(messages: Array) -> void:
+	if not multiplayer.is_server():
+		mailbox_loaded.emit(messages)
+
+@rpc("authority", "call_local", "reliable")
+func notify_mailbox_result(ok: bool, reason: String) -> void:
+	if not multiplayer.is_server():
+		mailbox_result.emit(ok, reason)
+
+@rpc("authority", "call_local", "reliable")
+func notify_harbor_stats(stats: Dictionary) -> void:
+	if not multiplayer.is_server():
+		harbor_stats_loaded.emit(stats)
+
+@rpc("authority", "call_local", "reliable")
+func notify_daily_quests(ledger: Dictionary) -> void:
+	if not multiplayer.is_server():
+		daily_quests_loaded.emit(ledger)
+
+@rpc("authority", "call_local", "reliable")
+func notify_daily_quest_result(ok: bool, reason: String) -> void:
+	if not multiplayer.is_server():
+		daily_quest_result.emit(ok, reason)
 
 @rpc("authority", "call_local", "reliable")
 func notify_register(ok: bool, reason: String) -> void:
@@ -251,9 +320,9 @@ func notify_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_spe
 	fishing_start.emit(ok, fish_id, difficulty, cast_speed, line_strength, wait_modifier, hook_react_bonus, auto_catch)
 
 @rpc("authority", "call_local", "reliable")
-func notify_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int) -> void:
+func notify_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int, measurement: float = 0.0, measurement_unit: String = "", personal_record: bool = false) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
-	fishing_result.emit(caught, fish_id, earned, new_balance)
+	fishing_result.emit(caught, fish_id, earned, new_balance, measurement, measurement_unit, personal_record)
 
 @rpc("authority", "call_local", "reliable")
 func notify_shop_result(ok: bool, reason: String, new_balance: int) -> void:

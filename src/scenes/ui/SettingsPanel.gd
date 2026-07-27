@@ -38,6 +38,7 @@ func _ready() -> void:
 	box.add_child(HSeparator.new())
 	_add_slider(box, "Music", 0.0, 100.0, 1.0, ClientSettings.music_volume, ClientSettings.set_music_volume)
 	_add_slider(box, "SFX", 0.0, 100.0, 1.0, ClientSettings.sfx_volume, ClientSettings.set_sfx_volume)
+	_add_music_selector(box)
 	_zoom_value = _add_slider(box, "View Zoom", 0.5, 2.0, 0.125, ClientSettings.get_view_zoom_scale(), ClientSettings.set_camera_zoom)
 	_ui_scale_value = _add_slider(box, "UI Scale", 0.0, 1.5, 0.05, ClientSettings.ui_scale, ClientSettings.set_ui_scale)
 	_refresh_values()
@@ -67,6 +68,17 @@ func _show_controls() -> void:
 	dialog.add_child(list)
 	add_child(dialog)
 	dialog.popup_centered()
+
+func _add_music_selector(parent: VBoxContainer) -> void:
+	var picker := OptionButton.new()
+	picker.add_item("Music: Auto")
+	for path: String in AudioManager.world_track_paths():
+		picker.add_item(path.get_file().get_basename())
+		picker.set_item_metadata(picker.item_count - 1, path)
+		if path == ClientSettings.world_track:
+			picker.select(picker.item_count - 1)
+	picker.item_selected.connect(func(index): ClientSettings.set_world_track(str(picker.get_item_metadata(index)) if index > 0 else ""))
+	parent.add_child(picker)
 
 func _add_slider(parent: VBoxContainer, text: String, min_value: float, max_value: float, step: float, value: float, callback: Callable) -> Label:
 	var row := HBoxContainer.new()

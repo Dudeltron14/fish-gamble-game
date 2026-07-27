@@ -45,6 +45,9 @@ func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 		return
 	if session.enforce_equipment_rules():
 		_persist_equipment(session)
+	var progression := GameServer.get_node_or_null("ProgressionServer")
+	if progression:
+		progression.record_line_cast(session, cast_quality >= 0.95)
 
 	var fish := _pick_fish(session, cast_quality)
 	if fish == null:
@@ -54,6 +57,8 @@ func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0, 1.0, 1.0)
 		return
 
+	var measurement := _catch_measurement(fish)
+	var measurement_factor := _measurement_difficulty_factor(fish, measurement)
 	var rod := ItemRegistry.get_item(session.equipped_rod_id) as RodData
 	var cast_speed    := rod.cast_speed    if rod else 1.0
 	var line_strength := rod.line_strength if rod else 1.0
@@ -67,6 +72,8 @@ func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 		or fish.id == "legendary_key"
 
 	session.set_meta("pending_fish_id", fish.id)
+	session.set_meta("pending_measurement", measurement)
+	session.set_meta("pending_measurement_unit", _measurement_unit(fish))
 	session.set_meta("pending_started_ms", Time.get_ticks_msec())
 	session.set_meta("pending_auto_catch", auto_catch)
 	session.set_meta("pending_min_result_ms", MIN_AUTO_RESULT_MS if auto_catch else MIN_REEL_RESULT_MS)
@@ -74,7 +81,7 @@ func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 	# Consume one bait and reduce hook durability after this bite's stats are captured.
 	_consume_gear(peer_id, session)
 
-	NetAPI.rpc_id(peer_id, "notify_fishing_start", true, fish.id, fish.catch_difficulty, cast_speed, line_strength, wait_modifier, hook_react_bonus, auto_catch)
+	NetAPI.rpc_id(peer_id, "notify_fishing_start", true, fish.id, fish.catch_difficulty * measurement_factor, cast_speed, line_strength, wait_modifier, hook_react_bonus, auto_catch)
 
 func handle_result(peer_id: int, succeeded: bool) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
@@ -85,15 +92,19 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	var started_ms: int = int(session.get_meta("pending_started_ms", 0))
 	var min_result_ms: int = int(session.get_meta("pending_min_result_ms", MIN_REEL_RESULT_MS))
 	var auto_catch: bool = bool(session.get_meta("pending_auto_catch", false))
+	var measurement: float = float(session.get_meta("pending_measurement", 0.0))
+	var measurement_unit: String = str(session.get_meta("pending_measurement_unit", ""))
 	_clear_pending_fish(session)
 
 	if not succeeded:
-		NetAPI.rpc_id(peer_id, "notify_fishing_result", false, fish_id, 0, session.coins)
+		var progression := GameServer.get_node_or_null("ProgressionServer")
+		if progression: progression.record_fish_got_away(session, fish_id)
+		NetAPI.rpc_id(peer_id, "notify_fishing_result", false, fish_id, 0, session.coins, measurement, measurement_unit)
 		return
 
 	var elapsed_ms: int = Time.get_ticks_msec() - started_ms
 	if elapsed_ms < min_result_ms:
-		NetAPI.rpc_id(peer_id, "notify_fishing_result", false, fish_id, 0, session.coins)
+		NetAPI.rpc_id(peer_id, "notify_fishing_result", false, fish_id, 0, session.coins, measurement, measurement_unit)
 		return
 
 	var fish: FishData = ItemRegistry.get_item(fish_id) as FishData
@@ -104,7 +115,7 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 		or fish.id == "legendary_chest" \
 		or fish.id == "legendary_key"
 	if auto_catch != expected_auto_catch:
-		NetAPI.rpc_id(peer_id, "notify_fishing_result", false, fish_id, 0, session.coins)
+		NetAPI.rpc_id(peer_id, "notify_fishing_result", false, fish_id, 0, session.coins, measurement, measurement_unit)
 		return
 
 	# Payout = rarity base × difficulty × hook multiplier
@@ -114,12 +125,14 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	if tackle:
 		multiplier = tackle.coin_multiplier
 
-	var earned := int(fish.base_coin_value * fish.catch_difficulty * multiplier)
+	var earned := int(fish.base_coin_value * fish.catch_difficulty * multiplier * _measurement_difficulty_factor(fish, measurement))
 	session.coins += earned
 	_save_coins(session)
+	var progression := GameServer.get_node_or_null("ProgressionServer")
+	var personal_record: bool = progression.record_fish_catch(session, fish_id, earned, elapsed_ms, measurement, measurement_unit) if progression else false
 	GameServer.broadcast_leaderboard()
-	NetAPI.rpc_id(peer_id, "notify_fishing_result", true, fish_id, earned, session.coins)
-	NetAPI.rpc("notify_player_catch", peer_id, fish_id)
+	NetAPI.rpc_id(peer_id, "notify_fishing_result", true, fish_id, earned, session.coins, measurement, measurement_unit, personal_record)
+	NetAPI.rpc("notify_player_catch", peer_id, fish_id, personal_record)
 
 func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 	# Treasure Magnet finds a chest or key often enough to profit across one 10-use hook.
@@ -249,6 +262,18 @@ func _fish_candidates(ids: Array[String]) -> Array[FishData]:
 func _magnet_treasure_chance(_durability: int) -> float:
 	return TREASURE_MAGNET_TREASURE_CHANCE
 
+func _catch_measurement(fish: FishData) -> float:
+	var range := fish.catch_range()
+	# Square roll: roughly 68% of catches land in the lower half; trophies stay possible.
+	return lerpf(range.x, range.y, pow(randf(), 2.0)) if range.y > range.x else 0.0
+
+func _measurement_unit(fish: FishData) -> String:
+	return "lb" if fish.id.begins_with("junk_") else "in" if fish.id != "legendary_chest" and fish.id != "legendary_key" else ""
+
+func _measurement_difficulty_factor(fish: FishData, measurement: float) -> float:
+	var range := fish.catch_range()
+	return lerpf(1.0, 1.5, inverse_lerp(range.x, range.y, measurement)) if range.y > range.x and measurement > 0.0 else 1.0
+
 func _weighted_rarity(weights: Dictionary) -> String:
 	var roll := randf()
 	var cumulative := 0.0
@@ -259,13 +284,15 @@ func _weighted_rarity(weights: Dictionary) -> String:
 	return "common"
 
 func _clear_pending_fish(session: PlayerSession) -> void:
-	for key: String in ["pending_fish_id", "pending_started_ms", "pending_auto_catch", "pending_min_result_ms"]:
+	for key: String in ["pending_fish_id", "pending_measurement", "pending_measurement_unit", "pending_started_ms", "pending_auto_catch", "pending_min_result_ms"]:
 		if session.has_meta(key):
 			session.remove_meta(key)
 
 func _consume_gear(peer_id: int, session: PlayerSession) -> void:
 	# Deduct one bait use
 	if not session.equipped_bait_id.is_empty():
+		var progression := GameServer.get_node_or_null("ProgressionServer")
+		if progression: progression.record_gear_use(session, session.equipped_bait_id)
 		session.add_owned(session.equipped_bait_id, -1)
 		var bait_qty := session.get_owned(session.equipped_bait_id)
 		_persist_decrement(session, session.equipped_bait_id)
@@ -278,6 +305,8 @@ func _consume_gear(peer_id: int, session: PlayerSession) -> void:
 	# Deduct one hook durability (not quantity — hook survives multiple casts)
 	if not session.equipped_tackle_id.is_empty():
 		var tackle_id := session.equipped_tackle_id
+		var progression := GameServer.get_node_or_null("ProgressionServer")
+		if progression: progression.record_gear_use(session, tackle_id)
 		var tackle := ItemRegistry.get_item(tackle_id) as TackleData
 		var max_dur := tackle.durability if tackle else 10
 		session.set_current_hook_durability(maxi(0, session.hook_durability - 1))

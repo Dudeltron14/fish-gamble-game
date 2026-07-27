@@ -311,7 +311,7 @@ func _on_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed:
 	_cast_speed = BASE_CAST_SPEED * cast_speed
 	_wait_timer *= wait_modifier
 
-func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int) -> void:
+func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int, measurement: float, measurement_unit: String, personal_record: bool) -> void:
 	if _result_shown:
 		return  # _show_result already fired (e.g. missed react showed result before server responded)
 	var fish: FishData = ItemRegistry.get_item(fish_id) as FishData
@@ -320,14 +320,19 @@ func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance:
 		GameManager.set_coins(new_balance)
 		AudioManager.sfx("sfx_catch")
 		AudioManager.sfx("sfx_coins")
-		_show_result(true, "Caught %s! +%d coins" % [fish_name, earned])
+		if personal_record: AudioManager.sfx("sfx_blackjack_win_sting")
+		var measure := "  %.1f %s" % [measurement, measurement_unit] if not measurement_unit.is_empty() else ""
+		var tier := " [%s]" % _measurement_tier(fish, measurement) if not measurement_unit.is_empty() else ""
+		var heading := "NEW PERSONAL RECORD!\n" if personal_record else ""
+		_show_result(true, "%sCaught %s!%s%s +%d coins" % [heading, fish_name, measure, tier, earned], personal_record)
 	else:
 		AudioManager.sfx("sfx_miss")
-		_show_result(false, "The %s escaped…" % fish_name)
+		var measure := " (%.1f %s)" % [measurement, measurement_unit] if not measurement_unit.is_empty() else ""
+		_show_result(false, "The %s%s escaped…" % [fish_name, measure])
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-func _show_result(success: bool, msg: String) -> void:
+func _show_result(success: bool, msg: String, personal_record: bool = false) -> void:
 	_stage = Stage.RESULT
 	_result_shown = true
 	reel_container.visible = false
@@ -349,8 +354,22 @@ func _show_result(success: bool, msg: String) -> void:
 	result_label.scale = Vector2(0.6, 0.6)
 	var tween := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	tween.tween_property(result_label, "scale", Vector2.ONE, 0.35)
+	if personal_record:
+		var color_tween := create_tween().set_loops(8)
+		color_tween.tween_property(result_label, "modulate", Color(1.0, 0.2, 0.2), 0.12)
+		color_tween.tween_property(result_label, "modulate", Color(1.0, 0.9, 0.15), 0.12)
+		color_tween.tween_property(result_label, "modulate", Color(0.2, 1.0, 0.8), 0.12)
+		color_tween.tween_property(result_label, "modulate", Color(0.3, 0.5, 1.0), 0.12)
 	await get_tree().create_timer(2.5).timeout
 	_close()
+
+func _measurement_tier(fish: FishData, measurement: float) -> String:
+	var range := fish.catch_range()
+	var ratio := inverse_lerp(range.x, range.y, measurement)
+	if ratio >= 0.95: return "Monster"
+	if ratio >= 0.75: return "Trophy"
+	if ratio >= 0.4: return "Keeper"
+	return "Small"
 
 func _close() -> void:
 	AudioManager.set_music_context("world")

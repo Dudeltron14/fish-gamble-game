@@ -36,6 +36,8 @@ func handle_bet(peer_id: int, amount: int) -> void:
 		NetAPI.rpc_id(peer_id, "notify_bj_shuffled", _shoe.size())
 
 	session.coins -= amount
+	var progression := GameServer.get_node_or_null("ProgressionServer")
+	if progression: progression.record_hand_played(session)
 	session.set_meta("bj_bet", amount)
 	var hand_id := _next_hand_id
 	_next_hand_id += 1
@@ -85,6 +87,7 @@ func handle_double(peer_id: int) -> void:
 		_err(peer_id, "Not enough coins to double down."); return
 	var extra := bet
 	session.coins -= extra
+	session.set_meta("bj_doubled", true)
 	session.set_meta("bj_bet", bet + extra)
 	var card := _draw_card(session.username, "double", session.get_meta("bj_hand_id"))
 	ph.append(card)
@@ -149,11 +152,14 @@ func _resolve(peer_id: int, session: PlayerSession) -> void:
 		payout = bet
 
 	session.coins += payout
+	var progression := GameServer.get_node_or_null("ProgressionServer")
+	if progression:
+		progression.record_blackjack_result(session, maxi(0, payout - bet), bet if payout == 0 else 0, bet, bool(session.get_meta("bj_doubled", false)), outcome)
 	_record_audit(session.username, outcome, hand_id)
 	_save_coins(session)
 	GameServer.broadcast_leaderboard()
 
-	for key in ["bj_state", "bj_ph", "bj_dh", "bj_bet", "bj_hand_id"]:
+	for key in ["bj_state", "bj_ph", "bj_dh", "bj_bet", "bj_hand_id", "bj_doubled"]:
 		if session.has_meta(key):
 			session.remove_meta(key)
 

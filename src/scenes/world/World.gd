@@ -4,6 +4,8 @@ const PLAYER_SCENE  := preload("res://src/scenes/player/Player.tscn")
 const FISHING_SCENE := preload("res://src/scenes/fishing/FishingMinigame.tscn")
 const SHOP_SCENE    := preload("res://src/scenes/ui/Shop.tscn")
 const BJ_SCENE      := preload("res://src/scenes/casino/Blackjack.tscn")
+const MAILBOX_SCENE := preload("res://src/scenes/ui/Mailbox.tscn")
+const HARBOR_MASTER_DIALOGUE_SCENE := preload("res://src/scenes/ui/HarborMasterDialogue.tscn")
 const HUD_SCENE     := preload("res://src/scenes/ui/HUD.tscn")
 const STATS_SCENE   := preload("res://src/scenes/ui/GearStatsPanel.tscn")
 const LEADERBOARD_SCENE := preload("res://src/scenes/ui/LeaderboardPanel.tscn")
@@ -85,6 +87,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		"DockZone":   _open_overlay(FISHING_SCENE)
 		"ShopZone":   _open_overlay(SHOP_SCENE)
 		"CasinoZone": _open_overlay(BJ_SCENE)
+		"MailboxZone": _open_overlay(MAILBOX_SCENE)
+		"JukeboxZone": ClientSettings.open(self)
+		"HarborMasterZone": _open_overlay(HARBOR_MASTER_DIALOGUE_SCENE)
 
 func spawn_player(peer_id: int, p_name: String) -> void:
 	if not multiplayer.is_server():
@@ -133,10 +138,10 @@ func apply_remote_player_state(peer_id: int, pos: Vector2, animation: String, fl
 	if player.has_method("apply_remote_state"):
 		player.apply_remote_state(pos, animation, flip_h, hidden, bobber_cast_quality)
 
-func show_player_catch(peer_id: int, fish_id: String) -> void:
+func show_player_catch(peer_id: int, fish_id: String, trophy: bool = false) -> void:
 	var player := players.get_node_or_null(str(peer_id))
 	if player and player.has_method("show_catch"):
-		player.show_catch(fish_id)
+		player.show_catch(fish_id, trophy)
 
 func show_player_chat_bubble(peer_id: int, message: String) -> void:
 	var player := players.get_node_or_null(str(peer_id))
@@ -349,7 +354,7 @@ func _reset_session_and_go_to_login() -> void:
 	GameManager.hook_durability_changed.emit(0, 0)
 	GameManager.go_to_scene("res://src/scenes/ui/LoginScreen.tscn")
 
-func _on_fishing_result_received(caught: bool, _fish_id: String, _earned: int, _new_balance: int) -> void:
+func _on_fishing_result_received(caught: bool, _fish_id: String, _earned: int, _new_balance: int, _measurement: float, _measurement_unit: String, _personal_record: bool) -> void:
 	if caught:
 		var player := _get_local_player()
 		if player:

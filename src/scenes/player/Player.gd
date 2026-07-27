@@ -14,11 +14,12 @@ const CATCH_IMPACT_GOLD := preload("res://assets/vfx/catch_impact_gold_sheet.png
 const PLAYER_RENDER_LAYER := 1000
 const SPRITE_RIGHT_POSITION := Vector2(8, -2)
 const SPRITE_LEFT_POSITION := Vector2(-10, -2)
-const CHAT_BUBBLE_MAX_WIDTH := 260.0
-const CHAT_BUBBLE_MIN_WIDTH := 72.0
-const CHAT_BUBBLE_LINE_HEIGHT := 16.0
-const CHAT_BUBBLE_MAX_LINES := 3
-const CHAT_BUBBLE_MAX_CHARACTERS := 64
+const CHAT_BUBBLE_MIN_WIDTH := 65.0
+const CHAT_BUBBLE_PADDING := 14.0
+const CHAT_BUBBLE_HEIGHT := 18.0
+const CHAT_BUBBLE_BASELINE := -42.0
+const CHAT_BUBBLE_GAP := 3.0
+const CHAT_BUBBLE_LIFETIME := 15.0
 
 @export var player_name: String = "":
 	set(v):
@@ -44,7 +45,7 @@ var _server_input_dir := Vector2.ZERO
 var _remote_target_position := Vector2.ZERO
 var _bobber_cast_quality := -1.0
 var _catch_tween: Tween = null
-var _chat_tween: Tween = null
+var _chat_messages: Array[Label] = []
 
 func _ready() -> void:
 	_update_local_control()
@@ -159,7 +160,7 @@ func set_cast_quality(cast_quality: float) -> void:
 	_update_bobber(_is_fishing)
 	_send_input()
 
-func show_catch(fish_id: String) -> void:
+func show_catch(fish_id: String, trophy: bool = false) -> void:
 	var fish := ItemRegistry.get_item(fish_id) as FishData
 	if fish == null:
 		return
@@ -172,7 +173,7 @@ func show_catch(fish_id: String) -> void:
 	catch_sprite.modulate = Color.WHITE
 	catch_sprite.position = Vector2(8, -41)
 	catch_sprite.visible = true
-	_play_catch_effects(fish)
+	_play_catch_effects(fish, trophy)
 	if _catch_tween:
 		_catch_tween.kill()
 	_catch_tween = create_tween().set_parallel(true)
@@ -186,40 +187,54 @@ func show_catch(fish_id: String) -> void:
 	)
 
 func show_chat_bubble(message: String) -> void:
-	var text := "%s: %s" % [player_name, message]
-	chat_bubble.text = text.left(CHAT_BUBBLE_MAX_CHARACTERS - 1) + "…" if text.length() > CHAT_BUBBLE_MAX_CHARACTERS else text
+	var bubble := chat_bubble.duplicate() as Label
+	add_child(bubble)
+	bubble.text = "%s: %s" % [player_name, message]
+	bubble.autowrap_mode = TextServer.AUTOWRAP_OFF
 	var font := chat_bubble.get_theme_font("font")
-	var text_width := font.get_string_size(chat_bubble.text, HORIZONTAL_ALIGNMENT_LEFT, -1, chat_bubble.get_theme_font_size("font_size")).x
-	var width := clampf(text_width + 16.0, CHAT_BUBBLE_MIN_WIDTH, CHAT_BUBBLE_MAX_WIDTH)
-	var lines := mini(ceili(text_width / (width - 16.0)), CHAT_BUBBLE_MAX_LINES)
-	var height := 2.0 + CHAT_BUBBLE_LINE_HEIGHT * maxf(1.0, lines)
-	chat_bubble.size = Vector2(width, height)
-	chat_bubble.position = Vector2(-width * 0.5, -42.0 - height)
-	chat_tail.position = Vector2(0.0, chat_bubble.position.y + height)
-	chat_tail_inner.position = chat_tail.position
-	chat_bubble.modulate = Color.WHITE
+	var text_width := font.get_string_size(bubble.text, HORIZONTAL_ALIGNMENT_LEFT, -1, chat_bubble.get_theme_font_size("font_size")).x
+	var width := maxf(text_width + CHAT_BUBBLE_PADDING, CHAT_BUBBLE_MIN_WIDTH)
+	bubble.size = Vector2(width, CHAT_BUBBLE_HEIGHT)
+	bubble.modulate = Color.WHITE
+	bubble.show()
+	_chat_messages.append(bubble)
+	_layout_chat_messages()
 	chat_tail.modulate = Color.WHITE
 	chat_tail_inner.modulate = Color.WHITE
 	name_label.hide()
-	chat_bubble.visible = true
 	chat_tail.show()
 	chat_tail_inner.show()
-	if _chat_tween:
-		_chat_tween.kill()
-	_chat_tween = create_tween()
-	_chat_tween.tween_interval(5.0)
-	_chat_tween.tween_property(chat_bubble, "modulate:a", 0.0, 0.4)
-	_chat_tween.parallel().tween_property(chat_tail, "modulate:a", 0.0, 0.4)
-	_chat_tween.parallel().tween_property(chat_tail_inner, "modulate:a", 0.0, 0.4)
-	_chat_tween.finished.connect(func() -> void:
-		chat_bubble.hide()
+	var tween := create_tween()
+	tween.tween_interval(CHAT_BUBBLE_LIFETIME - 0.4)
+	tween.tween_property(bubble, "modulate:a", 0.0, 0.4)
+	tween.finished.connect(_remove_chat_message.bind(bubble))
+
+func _layout_chat_messages() -> void:
+	var bottom := CHAT_BUBBLE_BASELINE
+	for index in range(_chat_messages.size() - 1, -1, -1):
+		var bubble := _chat_messages[index]
+		bubble.position = Vector2(-bubble.size.x * 0.5, bottom - bubble.size.y)
+		bottom = bubble.position.y - CHAT_BUBBLE_GAP
+	if _chat_messages.is_empty():
 		chat_tail.hide()
 		chat_tail_inner.hide()
 		name_label.show()
-	)
+		return
+	var newest: Label = _chat_messages.back()
+	chat_tail.position = Vector2(0.0, newest.position.y + newest.size.y)
+	chat_tail_inner.position = chat_tail.position
 
-func _play_catch_effects(fish: FishData) -> void:
+func _remove_chat_message(bubble: Label) -> void:
+	_chat_messages.erase(bubble)
+	bubble.queue_free()
+	_layout_chat_messages()
+
+func _play_catch_effects(fish: FishData, trophy: bool = false) -> void:
 	if fish.id.begins_with("junk_") or fish.id == "legendary_kraken":
+		return
+	if trophy:
+		_play_catch_effect(CATCH_IMPACT_GOLD, Vector2i(48, 48), 1.5)
+		_play_catch_effect(CATCH_SPARKLE_BLUE, Vector2i(32, 32), 2.25)
 		return
 	if fish.id in ["legendary_chest", "legendary_key"]:
 		_play_catch_effect(CATCH_IMPACT_GOLD, Vector2i(48, 48))

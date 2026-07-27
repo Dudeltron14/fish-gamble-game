@@ -151,6 +151,7 @@ var _music_fade_tween: Tween = null
 var _music_transition_id := 0
 var _world_resume_stream: AudioStream
 var _world_resume_position := 0.0
+var _world_track_path := ""
 
 func _ready() -> void:
 	_ensure_audio_bus(BUS_MUSIC)
@@ -234,6 +235,8 @@ func set_music_context(context: String) -> void:
 	if new_paths == old_paths and not _current_playlist.is_empty():
 		return
 	var playlist: Array = _playlist_loaded.get(context, [])
+	if context in ["world", "fishing", "shop"] and not _world_track_path.is_empty():
+		playlist = [load(_world_track_path)]
 	if playlist.is_empty():
 		stop_music(context_fade_out)
 		return
@@ -248,6 +251,18 @@ func set_music_context(context: String) -> void:
 		return
 	_track_index = 0
 	_play_current_track()
+
+func world_track_paths() -> Array:
+	return PLAYLIST_PATHS["world"]
+
+func set_world_track(path: String) -> void:
+	_world_track_path = path
+	if _current_context in ["world", "fishing", "shop"]:
+		_current_playlist = [load(path)] if not path.is_empty() else _playlist_loaded[_current_context].duplicate()
+		if path.is_empty() and shuffle_playlists:
+			_current_playlist.shuffle()
+		_track_index = 0
+		_play_current_track()
 
 func _play_current_track(start_position: float = 0.0) -> void:
 	if _current_playlist.is_empty():

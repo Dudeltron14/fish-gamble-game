@@ -10,6 +10,7 @@ const VIEW_ZOOM_VERSION := 2
 var music_volume := 40.0
 var sfx_volume := 40.0
 var ui_scale := 1.0
+var world_track := ""
 
 func _ready() -> void:
 	_load_global_settings()
@@ -43,6 +44,11 @@ func set_sfx_volume(value: float) -> void:
 	AudioManager.set_sfx_volume(sfx_volume / 100.0)
 	_save_global_settings()
 
+func set_world_track(path: String) -> void:
+	world_track = path
+	AudioManager.set_world_track(path)
+	_save_global_settings()
+
 func set_ui_scale(value: float) -> void:
 	ui_scale = clampf(value, 0.0, 1.5)
 	_apply_ui_scale()
@@ -64,6 +70,7 @@ func _load_global_settings() -> void:
 		return
 	music_volume = cfg.get_value("audio", "music_volume", music_volume)
 	sfx_volume = cfg.get_value("audio", "sfx_volume", sfx_volume)
+	world_track = cfg.get_value("audio", "world_track", world_track)
 	if cfg.get_value("display", "ui_scale_version", 1) < UI_SCALE_VERSION:
 		ui_scale = 1.0
 		cfg.set_value("display", "ui_scale", ui_scale)
@@ -75,6 +82,7 @@ func _load_global_settings() -> void:
 func _apply_global_settings() -> void:
 	AudioManager.set_music_volume(music_volume / 100.0)
 	AudioManager.set_sfx_volume(sfx_volume / 100.0)
+	AudioManager.set_world_track(world_track)
 	_apply_ui_scale()
 
 func _apply_ui_scale() -> void:
@@ -99,6 +107,7 @@ func _save_global_settings() -> void:
 	cfg.load(SETTINGS_FILE)
 	cfg.set_value("audio", "music_volume", music_volume)
 	cfg.set_value("audio", "sfx_volume", sfx_volume)
+	cfg.set_value("audio", "world_track", world_track)
 	cfg.set_value("display", "ui_scale", ui_scale)
 	cfg.set_value("display", "ui_scale_version", UI_SCALE_VERSION)
 	cfg.save(SETTINGS_FILE)

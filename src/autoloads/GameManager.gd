@@ -25,6 +25,9 @@ const ZONE_HINTS := {
 	"DockZone":   "HOLD E to Fish",
 	"ShopZone":   "Press E to open shop",
 	"CasinoZone": "Press E to enter casino",
+	"MailboxZone": "Press E to check mailbox",
+	"JukeboxZone": "Press E to choose music",
+	"HarborMasterZone": "Press E to speak with Harbor Master",
 }
 
 func _ready() -> void:
