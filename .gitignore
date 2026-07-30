@@ -36,5 +36,12 @@ test_sqlite.gd.uid
 # Local scratch workspace
 /tmp/
 
+# Local Codex/editor configuration and editable art sources
+/.agents/
+/skills-lock.json
+*.aseprite
+*_preview.png
+*_preview.png.import
+
 # Python verifier bytecode
 __pycache__/
