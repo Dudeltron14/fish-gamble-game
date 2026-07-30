@@ -3,7 +3,7 @@ extends Node
 signal login_result(ok: bool, reason: String, coins: int)
 signal register_result(ok: bool, reason: String)
 signal server_status(player_count: int, sent_ms: int)
-signal leaderboard_result(entries: Array)
+signal leaderboard_result(data: Dictionary)
 signal fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float, hook_react_bonus: float, auto_catch: bool)
 signal fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int, measurement: float, measurement_unit: String, personal_record: bool)
 signal shop_result(ok: bool, reason: String, new_balance: int)
@@ -11,6 +11,8 @@ signal equip_result(ok: bool, item_id: String, slot: String)
 signal inventory_loaded(items: Dictionary)
 signal inventory_updated(item_id: String, new_qty: int)
 signal equipment_loaded(rod_id: String, bait_id: String, tackle_id: String, hook_durability: int, hook_max_durability: int)
+signal cosmetics_loaded(skin_id: String, bobber_id: String)
+signal cosmetics_equipped(skin_id: String, bobber_id: String)
 signal bait_empty()
 signal hook_broken()
 signal hook_durability_changed(current: int, max_val: int)
@@ -24,6 +26,7 @@ signal bj_dealer_reveal(full_hand: Array, value: int, deck_remaining: int)
 signal bj_dealer_card(card: Dictionary, value: int, deck_remaining: int)
 signal bj_result(outcome: String, dealer_hand: Array, payout: int, new_balance: int)
 signal bj_error(msg: String)
+signal casino_table_state(table_id: String, state: Dictionary)
 signal mailbox_loaded(messages: Array)
 signal mailbox_result(ok: bool, reason: String)
 signal harbor_stats_loaded(stats: Dictionary)
@@ -80,10 +83,10 @@ func c2s_server_status(sent_ms: int) -> void:
 	NetAPI.rpc_id(peer_id, "notify_server_status", GameServer.get_authenticated_player_count(), sent_ms)
 
 @rpc("any_peer", "call_local", "reliable")
-func c2s_leaderboard_request() -> void:
+func c2s_leaderboard_request(metric: String = "coins", page: int = 0) -> void:
 	if not multiplayer.is_server(): return
 	var peer_id := _peer_id()
-	NetAPI.rpc_id(peer_id, "notify_leaderboard", GameServer.get_leaderboard())
+	NetAPI.rpc_id(peer_id, "notify_leaderboard", GameServer.get_leaderboard(metric, page))
 
 @rpc("any_peer", "call_local", "unreliable_ordered")
 func c2s_player_input(input_dir: Vector2, animation: String, flip_h: bool, hidden: bool, bobber_cast_quality: float = -1.0) -> void:
@@ -121,6 +124,12 @@ func c2s_equip(item_id: String) -> void:
 	if s: s.handle_equip(_peer_id(), item_id)
 
 @rpc("any_peer", "call_local", "reliable")
+func c2s_equip_cosmetic(item_id: String) -> void:
+	if not multiplayer.is_server(): return
+	var s := _srv("ShopServer")
+	if s: s.handle_equip_cosmetic(_peer_id(), item_id)
+
+@rpc("any_peer", "call_local", "reliable")
 func c2s_shop_buy(item_id: String) -> void:
 	if not multiplayer.is_server(): return
 	_refresh_peer_zone(_peer_id())
@@ -139,6 +148,19 @@ func c2s_bj_shoe_count() -> void:
 	if not multiplayer.is_server(): return
 	var bj := _srv("BlackjackServer")
 	if bj: bj.handle_shoe_count(_peer_id())
+
+@rpc("any_peer", "call_local", "reliable")
+func c2s_bj_table_enter() -> void:
+	if not multiplayer.is_server(): return
+	_refresh_peer_zone(_peer_id())
+	var bj := _srv("BlackjackServer")
+	if bj: bj.handle_table_enter(_peer_id())
+
+@rpc("any_peer", "call_local", "reliable")
+func c2s_bj_table_leave() -> void:
+	if not multiplayer.is_server(): return
+	var bj := _srv("BlackjackServer")
+	if bj: bj.handle_table_leave(_peer_id())
 
 @rpc("any_peer", "call_local", "reliable")
 func c2s_bj_hit() -> void:
@@ -207,10 +229,10 @@ func c2s_mailbox_send(recipient: String, body: String) -> void:
 		if mailbox: mailbox.handle_send(_peer_id(), recipient, body)
 
 @rpc("any_peer", "call_local", "reliable")
-func c2s_harbor_stats() -> void:
+func c2s_harbor_stats(username: String = "") -> void:
 	if multiplayer.is_server():
 		var progression := _srv("ProgressionServer")
-		if progression: progression.handle_stats(_peer_id())
+		if progression: progression.handle_stats(_peer_id(), username)
 
 @rpc("any_peer", "call_local", "reliable")
 func c2s_daily_quests() -> void:
@@ -240,11 +262,11 @@ func notify_login(ok: bool, reason: String, coins: int) -> void:
 	login_result.emit(ok, reason, coins)
 
 @rpc("authority", "call_local", "reliable")
-func notify_world_player_spawned(peer_id: int, p_name: String, spawn_position: Vector2) -> void:
+func notify_world_player_spawned(peer_id: int, p_name: String, spawn_position: Vector2, skin_id: String = "", bobber_id: String = "") -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	for world in get_tree().get_nodes_in_group("world"):
 		if world.has_method("ensure_player"):
-			world.ensure_player(peer_id, p_name, spawn_position)
+			world.ensure_player(peer_id, p_name, spawn_position, skin_id, bobber_id)
 
 @rpc("authority", "call_local", "reliable")
 func notify_world_player_despawned(peer_id: int) -> void:
@@ -261,11 +283,25 @@ func notify_player_state(peer_id: int, pos: Vector2, animation: String, flip_h: 
 			world.apply_remote_player_state(peer_id, pos, animation, flip_h, hidden, bobber_cast_quality)
 
 @rpc("authority", "call_local", "reliable")
-func notify_player_catch(peer_id: int, fish_id: String, trophy: bool = false) -> void:
+func notify_player_cosmetics(peer_id: int, skin_id: String, bobber_id: String) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	for world in get_tree().get_nodes_in_group("world"):
+		if world.has_method("apply_player_cosmetics"):
+			world.apply_player_cosmetics(peer_id, skin_id, bobber_id)
+
+@rpc("authority", "call_local", "reliable")
+func notify_player_cast(peer_id: int, cast_quality: float) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	for world in get_tree().get_nodes_in_group("world"):
+		if world.has_method("play_player_cast"):
+			world.play_player_cast(peer_id, cast_quality)
+
+@rpc("authority", "call_local", "reliable")
+func notify_player_catch(peer_id: int, fish_id: String, trophy: bool = false, measurement: float = 0.0, measurement_unit: String = "") -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	for world in get_tree().get_nodes_in_group("world"):
 		if world.has_method("show_player_catch"):
-			world.show_player_catch(peer_id, fish_id, trophy)
+			world.show_player_catch(peer_id, fish_id, trophy, measurement, measurement_unit)
 
 @rpc("authority", "call_local", "reliable")
 func notify_chat_bubble(peer_id: int, message: String) -> void:
@@ -310,9 +346,9 @@ func notify_server_status(player_count: int, sent_ms: int) -> void:
 	server_status.emit(player_count, sent_ms)
 
 @rpc("authority", "call_local", "reliable")
-func notify_leaderboard(entries: Array) -> void:
+func notify_leaderboard(data: Dictionary) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
-	leaderboard_result.emit(entries)
+	leaderboard_result.emit(data)
 
 @rpc("authority", "call_local", "reliable")
 func notify_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float = 1.0, hook_react_bonus: float = 0.0, auto_catch: bool = false) -> void:
@@ -357,6 +393,21 @@ func notify_equipment_loaded(rod_id: String, bait_id: String, tackle_id: String,
 	GameManager.equipped_changed.emit()
 	GameManager.hook_durability_changed.emit(hook_durability, hook_max_durability)
 	equipment_loaded.emit(rod_id, bait_id, tackle_id, hook_durability, hook_max_durability)
+
+@rpc("authority", "call_local", "reliable")
+func notify_cosmetics_loaded(skin_id: String, bobber_id: String) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	GameManager.set_equipped_cosmetics(skin_id, bobber_id)
+	for world in get_tree().get_nodes_in_group("world"):
+		if world.has_method("apply_local_cosmetics"):
+			world.apply_local_cosmetics(skin_id, bobber_id)
+	cosmetics_loaded.emit(skin_id, bobber_id)
+
+@rpc("authority", "call_local", "reliable")
+func notify_cosmetics_equipped(skin_id: String, bobber_id: String) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	GameManager.set_equipped_cosmetics(skin_id, bobber_id)
+	cosmetics_equipped.emit(skin_id, bobber_id)
 
 @rpc("authority", "call_local", "reliable")
 func notify_bj_shuffled(deck_remaining: int) -> void:
@@ -407,6 +458,11 @@ func notify_bj_result(outcome: String, dealer_hand: Array, payout: int, new_bala
 func notify_bj_error(msg: String) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	bj_error.emit(msg)
+
+@rpc("authority", "call_local", "reliable")
+func notify_casino_table_state(table_id: String, state: Dictionary) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	casino_table_state.emit(table_id, state)
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 

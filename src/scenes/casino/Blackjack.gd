@@ -9,6 +9,7 @@ const CARD_DEAL_FLY_TIME := 0.32
 const CARD_FLIP_HALF_TIME := 0.14
 const CARD_DEAL_ARC_HEIGHT := 54.0
 const MAX_BET := 999999
+const TABLE_SEAT_COUNT := 4
 const COIN_BURST_SCENE := preload("res://src/scenes/vfx/CoinBurst.tscn")
 const FAIRNESS := preload("res://src/server/BlackjackFairness.gd")
 const CASINO_LOG_FONT := preload("res://assets/fonts/NotoSans-Variable.ttf")
@@ -23,15 +24,19 @@ var _active_bet := 0
 var _all_in_confirm_pending := false
 var _last_shoe_reveal := {}
 var _win_effect_marker_positions := {}
+var _table_phase := ""
+var _table_can_act := false
+var _bet_placed := false
+var _local_table_seat := -1
 
 @onready var coins_label: Label     = %CoinsLabel
 @onready var status_label: Label    = %StatusLabel
-@onready var player_hand: HBoxContainer = %PlayerHand
-@onready var player_value_label: Label = %PlayerValueLabel
-@onready var deck_stack: TextureRect = %DeckStack
-@onready var dealer_hand: HBoxContainer = %DealerHand
-@onready var dealer_info_label: Label = %DealerInfoLabel
-@onready var deck_count_label: Label = %DeckCountLabel
+@onready var player_hand: HBoxContainer = $TableLayout/Player1Spot/PlayerHand
+@onready var player_value_label: Label = $TableLayout/Player1Spot/PlayerValueLabel
+@onready var deck_stack: TextureRect = $TableLayout/DealerSpot/DeckStack
+@onready var dealer_hand: HBoxContainer = $TableLayout/DealerSpot/DealerHand
+@onready var dealer_info_label: Label = $TableLayout/DealerSpot/DealerInfoLabel
+@onready var deck_count_label: Label = $TableLayout/DealerSpot/DeckCountLabel
 @onready var fairness_label: Label = %FairnessLabel
 @onready var fairness_btn: Button = %FairnessBtn
 @onready var fairness_stripes: ColorRect = %FairnessStripes
@@ -42,7 +47,12 @@ var _win_effect_marker_positions := {}
 @onready var hit_btn: Button        = %HitBtn
 @onready var stand_btn: Button      = %StandBtn
 @onready var double_btn: Button     = %DoubleBtn
+@onready var table_info_label: Label = $Center/Panel/Margin/VBox/TableInfoLabel
 @onready var win_effect_emitters: Node2D = $WinEffectEmitters
+@onready var table_seat_spots: Array[Control] = [$TableLayout/Player1Spot, $TableLayout/Seat2Spot, $TableLayout/Seat3Spot, $TableLayout/Seat4Spot]
+@onready var table_seat_labels: Array[Label] = [$TableLayout/Player1Spot/Player1Label, $TableLayout/Seat2Spot/Seat2Label, $TableLayout/Seat3Spot/Seat3Label, $TableLayout/Seat4Spot/Seat4Label]
+@onready var table_seat_hands: Array[HBoxContainer] = [player_hand, $TableLayout/Seat2Spot/Seat2Hand, $TableLayout/Seat3Spot/Seat3Hand, $TableLayout/Seat4Spot/Seat4Hand]
+@onready var action_timer: Control = $TableLayout/DealerSpot/ActionTimer
 
 func _ready() -> void:
 	ClientSettings.register_ui_scale_target($Center/Panel, Vector2(0.5, 0.5))
@@ -54,12 +64,13 @@ func _ready() -> void:
 	NetAPI.bj_shoe_count.connect(_update_deck_count)
 	NetAPI.bj_shoe_commitment.connect(_on_shoe_commitment)
 	NetAPI.bj_shoe_revealed.connect(_on_shoe_revealed)
-	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_on_leave_pressed)
+	$Center/Panel/Margin/VBox/ActionControls/CloseBtn.pressed.connect(_on_leave_pressed)
 	NetAPI.bj_hit.connect(_on_hit)
 	NetAPI.bj_dealer_reveal.connect(_on_dealer_reveal)
 	NetAPI.bj_dealer_card.connect(_on_dealer_card)
 	NetAPI.bj_result.connect(_on_result)
 	NetAPI.bj_error.connect(_on_error)
+	NetAPI.casino_table_state.connect(_on_table_state)
 	if not GameManager.coins_changed.is_connected(_on_coins_changed):
 		GameManager.coins_changed.connect(_on_coins_changed)
 	# CloseBtn now connected to _on_leave_pressed in _ready() above
@@ -73,6 +84,10 @@ func _ready() -> void:
 	coins_label.text = "Coins: %d" % GameManager.current_coins
 	deck_count_label.tooltip_text = "6-deck shoe. Shuffles when 156 cards remain."
 	_update_deck_count(0)
+	table_info_label.hide()
+	for spot: Control in table_seat_spots:
+		spot.hide()
+	NetAPI.rpc_id(1, "c2s_bj_table_enter")
 	NetAPI.rpc_id(1, "c2s_bj_shoe_count")
 	_refresh_betting_controls()
 	_set_actions(false)
@@ -100,6 +115,7 @@ func _on_deal_pressed() -> void:
 	_set_actions(false)
 	deal_btn.disabled = true
 	all_in_btn.disabled = true
+	_bet_placed = true
 	status_label.text = "Dealing…"
 	NetAPI.rpc_id(1, "c2s_bj_bet", amount)
 
@@ -136,8 +152,8 @@ func _on_deal(player_cards: Array, dealer_visible: Dictionary, bet: int, balance
 	status_label.modulate = Color.WHITE
 	coins_label.text = "Coins: %d  (bet: %d)" % [balance, bet]
 	GameManager.set_coins(balance)
-	_set_actions(true)
-	double_btn.disabled = player_cards.size() != 2 or balance < bet
+	_set_actions(_table_can_act)
+	double_btn.disabled = not _table_can_act or player_cards.size() != 2 or balance < bet
 	_refresh_betting_controls()
 
 func _on_shuffled(_deck_remaining: int) -> void:
@@ -199,31 +215,85 @@ func _show_casino_log() -> void:
 
 func _casino_log_text() -> String:
 	var lines := ["Completed shoe audit — cards were fixed before play began."]
-	var hands := {}
-	var hand_ids: Array = []
+	var rounds := {}
+	var round_ids: Array = []
 	for index in _last_shoe_reveal.get("audit_log", []).size():
 		var entry: Dictionary = _last_shoe_reveal["audit_log"][index]
-		var hand_id := int(entry.get("hand_id", 0))
-		if not hands.has(hand_id):
-			hands[hand_id] = []
-			hand_ids.append(hand_id)
-		hands[hand_id].append({"index": index + 1, "entry": entry})
-	for hand_id in hand_ids:
-		var entries: Array = hands[hand_id]
-		var player := "Player"
-		for record in entries:
-			var actor: String = record["entry"].get("actor", "Dealer")
-			if actor != "Dealer":
-				player = actor
-				break
-		lines.append("\nHand #%d — %s" % [hand_id, player])
-		for record in entries:
+		var round_id: int = int(entry.get("round_id", 0))
+		if not rounds.has(round_id):
+			rounds[round_id] = []
+			round_ids.append(round_id)
+		rounds[round_id].append({"index": index + 1, "entry": entry})
+	for round_id in round_ids:
+		lines.append("\nTable round #%d" % round_id)
+		for record in rounds[round_id]:
 			var entry: Dictionary = record["entry"]
 			var card: Dictionary = entry.get("card", {})
 			var action: String = entry.get("action", "deal")
-			var detail := "%s%s" % [RANKS[int(card.get("rank", 0))], SUITS[int(card.get("suit", 0))]] if not card.is_empty() else action.capitalize()
-			lines.append("%03d  %s — %s" % [record["index"], entry.get("actor", "Dealer"), "%s: %s" % [action, detail] if not card.is_empty() else detail])
+			var detail: String = "%s%s" % [RANKS[int(card.get("rank", 0))], SUITS[int(card.get("suit", 0))]] if not card.is_empty() else action.capitalize()
+			var seat_text := "Seat %d" % (int(entry.get("seat", -1)) + 1) if int(entry.get("seat", -1)) >= 0 else "Dealer"
+			lines.append("%03d  %s (%s) — %s" % [record["index"], entry.get("actor", "Dealer"), seat_text, "%s: %s" % [action, detail] if not card.is_empty() else detail])
 	return "\n".join(lines)
+
+func _on_table_state(_table_id: String, state: Dictionary) -> void:
+	_table_phase = str(state.get("phase", ""))
+	var active_seat: int = int(state.get("active_seat", -1))
+	var seats: Array = state.get("seats", [])
+	var occupied := 0
+	for seat_data: Dictionary in seats:
+		if bool(seat_data.get("occupied", false)) and str(seat_data.get("username", "")) == GameManager.current_player_name:
+			_local_table_seat = int(seat_data.get("index", -1))
+	for spot: Control in table_seat_spots:
+		spot.hide()
+	for seat_data: Dictionary in seats:
+		var seat_index: int = int(seat_data.get("index", 0))
+		if not bool(seat_data.get("occupied", false)):
+			continue
+		occupied += 1
+		var display_slot := _display_slot(seat_index)
+		var spot: Control = table_seat_spots[display_slot]
+		spot.show()
+		var public_state: Dictionary = seat_data.get("state", {})
+		var username: String = str(seat_data.get("username", "Player"))
+		var cards: Array = public_state.get("cards", [])
+		var marker := "  ◀" if seat_index == active_seat else ""
+		table_seat_labels[display_slot].text = "PLAYER %d — %s%s" % [display_slot + 1, username, marker]
+		table_seat_labels[display_slot].modulate = Color(1.0, 0.84, 0.4) if seat_index == active_seat else Color.WHITE
+		if display_slot != 0:
+			_sync_remote_hand(table_seat_hands[display_slot], cards, float(display_slot) * 0.12)
+		else:
+			_bet_placed = not public_state.is_empty() and _table_phase == "betting"
+	action_timer.call("set_countdown", float(state.get("next_action_seconds", 0.0)) if occupied > 1 else 0.0, _table_phase)
+	_table_can_act = _table_phase == "player_turns" and _local_table_seat == active_seat
+	if _state == State.PLAYER_TURN:
+		_set_actions(_table_can_act)
+		double_btn.disabled = not _table_can_act or player_hand.get_child_count() != 2 or GameManager.current_coins < _active_bet
+		if _table_phase == "player_turns":
+			status_label.text = "Your turn — Hit or Stand." if _table_can_act else "Waiting for another player."
+		elif _table_phase == "dealer_turn":
+			status_label.text = "Dealer is playing…"
+	if _table_phase == "betting" and _state == State.IDLE:
+		status_label.text = "Bet placed. Waiting for the table." if _bet_placed else "Place a bet. Round begins shortly after the first bet."
+	_refresh_betting_controls()
+
+func _display_slot(server_seat: int) -> int:
+	if _local_table_seat < 0:
+		return server_seat
+	return posmod(server_seat - _local_table_seat, TABLE_SEAT_COUNT)
+
+func _sync_remote_hand(hand: HBoxContainer, cards: Array, delay: float) -> void:
+	if hand.get_child_count() > cards.size():
+		_clear_node(hand)
+	for index in range(hand.get_child_count(), cards.size()):
+		_deal_card_animated(hand, _card_widget(cards[index]), delay + float(index) * 0.18, true)
+
+func _cards_text(cards: Array) -> String:
+	if cards.is_empty():
+		return "waiting"
+	var text: Array[String] = []
+	for card: Dictionary in cards:
+		text.append(_card_label(card) + SUITS[int(card.get("suit", 0))])
+	return " ".join(text)
 
 func _on_hit(card: Dictionary, new_val: int, deck_remaining: int) -> void:
 	_deal_card_animated(player_hand, _card_widget(card), 0.0, true)
@@ -481,7 +551,7 @@ func _refresh_betting_controls() -> void:
 	_all_in_confirm_pending = false
 	all_in_btn.text = "ALL IN"
 	var balance: int = maxi(0, GameManager.current_coins)
-	if _state != State.IDLE:
+	if _state != State.IDLE or _bet_placed or (_table_phase != "" and _table_phase != "betting"):
 		_set_bet_input_enabled(false)
 		deal_btn.disabled = true
 		all_in_btn.disabled = true
@@ -515,6 +585,8 @@ func _update_deck_count(deck_remaining: int) -> void:
 
 func _clear_hands() -> void:
 	_clear_node(player_hand)
+	for index in range(1, table_seat_hands.size()):
+		_clear_node(table_seat_hands[index])
 	_clear_node(dealer_hand)
 	_dealer_cards.clear()
 	_dealer_hole_hidden = false
@@ -583,6 +655,7 @@ func _forfeit_and_close() -> void:
 	_close()
 
 func _close() -> void:
+	NetAPI.rpc_id(1, "c2s_bj_table_leave")
 	AudioManager.set_music_context("world")
 	completed.emit()
 	queue_free()

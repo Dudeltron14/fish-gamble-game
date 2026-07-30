@@ -17,6 +17,7 @@ func init_server() -> void:
 		"res://src/server/AuthServer.gd",
 		"res://src/server/FishingServer.gd",
 		"res://src/server/ShopServer.gd",
+		"res://src/server/TableManager.gd",
 		"res://src/server/BlackjackServer.gd",
 		"res://src/server/MailboxServer.gd",
 		"res://src/server/ProgressionServer.gd",
@@ -34,6 +35,12 @@ func _on_peer_connected(peer_id: int) -> void:
 
 func _on_peer_disconnected(peer_id: int) -> void:
 	var session: PlayerSession = sessions.get(peer_id, null)
+	var blackjack: Node = get_node_or_null("BlackjackServer")
+	if blackjack:
+		blackjack.handle_player_left(peer_id)
+	var tables: Node = get_node_or_null("TableManager")
+	if tables:
+		tables.remove_peer(peer_id)
 	if session:
 		var progression := get_node_or_null("ProgressionServer")
 		if progression: progression.record_time_played(session, Time.get_ticks_msec() - session.connected_at_ms)
@@ -77,17 +84,22 @@ func is_username_authenticated(username: String) -> bool:
 			return true
 	return false
 
-func get_leaderboard() -> Array:
+func get_leaderboard(metric: String = "coins", page: int = 0, page_size: int = 8) -> Dictionary:
 	var auth := get_node_or_null("AuthServer")
 	if auth != null and auth._db != null:
-		auth._db.query("SELECT username, coins FROM players ORDER BY coins DESC, username ASC LIMIT %d" % LEADERBOARD_LIMIT)
-		return auth._db.query_result
+		var ranking := "p.coins"
+		if metric == "fish": ranking = "COALESCE(s.fish_caught, 0)"
+		elif metric == "casino": ranking = "COALESCE(s.casino_won, 0) - COALESCE(s.casino_lost, 0)"
+		auth._db.query("SELECT COUNT(*) AS total FROM players")
+		var total := int(auth._db.query_result[0].total) if not auth._db.query_result.is_empty() else 0
+		auth._db.query("SELECT p.username, %s AS score FROM players p LEFT JOIN player_career_stats s ON s.player_id = p.id ORDER BY score DESC, p.username ASC LIMIT %d OFFSET %d" % [ranking, page_size, page * page_size])
+		return {"entries": auth._db.query_result, "total": total, "metric": metric, "page": page, "page_size": page_size}
 	var entries := []
 	for session: PlayerSession in sessions.values():
 		if session.authenticated:
-			entries.append({"username": session.username, "coins": session.coins})
-	entries.sort_custom(func(a, b): return a.coins > b.coins)
-	return entries
+			entries.append({"username": session.username, "score": session.coins})
+	entries.sort_custom(func(a, b): return a.score > b.score)
+	return {"entries": entries.slice(page * page_size, (page + 1) * page_size), "total": entries.size(), "metric": metric, "page": page, "page_size": page_size}
 
 func broadcast_leaderboard() -> void:
 	NetAPI.rpc("notify_leaderboard", get_leaderboard())

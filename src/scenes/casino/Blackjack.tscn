@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://d1wrsmg6r00v4" path="res://src/scenes/casino/Blackjack.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://d01b16f17u1lb" path="res://assets/User_Gen_ChatGPT/Casino Backdrop.png" id="2_backdrop"]
 [ext_resource type="Texture2D" uid="uid://cwe0mabngqay" path="res://assets/Playing Cards/card-back1.png" id="3_card_back"]
+[ext_resource type="Script" path="res://src/scenes/casino/BlackjackActionTimer.gd" id="4_timer"]
 
 [sub_resource type="Shader" id="Shader_disabled_stripes"]
 code = "shader_type canvas_item;
@@ -108,7 +109,233 @@ texture = ExtResource("2_backdrop")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Center" type="CenterContainer" parent="." unique_id=369039004]
+[node name="TableLayout" type="Control" parent="." unique_id=348534826]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="DealerSpot" type="Control" parent="TableLayout" unique_id=348534827]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.2
+anchor_right = 0.5
+anchor_bottom = 0.2
+offset_left = -112.0
+offset_top = -26.0
+offset_right = 150.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DealerLabel" type="Label" parent="TableLayout/DealerSpot" unique_id=462314158]
+layout_mode = 0
+offset_right = 300.0
+offset_bottom = 20.0
+theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+text = "DEALER"
+horizontal_alignment = 1
+
+[node name="DealerHand" type="HBoxContainer" parent="TableLayout/DealerSpot" unique_name_in_owner=true]
+layout_mode = 0
+offset_left = 76.0
+offset_top = 20.0
+offset_right = 300.0
+offset_bottom = 118.0
+theme_override_constants/separation = 6
+
+[node name="DealerInfoLabel" type="Label" parent="TableLayout/DealerSpot" unique_name_in_owner=true]
+layout_mode = 0
+offset_right = 300.0
+offset_top = 118.0
+offset_bottom = 164.0
+theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 1
+
+[node name="DeckStack" type="TextureRect" parent="TableLayout/DealerSpot" unique_name_in_owner=true]
+texture_filter = 2
+layout_mode = 0
+offset_left = -32.0
+offset_top = 20.0
+offset_right = 32.0
+offset_bottom = 114.0
+texture = ExtResource("3_card_back")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DeckCountLabel" type="Label" parent="TableLayout/DealerSpot" unique_name_in_owner=true]
+layout_mode = 0
+offset_left = -32.0
+offset_right = 32.0
+offset_top = 114.0
+offset_bottom = 130.0
+theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 9
+text = "Cards left: —"
+horizontal_alignment = 1
+
+[node name="ActionTimer" type="Control" parent="TableLayout/DealerSpot" unique_name_in_owner=true]
+visible = false
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 0
+offset_left = -28.0
+offset_top = 144.0
+offset_right = 28.0
+offset_bottom = 200.0
+script = ExtResource("4_timer")
+
+[node name="Label" type="Label" parent="TableLayout/DealerSpot/ActionTimer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Seat2Spot" type="Control" parent="TableLayout" unique_name_in_owner=true]
+layout_mode = 0
+anchor_left = 0.22
+anchor_top = 0.5
+anchor_right = 0.22
+anchor_bottom = 0.5
+offset_left = -112.0
+offset_top = -28.0
+offset_right = 112.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Seat2Label" type="Label" parent="TableLayout/Seat2Spot" unique_name_in_owner=true]
+layout_mode = 0
+offset_right = 224.0
+offset_bottom = 20.0
+theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+
+[node name="Seat2Hand" type="HBoxContainer" parent="TableLayout/Seat2Spot" unique_name_in_owner=true]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 20.0
+offset_right = 176.0
+offset_bottom = 118.0
+theme_override_constants/separation = 6
+
+[node name="Seat3Spot" type="Control" parent="TableLayout" unique_name_in_owner=true]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.42
+anchor_right = 0.5
+anchor_bottom = 0.42
+offset_left = -112.0
+offset_top = -28.0
+offset_right = 112.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Seat3Label" type="Label" parent="TableLayout/Seat3Spot" unique_name_in_owner=true]
+layout_mode = 0
+offset_right = 224.0
+offset_bottom = 20.0
+theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+
+[node name="Seat3Hand" type="HBoxContainer" parent="TableLayout/Seat3Spot" unique_name_in_owner=true]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 20.0
+offset_right = 176.0
+offset_bottom = 118.0
+theme_override_constants/separation = 6
+
+[node name="Seat4Spot" type="Control" parent="TableLayout" unique_name_in_owner=true]
+layout_mode = 0
+anchor_left = 0.78
+anchor_top = 0.5
+anchor_right = 0.78
+anchor_bottom = 0.5
+offset_left = -112.0
+offset_top = -28.0
+offset_right = 112.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Seat4Label" type="Label" parent="TableLayout/Seat4Spot" unique_name_in_owner=true]
+layout_mode = 0
+offset_right = 224.0
+offset_bottom = 20.0
+theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+
+[node name="Seat4Hand" type="HBoxContainer" parent="TableLayout/Seat4Spot" unique_name_in_owner=true]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 20.0
+offset_right = 176.0
+offset_bottom = 118.0
+theme_override_constants/separation = 6
+
+[node name="Player1Spot" type="Control" parent="TableLayout" unique_name_in_owner=true]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.61
+anchor_right = 0.5
+anchor_bottom = 0.61
+offset_left = -112.0
+offset_top = -28.0
+offset_right = 112.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Player1Label" type="Label" parent="TableLayout/Player1Spot" unique_name_in_owner=true]
+layout_mode = 0
+offset_right = 224.0
+offset_bottom = 20.0
+theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+
+[node name="PlayerHand" type="HBoxContainer" parent="TableLayout/Player1Spot" unique_name_in_owner=true]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 20.0
+offset_right = 176.0
+offset_bottom = 118.0
+theme_override_constants/separation = 6
+
+[node name="PlayerValueLabel" type="Label" parent="TableLayout/Player1Spot" unique_name_in_owner=true]
+layout_mode = 0
+offset_right = 224.0
+offset_top = 118.0
+offset_bottom = 140.0
+theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+
+[node name="Center" type="Control" parent="." unique_id=369039004]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -116,19 +343,28 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="Center" unique_id=1588181685]
-layout_mode = 2
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.8
+anchor_right = 0.5
+anchor_bottom = 0.8
+offset_left = -335.0
+offset_right = 335.0
+offset_bottom = 118.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Margin" type="MarginContainer" parent="Center/Panel" unique_id=984693997]
 layout_mode = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 20
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
 
 [node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin" unique_id=671428135]
-custom_minimum_size = Vector2(560, 0)
+custom_minimum_size = Vector2(642, 0)
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 6
 
 [node name="Header" type="HBoxContainer" parent="Center/Panel/Margin/VBox" unique_id=1284208660]
 layout_mode = 2
@@ -145,74 +381,11 @@ layout_mode = 2
 text = "Coins: 0"
 vertical_alignment = 1
 
-[node name="Sep1" type="HSeparator" parent="Center/Panel/Margin/VBox" unique_id=2066652516]
+[node name="TableInfoLabel" type="Label" parent="Center/Panel/Margin/VBox" unique_name_in_owner=true]
+visible = false
 layout_mode = 2
-
-[node name="DealerLabel" type="Label" parent="Center/Panel/Margin/VBox" unique_id=462314158]
-layout_mode = 2
-text = "Dealer"
-
-[node name="DealerRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox" unique_id=592452855]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="DealerHand" type="HBoxContainer" parent="Center/Panel/Margin/VBox/DealerRow" unique_id=1026327009]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 98)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 6
-
-[node name="DealerInfoLabel" type="Label" parent="Center/Panel/Margin/VBox/DealerRow" unique_id=763779591]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(190, 0)
-layout_mode = 2
-vertical_alignment = 1
-
-[node name="DeckRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox" unique_id=1621320359]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="DeckSpacer" type="Control" parent="Center/Panel/Margin/VBox/DeckRow" unique_id=293707806]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="DeckStack" type="TextureRect" parent="Center/Panel/Margin/VBox/DeckRow" unique_id=1084433314]
-unique_name_in_owner = true
-texture_filter = 2
-custom_minimum_size = Vector2(64, 94)
-layout_mode = 2
-texture = ExtResource("3_card_back")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="DeckCountLabel" type="Label" parent="Center/Panel/Margin/VBox/DeckRow" unique_id=1686855063]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(96, 0)
-layout_mode = 2
-text = "Cards left: —"
-vertical_alignment = 1
-
-[node name="Sep2" type="HSeparator" parent="Center/Panel/Margin/VBox" unique_id=1126867776]
-layout_mode = 2
-
-[node name="PlayerLabel" type="Label" parent="Center/Panel/Margin/VBox" unique_id=352070772]
-layout_mode = 2
-text = "Your Hand"
-
-[node name="PlayerHand" type="HBoxContainer" parent="Center/Panel/Margin/VBox" unique_id=70004042]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 98)
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="PlayerValueLabel" type="Label" parent="Center/Panel/Margin/VBox" unique_id=233739430]
-unique_name_in_owner = true
-layout_mode = 2
-horizontal_alignment = 1
-
-[node name="Sep3" type="HSeparator" parent="Center/Panel/Margin/VBox" unique_id=815511651]
-layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = ""
 
 [node name="StatusLabel" type="Label" parent="Center/Panel/Margin/VBox" unique_id=341991860]
 unique_name_in_owner = true
@@ -220,16 +393,22 @@ layout_mode = 2
 text = "Place a bet to start."
 horizontal_alignment = 1
 
-[node name="BetRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox" unique_id=1425290665]
+[node name="ActionControls" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BetRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox/ActionControls" unique_id=1425290665]
+custom_minimum_size = Vector2(185, 0)
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="BetLabel" type="Label" parent="Center/Panel/Margin/VBox/BetRow" unique_id=1261545364]
+[node name="BetLabel" type="Label" parent="Center/Panel/Margin/VBox/ActionControls/BetRow" unique_id=1261545364]
 layout_mode = 2
 text = "Bet:"
 vertical_alignment = 1
 
-[node name="BetSpin" type="SpinBox" parent="Center/Panel/Margin/VBox/BetRow" unique_id=1295242588]
+[node name="BetSpin" type="SpinBox" parent="Center/Panel/Margin/VBox/ActionControls/BetRow" unique_id=1295242588]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -237,50 +416,56 @@ min_value = 1.0
 max_value = 9999.0
 value = 10.0
 
-[node name="DealBtn" type="Button" parent="Center/Panel/Margin/VBox/BetRow" unique_id=807216446]
+[node name="DealBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionControls/BetRow" unique_id=807216446]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
-text = "Deal"
+text = "Bet"
 
-[node name="AllInBtn" type="Button" parent="Center/Panel/Margin/VBox" unique_id=1548404040]
+[node name="AllInBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionControls" unique_id=1548404040]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(86, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 14
 text = "ALL IN"
 
-[node name="ActionRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox" unique_id=60444022]
+[node name="ActionRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox/ActionControls" unique_id=60444022]
+custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="HitBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionRow" unique_id=432886901]
+[node name="HitBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionControls/ActionRow" unique_id=432886901]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
 disabled = true
 text = "Hit"
 
-[node name="StandBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionRow" unique_id=892444591]
+[node name="StandBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionControls/ActionRow" unique_id=892444591]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
 disabled = true
 text = "Stand"
 
-[node name="DoubleBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionRow" unique_id=1690116992]
+[node name="DoubleBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionControls/ActionRow" unique_id=1690116992]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
 disabled = true
 text = "Double Down"
 
-[node name="CloseBtn" type="Button" parent="Center/Panel/Margin/VBox" unique_id=766292465]
+[node name="CloseBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionControls" unique_id=766292465]
+custom_minimum_size = Vector2(112, 0)
 layout_mode = 2
-text = "Leave Table  [Esc]"
+theme_override_font_sizes/font_size = 11
+text = "Leave  [Esc]"
 
 [node name="FairnessOverlay" type="VBoxContainer" parent="." unique_id=925739536]
 anchors_preset = 3
