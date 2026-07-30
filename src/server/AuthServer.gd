@@ -98,6 +98,7 @@ func _init_schema() -> void:
 	_db.query("CREATE TABLE IF NOT EXISTS player_gear_stats (player_id INTEGER NOT NULL, item_id TEXT NOT NULL, uses INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(player_id, item_id))")
 	_db.query("CREATE TABLE IF NOT EXISTS player_login_days (player_id INTEGER NOT NULL, day_key TEXT NOT NULL, PRIMARY KEY(player_id, day_key))")
 	_db.query("CREATE TABLE IF NOT EXISTS player_encounters (player_id INTEGER NOT NULL, other_player_id INTEGER NOT NULL, PRIMARY KEY(player_id, other_player_id))")
+	_db.query("CREATE TABLE IF NOT EXISTS player_catch_log (id INTEGER PRIMARY KEY AUTOINCREMENT, player_id INTEGER NOT NULL, fish_id TEXT NOT NULL, earned INTEGER NOT NULL, measurement REAL NOT NULL DEFAULT 0, measurement_unit TEXT NOT NULL DEFAULT '', caught_at INTEGER NOT NULL)")
 	for column in ["lines_cast INTEGER NOT NULL DEFAULT 0", "fish_got_away INTEGER NOT NULL DEFAULT 0", "perfect_casts INTEGER NOT NULL DEFAULT 0", "hands_played INTEGER NOT NULL DEFAULT 0", "hands_won INTEGER NOT NULL DEFAULT 0", "hands_lost INTEGER NOT NULL DEFAULT 0", "double_downs INTEGER NOT NULL DEFAULT 0", "double_downs_won INTEGER NOT NULL DEFAULT 0", "biggest_win INTEGER NOT NULL DEFAULT 0", "biggest_loss INTEGER NOT NULL DEFAULT 0", "chat_messages INTEGER NOT NULL DEFAULT 0", "chat_messages_received INTEGER NOT NULL DEFAULT 0", "shop_spent INTEGER NOT NULL DEFAULT 0", "items_bought INTEGER NOT NULL DEFAULT 0", "time_played_seconds INTEGER NOT NULL DEFAULT 0", "total_gold_earned INTEGER NOT NULL DEFAULT 0", "total_gold_spent INTEGER NOT NULL DEFAULT 0", "highest_balance INTEGER NOT NULL DEFAULT 0", "skins_purchased INTEGER NOT NULL DEFAULT 0", "treasure_found INTEGER NOT NULL DEFAULT 0", "junk_caught INTEGER NOT NULL DEFAULT 0", "rare_catches INTEGER NOT NULL DEFAULT 0", "legendary_catches INTEGER NOT NULL DEFAULT 0", "highest_catch_value INTEGER NOT NULL DEFAULT 0", "biggest_fish_length REAL NOT NULL DEFAULT 0", "heaviest_junk REAL NOT NULL DEFAULT 0", "fastest_catch_ms INTEGER NOT NULL DEFAULT 0", "blackjacks INTEGER NOT NULL DEFAULT 0", "pushes INTEGER NOT NULL DEFAULT 0", "busts INTEGER NOT NULL DEFAULT 0", "total_wagered INTEGER NOT NULL DEFAULT 0", "longest_win_streak INTEGER NOT NULL DEFAULT 0", "longest_loss_streak INTEGER NOT NULL DEFAULT 0", "current_win_streak INTEGER NOT NULL DEFAULT 0", "current_loss_streak INTEGER NOT NULL DEFAULT 0", "current_fish_streak INTEGER NOT NULL DEFAULT 0", "longest_fish_streak INTEGER NOT NULL DEFAULT 0", "longest_login_streak INTEGER NOT NULL DEFAULT 0", "letters_sent INTEGER NOT NULL DEFAULT 0", "letters_received INTEGER NOT NULL DEFAULT 0", "unique_players_encountered INTEGER NOT NULL DEFAULT 0", "derbies_entered INTEGER NOT NULL DEFAULT 0", "derbies_won INTEGER NOT NULL DEFAULT 0", "best_derby_place INTEGER NOT NULL DEFAULT 0", "derby_fish_caught INTEGER NOT NULL DEFAULT 0"]:
 		var parts: PackedStringArray = column.split(" ", false, 1)
 		_ensure_career_stat_column(parts[0], parts[1])
@@ -106,9 +107,11 @@ func _init_schema() -> void:
 			player_id INTEGER NOT NULL,
 			day_key TEXT NOT NULL,
 			free_rerolls_used INTEGER NOT NULL DEFAULT 0,
+			reset_at INTEGER NOT NULL DEFAULT 0,
 			PRIMARY KEY(player_id, day_key)
 		)
 	""")
+	_ensure_daily_quest_state_column("reset_at", "INTEGER NOT NULL DEFAULT 0")
 	_db.query("""
 		CREATE TABLE IF NOT EXISTS daily_quests (
 			player_id INTEGER NOT NULL,
@@ -126,6 +129,8 @@ func _init_schema() -> void:
 	""")
 	_ensure_blackjack_shoe_column("audit_log", "TEXT NOT NULL DEFAULT '[]'")
 	_ensure_player_column("equipped_rod_id", "TEXT DEFAULT ''")
+	_ensure_player_column("equipped_skin_id", "TEXT DEFAULT ''")
+	_ensure_player_column("equipped_bobber_id", "TEXT DEFAULT ''")
 	_ensure_player_column("equipped_bait_id", "TEXT DEFAULT ''")
 	_ensure_player_column("equipped_tackle_id", "TEXT DEFAULT ''")
 	_ensure_player_column("hook_durability", "INTEGER DEFAULT 0")
@@ -178,6 +183,7 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 	for inv_row in _db.query_result:
 		inventory[inv_row.item_id] = int(inv_row.quantity)
 	NetAPI.rpc_id(peer_id, "notify_inventory_loaded", inventory)
+	NetAPI.rpc_id(peer_id, "notify_cosmetics_loaded", session.equipped_skin_id, session.equipped_bobber_id)
 	# Send initial hook durability
 	if session and not session.equipped_tackle_id.is_empty():
 		var tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
@@ -355,7 +361,7 @@ func _load_equipped(session: PlayerSession, player_id: int) -> void:
 			elif item is TackleData and first_tackle.is_empty():
 				first_tackle = item_id
 	_db.query_with_bindings(
-		"SELECT equipped_rod_id, equipped_bait_id, equipped_tackle_id, hook_durability FROM players WHERE id = ?",
+		"SELECT equipped_rod_id, equipped_bait_id, equipped_tackle_id, equipped_skin_id, equipped_bobber_id, hook_durability, hook_durabilities FROM players WHERE id = ?",
 		[player_id]
 	)
 	if not _db.query_result.is_empty():
@@ -363,12 +369,16 @@ func _load_equipped(session: PlayerSession, player_id: int) -> void:
 		var rod_id := str(row.equipped_rod_id)
 		var bait_id := str(row.equipped_bait_id)
 		var tackle_id := str(row.equipped_tackle_id)
+		var skin_id := str(row.equipped_skin_id)
+		var bobber_id := str(row.equipped_bobber_id)
 		var saved_durabilities = JSON.parse_string(str(row.hook_durabilities))
 		if saved_durabilities is Dictionary:
 			session.hook_durabilities = saved_durabilities
 		session.equipped_rod_id = rod_id if _is_owned_slot_item(session, rod_id, "rod") else first_rod
 		session.equipped_bait_id = bait_id if _is_owned_slot_item(session, bait_id, "bait") else first_bait
 		session.equipped_tackle_id = tackle_id if _is_owned_slot_item(session, tackle_id, "tackle") else first_tackle
+		session.equipped_skin_id = skin_id if _is_owned_cosmetic(session, skin_id, "skins") else ""
+		session.equipped_bobber_id = bobber_id if _is_owned_cosmetic(session, bobber_id, "bobbers") else ""
 		if not session.equipped_tackle_id.is_empty():
 			var equipped_tackle := ItemRegistry.get_item(session.equipped_tackle_id) as TackleData
 			if equipped_tackle:
@@ -383,6 +393,9 @@ func _load_equipped(session: PlayerSession, player_id: int) -> void:
 
 func _is_owned_slot_item(session: PlayerSession, item_id: String, slot: String) -> bool:
 	return session.get_owned(item_id) > 0 and _item_matches_slot(ItemRegistry.get_item(item_id), slot)
+
+func _is_owned_cosmetic(session: PlayerSession, item_id: String, category: String) -> bool:
+	return session.get_owned(item_id) > 0 and str(CosmeticCatalog.get_item(item_id).get("category", "")) == category
 
 func _item_matches_slot(item: ItemData, slot: String) -> bool:
 	match slot:
@@ -402,6 +415,8 @@ func save_equipment(session: PlayerSession) -> void:
 		SET equipped_rod_id = ?,
 			equipped_bait_id = ?,
 			equipped_tackle_id = ?,
+			equipped_skin_id = ?,
+			equipped_bobber_id = ?,
 			hook_durability = ?,
 			hook_durabilities = ?
 		WHERE username = ?
@@ -409,6 +424,8 @@ func save_equipment(session: PlayerSession) -> void:
 		session.equipped_rod_id,
 		session.equipped_bait_id,
 		session.equipped_tackle_id,
+		session.equipped_skin_id,
+		session.equipped_bobber_id,
 		session.hook_durability,
 		JSON.stringify(session.hook_durabilities),
 		session.username,
@@ -427,6 +444,13 @@ func _ensure_blackjack_shoe_column(column_name: String, column_def: String) -> v
 		if str(row.name) == column_name:
 			return
 	_db.query("ALTER TABLE blackjack_shoes ADD COLUMN %s %s" % [column_name, column_def])
+
+func _ensure_daily_quest_state_column(column_name: String, column_def: String) -> void:
+	_db.query("PRAGMA table_info(daily_quest_state)")
+	for row in _db.query_result:
+		if str(row.name) == column_name:
+			return
+	_db.query("ALTER TABLE daily_quest_state ADD COLUMN %s %s" % [column_name, column_def])
 
 func _ensure_career_stat_column(column_name: String, column_def: String) -> void:
 	_db.query("PRAGMA table_info(player_career_stats)")

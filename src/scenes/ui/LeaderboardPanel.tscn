@@ -25,6 +25,7 @@ layout_mode = 2
 theme_override_constants/separation = 3
 
 [node name="Title" type="Label" parent="Panel/Margin/VBox" unique_id=415637511]
+unique_name_in_owner = true
 modulate = Color(0.65, 0.65, 0.65, 1)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10

@@ -7,6 +7,8 @@ extends CanvasLayer
 @onready var hook_warning_label: Label = %HookWarningLabel
 @onready var chat_input: LineEdit = %ChatInput
 
+var _hint_tween: Tween
+
 var _warning_clear_token := 0
 var _last_hook_durability := -1
 var _last_hook_max := 0
@@ -59,8 +61,17 @@ func _on_coins_changed(amount: int) -> void:
 	coins_label.text = "Coins: %d" % amount
 
 func _on_zone_hint_changed(hint: String) -> void:
+	if _hint_tween and _hint_tween.is_valid():
+		_hint_tween.kill()
 	context_hint.text = hint
 	context_hint.visible = hint != ""
+	if hint.is_empty():
+		return
+	context_hint.modulate.a = 0.0
+	context_hint.scale = Vector2.ONE * 0.92
+	_hint_tween = create_tween().set_parallel(true)
+	_hint_tween.tween_property(context_hint, "modulate:a", 1.0, 0.12)
+	_hint_tween.tween_property(context_hint, "scale", Vector2.ONE, 0.18).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 
 func _on_hook_durability_changed(current: int, max_val: int) -> void:
 	if _has_seen_hook_state \

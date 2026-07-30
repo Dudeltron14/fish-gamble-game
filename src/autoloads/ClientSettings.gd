@@ -6,6 +6,13 @@ const UI_SCALE_BASE := 1.0
 const UI_SCALE_VERSION := 3
 const VIEW_ZOOM_BASE := 2.0
 const VIEW_ZOOM_VERSION := 2
+const RENAMED_TRACKS := {
+	"res://assets/music/Harbor Dice (1).mp3": "res://assets/music/Harbor Dice Sunset.mp3",
+	"res://assets/music/Velvet Reel (1).mp3": "res://assets/music/Velvet Reel Moonlight.mp3",
+	"res://assets/music/Dockside Dice (1).mp3": "res://assets/music/Dockside Dice Nightfall.mp3",
+	"res://assets/music/Dockside Jackpot (1).mp3": "res://assets/music/Dockside Jackpot Encore.mp3",
+	"res://assets/music/Jackpot Harbor (1).mp3": "res://assets/music/Jackpot Harbor High Stakes.mp3",
+}
 
 var music_volume := 40.0
 var sfx_volume := 40.0
@@ -45,8 +52,8 @@ func set_sfx_volume(value: float) -> void:
 	_save_global_settings()
 
 func set_world_track(path: String) -> void:
-	world_track = path
-	AudioManager.set_world_track(path)
+	world_track = str(RENAMED_TRACKS.get(path, path))
+	AudioManager.set_world_track(world_track)
 	_save_global_settings()
 
 func set_ui_scale(value: float) -> void:
@@ -70,7 +77,7 @@ func _load_global_settings() -> void:
 		return
 	music_volume = cfg.get_value("audio", "music_volume", music_volume)
 	sfx_volume = cfg.get_value("audio", "sfx_volume", sfx_volume)
-	world_track = cfg.get_value("audio", "world_track", world_track)
+	world_track = str(RENAMED_TRACKS.get(cfg.get_value("audio", "world_track", world_track), world_track))
 	if cfg.get_value("display", "ui_scale_version", 1) < UI_SCALE_VERSION:
 		ui_scale = 1.0
 		cfg.set_value("display", "ui_scale", ui_scale)

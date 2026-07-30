@@ -20,6 +20,14 @@ const CHAT_BUBBLE_HEIGHT := 18.0
 const CHAT_BUBBLE_BASELINE := -42.0
 const CHAT_BUBBLE_GAP := 3.0
 const CHAT_BUBBLE_LIFETIME := 15.0
+const ROD_TIP_TEXTURE_POINTS := {
+	"fishing": [Vector2(42, 26), Vector2(42, 26), Vector2(41, 27), Vector2(41, 26)],
+	"hook": [Vector2(42, 26), Vector2(33, 21), Vector2(33, 19), Vector2(31, 13), Vector2(26, 6), Vector2(24, 5)],
+}
+const SKIN_SHEETS := {
+	"skin_deep_sea_diver": {"fishing": preload("res://assets/skins/deep_sea_diver/DS_Diver_fish_clean.png"), "idle": preload("res://assets/skins/deep_sea_diver/DS_Diver_idle.png"), "hook": preload("res://assets/skins/deep_sea_diver/DS_Diver_hook.png"), "walk_right": preload("res://assets/skins/deep_sea_diver/DS_Diver_walk.png")},
+	"skin_high_roller": {"fishing": preload("res://assets/skins/high_roller/High_Roller_fish_clean.png"), "idle": preload("res://assets/skins/high_roller/High_Roller_idle.png"), "hook": preload("res://assets/skins/high_roller/High_Roller_hook.png"), "walk_right": preload("res://assets/skins/high_roller/High_Roller_walk.png")},
+}
 
 @export var player_name: String = "":
 	set(v):
@@ -38,6 +46,7 @@ const CHAT_BUBBLE_LIFETIME := 15.0
 
 var _is_fishing := false
 var _is_hidden_for_menu := false
+var _movement_locked := false
 var _state_send_accum := 0.0
 var _server_state_send_accum := 0.0
 var _last_input_dir := Vector2.ZERO
@@ -45,9 +54,13 @@ var _server_input_dir := Vector2.ZERO
 var _remote_target_position := Vector2.ZERO
 var _bobber_cast_quality := -1.0
 var _catch_tween: Tween = null
+var _recoil_tween: Tween = null
 var _chat_messages: Array[Label] = []
+var _base_sprite_frames: SpriteFrames
+var _skin_id := ""
 
 func _ready() -> void:
+	_base_sprite_frames = sprite.sprite_frames
 	_update_local_control()
 	_update_draw_order()
 	if not GameManager.camera_zoom_changed.is_connected(_on_camera_zoom_changed):
@@ -56,6 +69,8 @@ func _ready() -> void:
 	_remote_target_position = position
 	if not _is_local_authority():
 		set_process(true)
+	else:
+		apply_cosmetics(GameManager.equipped_skin_id, GameManager.equipped_bobber_id)
 
 func _enter_tree() -> void:
 	if name.is_valid_int():
@@ -75,6 +90,7 @@ func _process(delta: float) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting:
 		return
 	_update_draw_order()
+	_update_rod_tip_socket()
 	if _is_local_authority():
 		# ponytail: snap only large drift; add sequence/replay reconciliation if collision mismatches are visible.
 		return
@@ -89,7 +105,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if not _is_local_authority():
 		return
-	var dir := Vector2.ZERO if get_viewport().gui_get_focus_owner() is LineEdit else Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	var dir := Vector2.ZERO if _movement_locked or get_viewport().gui_get_focus_owner() is LineEdit else Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	velocity = dir * SPEED
 	move_and_slide()
 	_update_animation(dir)
@@ -114,6 +130,7 @@ func _set_sprite_direction(flip: bool) -> void:
 func start_fishing() -> void:
 	_is_fishing = true
 	_bobber_cast_quality = -1.0
+	_last_input_dir = Vector2.ZERO
 	if not _is_dedicated_server_player():
 		set_physics_process(false)
 	velocity = Vector2.ZERO
@@ -123,6 +140,7 @@ func start_fishing() -> void:
 
 func play_hook() -> void:
 	sprite.play("hook")
+	_play_rod_recoil(3.0)
 	_update_bobber(false)
 	_send_input()
 
@@ -143,6 +161,14 @@ func set_menu_hidden(menu_hidden: bool) -> void:
 	_update_bobber(_is_fishing)
 	_send_input()
 
+func set_movement_locked(locked: bool) -> void:
+	_movement_locked = locked
+	if locked:
+		velocity = Vector2.ZERO
+		_last_input_dir = Vector2.ZERO
+		_update_animation(Vector2.ZERO)
+		_send_input()
+
 func resume_from_menu_at(world_position: Vector2) -> void:
 	global_position = world_position
 	_is_hidden_for_menu = false
@@ -160,7 +186,54 @@ func set_cast_quality(cast_quality: float) -> void:
 	_update_bobber(_is_fishing)
 	_send_input()
 
-func show_catch(fish_id: String, trophy: bool = false) -> void:
+func apply_cosmetics(skin_id: String, bobber_id: String) -> void:
+	if _skin_id != skin_id:
+		_skin_id = skin_id
+		_apply_skin_frames()
+	if bobber_visual and bobber_visual.has_method("set_skin"):
+		bobber_visual.set_skin(bobber_id)
+
+func _apply_skin_frames() -> void:
+	var previous_animation := str(sprite.animation)
+	if not SKIN_SHEETS.has(_skin_id):
+		sprite.sprite_frames = _base_sprite_frames
+	else:
+		var sheets: Dictionary = SKIN_SHEETS[_skin_id]
+		var frames := SpriteFrames.new()
+		_add_skin_animation(frames, "fishing", sheets.fishing as Texture2D, 4, 5.0, true)
+		_add_skin_animation(frames, "hook", sheets.hook as Texture2D, 6, 5.0, false)
+		_add_skin_animation(frames, "idle", sheets.idle as Texture2D, 4, 5.0, true)
+		_add_skin_animation(frames, "walk_right", sheets.walk_right as Texture2D, 6, 5.0, true)
+		sprite.sprite_frames = frames
+	sprite.play(previous_animation if sprite.sprite_frames.has_animation(previous_animation) else "idle")
+
+func _add_skin_animation(frames: SpriteFrames, animation: String, sheet: Texture2D, count: int, speed: float, loop: bool) -> void:
+	frames.add_animation(animation)
+	frames.set_animation_speed(animation, speed)
+	frames.set_animation_loop(animation, loop)
+	for frame in range(count):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = sheet
+		atlas.region = Rect2(frame * 48, 0, 48, 48)
+		frames.add_frame(animation, atlas)
+
+func play_bobber_cast(cast_quality: float) -> void:
+	_bobber_cast_quality = clampf(cast_quality, 0.0, 1.0)
+	if bobber_visual and bobber_visual.has_method("play_cast"):
+		bobber_visual.play_cast(sprite.flip_h, _bobber_cast_quality)
+	_play_rod_recoil(lerpf(2.0, 5.0, _bobber_cast_quality))
+	_send_input()
+
+func _play_rod_recoil(distance: float) -> void:
+	if _recoil_tween and _recoil_tween.is_valid():
+		_recoil_tween.kill()
+	var rest := SPRITE_LEFT_POSITION if sprite.flip_h else SPRITE_RIGHT_POSITION
+	var direction := 1.0 if sprite.flip_h else -1.0
+	_recoil_tween = create_tween()
+	_recoil_tween.tween_property(sprite, "position", rest + Vector2(direction * distance, -1.0), 0.06)
+	_recoil_tween.tween_property(sprite, "position", rest, 0.14).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+
+func show_catch(fish_id: String, trophy: bool = false, measurement: float = 0.0, measurement_unit: String = "") -> void:
 	var fish := ItemRegistry.get_item(fish_id) as FishData
 	if fish == null:
 		return
@@ -174,6 +247,8 @@ func show_catch(fish_id: String, trophy: bool = false) -> void:
 	catch_sprite.position = Vector2(8, -41)
 	catch_sprite.visible = true
 	_play_catch_effects(fish, trophy)
+	if trophy and not measurement_unit.is_empty():
+		show_chat_bubble("TROPHY %s! %.1f %s" % [fish.display_name, measurement, measurement_unit], 10.0)
 	if _catch_tween:
 		_catch_tween.kill()
 	_catch_tween = create_tween().set_parallel(true)
@@ -186,7 +261,7 @@ func show_catch(fish_id: String, trophy: bool = false) -> void:
 			effect.queue_free()
 	)
 
-func show_chat_bubble(message: String) -> void:
+func show_chat_bubble(message: String, lifetime: float = CHAT_BUBBLE_LIFETIME) -> void:
 	var bubble := chat_bubble.duplicate() as Label
 	add_child(bubble)
 	bubble.text = "%s: %s" % [player_name, message]
@@ -205,7 +280,7 @@ func show_chat_bubble(message: String) -> void:
 	chat_tail.show()
 	chat_tail_inner.show()
 	var tween := create_tween()
-	tween.tween_interval(CHAT_BUBBLE_LIFETIME - 0.4)
+	tween.tween_interval(lifetime - 0.4)
 	tween.tween_property(bubble, "modulate:a", 0.0, 0.4)
 	tween.finished.connect(_remove_chat_message.bind(bubble))
 
@@ -342,8 +417,18 @@ func _broadcast_server_state_if_due(delta: float) -> void:
 
 func _update_bobber(force_visible: bool) -> void:
 	if bobber_visual and bobber_visual.has_method("set_cast_visible"):
+		_update_rod_tip_socket()
 		var show_bobber := force_visible and not _is_hidden_for_menu and _bobber_cast_quality >= 0.0
 		bobber_visual.set_cast_visible(show_bobber, sprite.flip_h, maxf(_bobber_cast_quality, 0.0))
+
+func _update_rod_tip_socket() -> void:
+	if bobber_visual == null or not bobber_visual.has_method("set_line_origin"):
+		return
+	var tips: Array = ROD_TIP_TEXTURE_POINTS.get(str(sprite.animation), [Vector2(42, 26)])
+	var tip: Vector2 = tips[mini(sprite.frame, tips.size() - 1)] - Vector2(24, 24)
+	if sprite.flip_h:
+		tip.x = -tip.x
+	bobber_visual.set_line_origin(sprite.position + tip)
 
 func _catch_texture_for(fish: FishData) -> Texture2D:
 	if fish.icon:

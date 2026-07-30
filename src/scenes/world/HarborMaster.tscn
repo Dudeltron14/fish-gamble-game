@@ -1,42 +1,67 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dsf3vc0x24iev"]
 
-[ext_resource type="Texture2D" path="res://assets/characters/harbor_master_idle.png" id="1"]
+[ext_resource type="Texture2D" uid="uid://wm4aj64nseb4" path="res://assets/characters/harbor_master_idle_rebuild.png" id="1"]
 
 [sub_resource type="AtlasTexture" id="Frame0"]
 atlas = ExtResource("1")
 region = Rect2(0, 0, 48, 48)
+
 [sub_resource type="AtlasTexture" id="Frame1"]
 atlas = ExtResource("1")
 region = Rect2(48, 0, 48, 48)
+
 [sub_resource type="AtlasTexture" id="Frame2"]
 atlas = ExtResource("1")
 region = Rect2(96, 0, 48, 48)
+
 [sub_resource type="AtlasTexture" id="Frame3"]
 atlas = ExtResource("1")
 region = Rect2(144, 0, 48, 48)
+
 [sub_resource type="SpriteFrames" id="Frames"]
-animations = [{"frames": [{"duration": 1.0, "texture": SubResource("Frame0")}, {"duration": 1.0, "texture": SubResource("Frame1")}, {"duration": 1.0, "texture": SubResource("Frame2")}, {"duration": 1.0, "texture": SubResource("Frame3")}], "loop": true, "name": &"idle", "speed": 4.0}]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Frame0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Frame1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Frame2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Frame3")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 2.0
+}]
+
 [sub_resource type="RectangleShape2D" id="Interact"]
 size = Vector2(52, 52)
+
 [sub_resource type="RectangleShape2D" id="Block"]
 size = Vector2(18, 14)
 
-[node name="HarborMasterZone" type="Area2D"]
+[node name="HarborMasterZone" type="Area2D" unique_id=423153968]
 collision_layer = 2
 collision_mask = 4
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
-position = Vector2(0, -24)
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1391662981]
 texture_filter = 1
+position = Vector2(0, -24)
 sprite_frames = SubResource("Frames")
 animation = &"idle"
 autoplay = "idle"
+frame_progress = 0.36624715
 
-[node name="InteractionShape" type="CollisionShape2D" parent="."]
+[node name="InteractionShape" type="CollisionShape2D" parent="." unique_id=1718224484]
 position = Vector2(0, -24)
 shape = SubResource("Interact")
 
-[node name="StaticBody2D" type="StaticBody2D" parent="."]
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=2080460266]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=84426541]
 position = Vector2(0, -7)
 shape = SubResource("Block")

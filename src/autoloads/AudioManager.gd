@@ -17,42 +17,28 @@ const PLAYLISTS: Dictionary = {
 	"casino":  [],
 }
 
+const HARBOR_TRACKS := [
+	"res://assets/music/Harbor Dice.mp3",
+	"res://assets/music/Harbor Dice Sunset.mp3",
+	"res://assets/music/Velvet Reel.mp3",
+	"res://assets/music/Velvet Reel Moonlight.mp3",
+	"res://assets/music/Dockside Dice.mp3",
+	"res://assets/music/Dockside Dice Nightfall.mp3",
+	"res://assets/music/Brindle Harbor Reggae.mp3",
+	"res://assets/music/Smooth Criminal.mp3",
+	"res://assets/music/Swindling the Salmon.mp3",
+]
+
 const PLAYLIST_PATHS: Dictionary = {
 	"menu": [
 		"res://assets/music/Brindle Harbor.mp3",
 	],
-	"world": [
-		"res://assets/music/Harbor Dice.mp3",
-		"res://assets/music/Harbor Dice (1).mp3",
-		"res://assets/music/Velvet Reel.mp3",
-		"res://assets/music/Velvet Reel (1).mp3",
-		"res://assets/music/Dockside Dice.mp3",
-		"res://assets/music/Dockside Dice (1).mp3",
-		"res://assets/music/Brindle Harbor Reggae.mp3",
-	],
-	"fishing": [
-		"res://assets/music/Harbor Dice.mp3",
-		"res://assets/music/Harbor Dice (1).mp3",
-		"res://assets/music/Velvet Reel.mp3",
-		"res://assets/music/Velvet Reel (1).mp3",
-		"res://assets/music/Dockside Dice.mp3",
-		"res://assets/music/Dockside Dice (1).mp3",
-		"res://assets/music/Brindle Harbor Reggae.mp3",
-	],
-	"shop": [
-		"res://assets/music/Harbor Dice.mp3",
-		"res://assets/music/Harbor Dice (1).mp3",
-		"res://assets/music/Velvet Reel.mp3",
-		"res://assets/music/Velvet Reel (1).mp3",
-		"res://assets/music/Dockside Dice.mp3",
-		"res://assets/music/Dockside Dice (1).mp3",
-		"res://assets/music/Brindle Harbor Reggae.mp3",
-	],
+	"world": HARBOR_TRACKS,
+	"fishing": HARBOR_TRACKS,
+	"shop": HARBOR_TRACKS,
 	"casino": [
-		"res://assets/music/Dockside Jackpot.mp3",
-		"res://assets/music/Dockside Jackpot (1).mp3",
-		"res://assets/music/Jackpot Harbor.mp3",
-		"res://assets/music/Jackpot Harbor (1).mp3",
+		"res://assets/music/Shrimps Love Gambling.mp3",
+		"res://assets/music/Big Top Timmy.mp3",
 	],
 }
 
@@ -254,6 +240,14 @@ func set_music_context(context: String) -> void:
 
 func world_track_paths() -> Array:
 	return PLAYLIST_PATHS["world"]
+
+func selectable_world_track_paths() -> Array:
+	return HARBOR_TRACKS + PLAYLIST_PATHS["menu"]
+
+func current_track_name() -> String:
+	if _music_player == null or _music_player.stream == null:
+		return "Nothing playing"
+	return _music_player.stream.resource_path.get_file().get_basename()
 
 func set_world_track(path: String) -> void:
 	_world_track_path = path

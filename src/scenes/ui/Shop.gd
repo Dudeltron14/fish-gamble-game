@@ -10,6 +10,8 @@ const GEAR_STATS_SCENE := preload("res://src/scenes/ui/GearStatsPanel.tscn")
 @onready var rods_tab: Button = %RodsTab
 @onready var bait_tab: Button = %BaitTab
 @onready var tackle_tab: Button = %TackleTab
+@onready var skins_tab: Button = %SkinsTab
+@onready var bobbers_tab: Button = %BobbersTab
 
 var _gear_stats_panel: CanvasLayer = null
 var _category := "rods"
@@ -24,15 +26,31 @@ func _ready() -> void:
 	rods_tab.pressed.connect(_select_category.bind("rods"))
 	bait_tab.pressed.connect(_select_category.bind("baits"))
 	tackle_tab.pressed.connect(_select_category.bind("tackle"))
+	skins_tab.pressed.connect(_select_category.bind("skins"))
+	bobbers_tab.pressed.connect(_select_category.bind("bobbers"))
 	AudioManager.set_music_context("shop")
 	coins_label.text = "Coins: %d" % GameManager.current_coins
 	_add_gear_stats_panel()
 	_populate()
+	call_deferred("_animate_open")
+
+func _animate_open() -> void:
+	var panel: Control = $Center/Panel
+	panel.pivot_offset = panel.size * 0.5
+	panel.modulate.a = 0.0
+	panel.scale = Vector2.ONE * 0.96
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(panel, "modulate:a", 1.0, 0.12)
+	tween.tween_property(panel, "scale", Vector2.ONE, 0.18).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 
 func _populate() -> void:
 	for child in item_list.get_children():
 		child.free()
 
+	if _category in ["skins", "bobbers"]:
+		for item: Dictionary in CosmeticCatalog.get_category(_category):
+			item_list.add_child(_make_cosmetic_row(item))
+		return
 	var shop_items: Array = ItemRegistry.get(_category).values()
 	shop_items = shop_items.filter(func(i: ItemData) -> bool: return i.buy_price > 0)
 	shop_items.sort_custom(func(a: ItemData, b: ItemData) -> bool: return a.buy_price < b.buy_price)
@@ -44,7 +62,54 @@ func _select_category(category: String) -> void:
 	rods_tab.disabled = category == "rods"
 	bait_tab.disabled = category == "baits"
 	tackle_tab.disabled = category == "tackle"
+	skins_tab.disabled = category == "skins"
+	bobbers_tab.disabled = category == "bobbers"
 	_populate()
+
+func _make_cosmetic_row(item: Dictionary) -> Control:
+	var owned := GameManager.get_owned(str(item.id))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	var icon := TextureRect.new()
+	icon.texture = CosmeticCatalog.icon_for(item)
+	icon.custom_minimum_size = Vector2(32, 32)
+	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(icon)
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var name_lbl := Label.new()
+	name_lbl.text = str(item.name)
+	info.add_child(name_lbl)
+	var desc_lbl := Label.new()
+	desc_lbl.text = str(item.description)
+	desc_lbl.add_theme_font_size_override("font_size", 11)
+	desc_lbl.modulate = Color(0.75, 0.75, 0.75)
+	info.add_child(desc_lbl)
+	var owned_lbl := Label.new()
+	owned_lbl.text = "Owned: %d" % owned
+	owned_lbl.add_theme_font_size_override("font_size", 10)
+	owned_lbl.modulate = Color(0.55, 0.85, 0.55) if owned > 0 else Color(0.65, 0.65, 0.65)
+	info.add_child(owned_lbl)
+	row.add_child(info)
+	var price := int(item.price)
+	var price_lbl := Label.new()
+	price_lbl.text = "%d c" % price
+	price_lbl.custom_minimum_size = Vector2(52, 0)
+	price_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	price_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(price_lbl)
+	var buy := Button.new()
+	buy.text = "Owned" if owned > 0 else "Buy"
+	buy.custom_minimum_size = Vector2(52, 0)
+	buy.disabled = owned > 0 or GameManager.current_coins < price
+	buy.pressed.connect(_on_buy_pressed.bind(str(item.id), buy))
+	row.add_child(buy)
+	var wrapper := VBoxContainer.new()
+	wrapper.add_child(row)
+	wrapper.add_child(HSeparator.new())
+	return wrapper
 
 func _make_row(item: ItemData) -> Control:
 	var owned := GameManager.get_owned(item.id)
@@ -108,7 +173,7 @@ func _make_row(item: ItemData) -> Control:
 		equip_btn.text = "Equipped" if equipped else "Equip"
 		equip_btn.custom_minimum_size = Vector2(52, 0)
 		equip_btn.disabled = owned <= 0 or equipped
-		equip_btn.pressed.connect(_on_equip_pressed.bind(item.id))
+		equip_btn.pressed.connect(_on_equip_pressed.bind(item.id, equip_btn))
 		row.add_child(equip_btn)
 
 	var sep := HSeparator.new()
@@ -120,11 +185,18 @@ func _make_row(item: ItemData) -> Control:
 func _on_buy_pressed(item_id: String, btn: Button) -> void:
 	btn.disabled = true
 	status_label.text = "Buying…"
+	_pulse(btn)
 	NetAPI.rpc_id(1, "c2s_shop_buy", item_id)
 
-func _on_equip_pressed(item_id: String) -> void:
+func _on_equip_pressed(item_id: String, btn: Button) -> void:
 	status_label.text = "Equipping…"
+	_pulse(btn)
 	NetAPI.rpc_id(1, "c2s_equip", item_id)
+
+func _pulse(control: Control) -> void:
+	var tween := create_tween()
+	tween.tween_property(control, "modulate", Color(1.0, 0.85, 0.35), 0.06)
+	tween.tween_property(control, "modulate", Color.WHITE, 0.14)
 
 func _on_equip_result(ok: bool, item_id: String, slot: String) -> void:
 	if ok:

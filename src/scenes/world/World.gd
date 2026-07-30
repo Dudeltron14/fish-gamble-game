@@ -60,6 +60,7 @@ func _ready() -> void:
 			GameManager.equipped_rod_id    = host_session.equipped_rod_id
 			GameManager.equipped_bait_id   = host_session.equipped_bait_id
 			GameManager.equipped_tackle_id = host_session.equipped_tackle_id
+			GameManager.set_equipped_cosmetics(host_session.equipped_skin_id, host_session.equipped_bobber_id)
 			GameManager.equipped_changed.emit()
 			# Sync session inventory directly to client (no DB query needed for host)
 			GameManager.set_owned_items(host_session.owned_items.duplicate())
@@ -106,10 +107,13 @@ func spawn_player(peer_id: int, p_name: String) -> void:
 	player.set_meta("player_name", p_name)
 	player.position = spawn_point.position
 	players.add_child(player)
+	var session := GameServer.get_authenticated_session(peer_id)
+	if session and player.has_method("apply_cosmetics"):
+		player.apply_cosmetics(session.equipped_skin_id, session.equipped_bobber_id)
 	_broadcast_player_spawn(player, p_name)
 	_sync_players_to_peer(peer_id)
 
-func ensure_player(peer_id: int, p_name: String, spawn_position: Vector2) -> void:
+func ensure_player(peer_id: int, p_name: String, spawn_position: Vector2, skin_id: String = "", bobber_id: String = "") -> void:
 	var player := players.get_node_or_null(str(peer_id)) as CharacterBody2D
 	if player == null:
 		player = PLAYER_SCENE.instantiate()
@@ -119,6 +123,8 @@ func ensure_player(peer_id: int, p_name: String, spawn_position: Vector2) -> voi
 	player.set_multiplayer_authority(peer_id)
 	player.player_name = p_name
 	player.set_meta("player_name", p_name)
+	if player.has_method("apply_cosmetics"):
+		player.apply_cosmetics(skin_id, bobber_id)
 	if player.position == Vector2.ZERO:
 		player.position = spawn_position
 	if player.has_method("configure_spawned_player"):
@@ -138,10 +144,20 @@ func apply_remote_player_state(peer_id: int, pos: Vector2, animation: String, fl
 	if player.has_method("apply_remote_state"):
 		player.apply_remote_state(pos, animation, flip_h, hidden, bobber_cast_quality)
 
-func show_player_catch(peer_id: int, fish_id: String, trophy: bool = false) -> void:
+func apply_player_cosmetics(peer_id: int, skin_id: String, bobber_id: String) -> void:
+	var player := players.get_node_or_null(str(peer_id))
+	if player and player.has_method("apply_cosmetics"):
+		player.apply_cosmetics(skin_id, bobber_id)
+
+func apply_local_cosmetics(skin_id: String, bobber_id: String) -> void:
+	var player := _get_local_player()
+	if player and player.has_method("apply_cosmetics"):
+		player.apply_cosmetics(skin_id, bobber_id)
+
+func show_player_catch(peer_id: int, fish_id: String, trophy: bool = false, measurement: float = 0.0, measurement_unit: String = "") -> void:
 	var player := players.get_node_or_null(str(peer_id))
 	if player and player.has_method("show_catch"):
-		player.show_catch(fish_id, trophy)
+		player.show_catch(fish_id, trophy, measurement, measurement_unit)
 
 func show_player_chat_bubble(peer_id: int, message: String) -> void:
 	var player := players.get_node_or_null(str(peer_id))
@@ -154,14 +170,16 @@ func despawn_remote_player(peer_id: int) -> void:
 	_remove_player_node(peer_id)
 
 func _broadcast_player_spawn(player: CharacterBody2D, p_name: String = "") -> void:
-	NetAPI.rpc("notify_world_player_spawned", player.name.to_int(), _player_display_name(player, p_name), player.position)
+	var appearance := _appearance_for_peer(player.name.to_int())
+	NetAPI.rpc("notify_world_player_spawned", player.name.to_int(), _player_display_name(player, p_name), player.position, appearance.skin, appearance.bobber)
 
 func _sync_players_to_peer(peer_id: int) -> void:
 	for child in players.get_children():
 		var player := child as CharacterBody2D
 		if player == null:
 			continue
-		NetAPI.rpc_id(peer_id, "notify_world_player_spawned", player.name.to_int(), _player_display_name(player), player.position)
+		var appearance := _appearance_for_peer(player.name.to_int())
+		NetAPI.rpc_id(peer_id, "notify_world_player_spawned", player.name.to_int(), _player_display_name(player), player.position, appearance.skin, appearance.bobber)
 	call_deferred("_sync_players_to_peer_deferred", peer_id)
 
 func _sync_players_to_peer_deferred(peer_id: int) -> void:
@@ -170,7 +188,12 @@ func _sync_players_to_peer_deferred(peer_id: int) -> void:
 		var player := child as CharacterBody2D
 		if player == null:
 			continue
-		NetAPI.rpc_id(peer_id, "notify_world_player_spawned", player.name.to_int(), _player_display_name(player), player.position)
+		var appearance := _appearance_for_peer(player.name.to_int())
+		NetAPI.rpc_id(peer_id, "notify_world_player_spawned", player.name.to_int(), _player_display_name(player), player.position, appearance.skin, appearance.bobber)
+
+func _appearance_for_peer(peer_id: int) -> Dictionary:
+	var session := GameServer.get_authenticated_session(peer_id)
+	return {"skin": session.equipped_skin_id if session else "", "bobber": session.equipped_bobber_id if session else ""}
 
 func _player_display_name(player: CharacterBody2D, fallback: String = "") -> String:
 	if not fallback.is_empty():
@@ -288,6 +311,8 @@ func _open_overlay(scene: PackedScene) -> void:
 	var player := _get_local_player()
 	if player:
 		_overlay_entry_position = player.global_position
+		if scene == HARBOR_MASTER_DIALOGUE_SCENE and player.has_method("set_movement_locked"):
+			player.set_movement_locked(true)
 	_set_local_player_menu_hidden(_overlay_hides_player)
 	if scene == FISHING_SCENE:
 		if player:
@@ -296,6 +321,8 @@ func _open_overlay(scene: PackedScene) -> void:
 func _on_overlay_closed() -> void:
 	AudioManager.sfx("sfx_menu_close")
 	var player := _get_local_player()
+	if _overlay_scene == HARBOR_MASTER_DIALOGUE_SCENE and player and player.has_method("set_movement_locked"):
+		player.set_movement_locked(false)
 	if _overlay_hides_player and player and player.has_method("resume_from_menu_at"):
 		player.resume_from_menu_at(_overlay_entry_position)
 	else:
@@ -348,6 +375,7 @@ func _reset_session_and_go_to_login() -> void:
 	GameManager.equipped_rod_id = ""
 	GameManager.equipped_bait_id = ""
 	GameManager.equipped_tackle_id = ""
+	GameManager.set_equipped_cosmetics("", "")
 	GameManager.equipped_changed.emit()
 	GameManager.hook_durability = 0
 	GameManager.hook_max_durability = 0
@@ -369,6 +397,16 @@ func set_local_player_cast_quality(cast_quality: float) -> void:
 	var player := _get_local_player()
 	if player and player.has_method("set_cast_quality"):
 		player.set_cast_quality(cast_quality)
+
+func play_player_cast(peer_id: int, cast_quality: float) -> void:
+	var player := players.get_node_or_null(str(peer_id))
+	if player and player.has_method("play_bobber_cast"):
+		player.play_bobber_cast(cast_quality)
+
+func play_local_player_cast(cast_quality: float) -> void:
+	var player := _get_local_player()
+	if player and player.has_method("play_bobber_cast"):
+		player.play_bobber_cast(cast_quality)
 
 func _on_zone_entered(body: Node2D, zone_name: String) -> void:
 	if not body is CharacterBody2D: return

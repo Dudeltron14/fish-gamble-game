@@ -81,8 +81,7 @@ func _set_expanded(expand: bool) -> void:
 	# Index 0 = Title label — always visible. Hide everything else when collapsed.
 	for i in range(1, _vbox.get_child_count()):
 		_vbox.get_child(i).visible = expand
-	if not _shop_mode:
-		call_deferred("_resize_panel", expand)
+	call_deferred("_resize_panel", expand)
 
 func _resize_panel(expand: bool) -> void:
 	panel.offset_bottom = _expanded_bottom if expand else panel.offset_top + panel.get_combined_minimum_size().y

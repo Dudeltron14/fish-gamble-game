@@ -109,8 +109,8 @@ func _enter_wait() -> void:
 	AudioManager.sfx("sfx_cast")
 	status.text = "%s Waiting for a bite…" % quality_text
 	for world in get_tree().get_nodes_in_group("world"):
-		if world.has_method("set_local_player_cast_quality"):
-			world.set_local_player_cast_quality(_cast_quality)
+		if world.has_method("play_local_player_cast"):
+			world.play_local_player_cast(_cast_quality)
 	NetAPI.rpc_id(1, "c2s_fishing_start", _cast_quality)
 
 func _process_wait(delta: float) -> void:
@@ -354,13 +354,19 @@ func _show_result(success: bool, msg: String, personal_record: bool = false) -> 
 	result_label.scale = Vector2(0.6, 0.6)
 	var tween := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	tween.tween_property(result_label, "scale", Vector2.ONE, 0.35)
+	var color_tween: Tween
 	if personal_record:
-		var color_tween := create_tween().set_loops(8)
+		color_tween = create_tween().set_loops()
 		color_tween.tween_property(result_label, "modulate", Color(1.0, 0.2, 0.2), 0.12)
 		color_tween.tween_property(result_label, "modulate", Color(1.0, 0.9, 0.15), 0.12)
 		color_tween.tween_property(result_label, "modulate", Color(0.2, 1.0, 0.8), 0.12)
 		color_tween.tween_property(result_label, "modulate", Color(0.3, 0.5, 1.0), 0.12)
-	await get_tree().create_timer(2.5).timeout
+	await get_tree().create_timer(9.0 if personal_record else 2.5).timeout
+	if personal_record:
+		color_tween.kill()
+		var fade := create_tween()
+		fade.tween_property(result_label, "modulate:a", 0.0, 1.0)
+		await fade.finished
 	_close()
 
 func _measurement_tier(fish: FishData, measurement: float) -> String:

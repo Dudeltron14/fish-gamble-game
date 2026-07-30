@@ -2,6 +2,7 @@ extends Node
 
 const FREE_REROLLS := 3
 const REROLL_COST := 25
+const QUEST_RESET_SECONDS := 24 * 60 * 60
 const DIFFICULTIES := [
 	{"name": "Easy", "weight": 60, "reward": 25, "fish": 3, "hand": 15, "casino": 30},
 	{"name": "Medium", "weight": 27, "reward": 70, "fish": 5, "hand": 35, "casino": 80},
@@ -9,22 +10,28 @@ const DIFFICULTIES := [
 	{"name": "Legendary", "weight": 3, "reward": 550, "fish": 12, "hand": 160, "casino": 400},
 ]
 
-func handle_stats(peer_id: int) -> void:
+func handle_stats(peer_id: int, requested_username: String = "") -> void:
 	var session := _at_harbor(peer_id)
 	if session == null: return
 	var db = _db()
-	var player_id := _player_id(session.username)
+	var username := requested_username.strip_edges() if not requested_username.strip_edges().is_empty() else session.username
+	var player_id := _player_id(username)
 	if db == null or player_id < 0: return
+	db.query_with_bindings("SELECT coins FROM players WHERE id = ?", [player_id])
+	var coins := int(db.query_result[0].coins) if not db.query_result.is_empty() else 0
 	db.query_with_bindings("SELECT fish_id, caught_count, got_away_count, best_measurement FROM player_fish_stats WHERE player_id = ? ORDER BY caught_count DESC, fish_id", [player_id])
 	var fish: Array = db.query_result.duplicate()
 	db.query_with_bindings("SELECT item_id, uses FROM player_gear_stats WHERE player_id = ? ORDER BY uses DESC", [player_id])
 	var gear: Array = db.query_result.duplicate()
+	db.query_with_bindings("SELECT fish_id, earned, measurement, measurement_unit, caught_at FROM player_catch_log WHERE player_id = ? ORDER BY id DESC LIMIT 50", [player_id])
+	var history: Array = db.query_result.duplicate()
 	db.query_with_bindings("SELECT * FROM player_career_stats WHERE player_id = ?", [player_id])
 	var career: Dictionary = db.query_result[0] if not db.query_result.is_empty() else {}
-	career["time_played_seconds"] = int(career.get("time_played_seconds", 0)) + maxi(0, (Time.get_ticks_msec() - session.connected_at_ms) / 1000)
+	if username == session.username:
+		career["time_played_seconds"] = int(career.get("time_played_seconds", 0)) + maxi(0, (Time.get_ticks_msec() - session.connected_at_ms) / 1000)
 	db.query_with_bindings("SELECT COUNT(*) AS total FROM player_login_days WHERE player_id = ?", [player_id])
 	career["login_days"] = int(db.query_result[0].total) if not db.query_result.is_empty() else 0
-	NetAPI.rpc_id(peer_id, "notify_harbor_stats", {"fish": fish, "gear": gear, "career": career, "coins": session.coins})
+	NetAPI.rpc_id(peer_id, "notify_harbor_stats", {"username": username, "fish": fish, "gear": gear, "history": history, "career": career, "coins": coins})
 
 func handle_quests(peer_id: int) -> void:
 	var session := _at_harbor(peer_id)
@@ -36,8 +43,12 @@ func handle_reroll(peer_id: int, slot: int) -> void:
 	if session == null or slot < 0 or slot > 2: return
 	var db = _db(); var player_id := _player_id(session.username)
 	if db == null or player_id < 0: return
-	var day := _day_key()
+	var day := _quest_day(player_id)
 	_ensure_day(player_id, day)
+	db.query_with_bindings("SELECT progress, target, claimed FROM daily_quests WHERE player_id = ? AND day_key = ? AND slot = ?", [player_id, day, slot])
+	if not db.query_result.is_empty() and (int(db.query_result[0].claimed) != 0 or int(db.query_result[0].progress) >= int(db.query_result[0].target)):
+		NetAPI.rpc_id(peer_id, "notify_daily_quest_result", false, "Completed ledger lines reset after the server timer.")
+		return
 	db.query_with_bindings("SELECT free_rerolls_used FROM daily_quest_state WHERE player_id = ? AND day_key = ?", [player_id, day])
 	var used := int(db.query_result[0].free_rerolls_used) if not db.query_result.is_empty() else 0
 	if used < FREE_REROLLS:
@@ -56,7 +67,7 @@ func handle_reroll(peer_id: int, slot: int) -> void:
 func handle_claim(peer_id: int, slot: int) -> void:
 	var session := _at_harbor(peer_id)
 	if session == null or slot < 0 or slot > 2: return
-	var db = _db(); var player_id := _player_id(session.username); var day := _day_key()
+	var db = _db(); var player_id := _player_id(session.username); var day := _quest_day(player_id)
 	if db == null or player_id < 0: return
 	db.query_with_bindings("SELECT progress, target, reward, claimed FROM daily_quests WHERE player_id = ? AND day_key = ? AND slot = ?", [player_id, day, slot])
 	if db.query_result.is_empty() or int(db.query_result[0].claimed) != 0 or int(db.query_result[0].progress) < int(db.query_result[0].target):
@@ -64,6 +75,7 @@ func handle_claim(peer_id: int, slot: int) -> void:
 		return
 	var reward := int(db.query_result[0].reward)
 	db.query_with_bindings("UPDATE daily_quests SET claimed = 1 WHERE player_id = ? AND day_key = ? AND slot = ?", [player_id, day, slot])
+	db.query_with_bindings("UPDATE daily_quest_state SET reset_at = ? WHERE player_id = ? AND day_key = ? AND reset_at = 0", [int(Time.get_unix_time_from_system()) + QUEST_RESET_SECONDS, player_id, day])
 	session.coins += reward
 	db.query_with_bindings("UPDATE players SET coins = ? WHERE id = ?", [session.coins, player_id])
 	db.query_with_bindings("INSERT INTO player_career_stats (player_id, total_gold_earned, highest_balance) VALUES (?, ?, ?) ON CONFLICT(player_id) DO UPDATE SET total_gold_earned = total_gold_earned + excluded.total_gold_earned, highest_balance = MAX(highest_balance, excluded.highest_balance)", [player_id, reward, session.coins])
@@ -76,9 +88,10 @@ func record_fish_catch(session: PlayerSession, fish_id: String, earned: int, ela
 	if db == null or player_id < 0: return false
 	var record := false
 	if measurement_unit == "in":
-		db.query_with_bindings("SELECT biggest_fish_length FROM player_career_stats WHERE player_id = ?", [player_id])
-		record = db.query_result.is_empty() or measurement > float(db.query_result[0].biggest_fish_length)
+		db.query_with_bindings("SELECT best_measurement FROM player_fish_stats WHERE player_id = ? AND fish_id = ?", [player_id, fish_id])
+		record = db.query_result.is_empty() or measurement > float(db.query_result[0].best_measurement)
 	db.query_with_bindings("INSERT INTO player_fish_stats (player_id, fish_id, caught_count, best_measurement) VALUES (?, ?, 1, ?) ON CONFLICT(player_id, fish_id) DO UPDATE SET caught_count = caught_count + 1, best_measurement = MAX(best_measurement, excluded.best_measurement)", [player_id, fish_id, measurement])
+	db.query_with_bindings("INSERT INTO player_catch_log (player_id, fish_id, earned, measurement, measurement_unit, caught_at) VALUES (?, ?, ?, ?, ?, ?)", [player_id, fish_id, earned, measurement, measurement_unit, int(Time.get_unix_time_from_system())])
 	var fish := ItemRegistry.get_item(fish_id) as FishData
 	db.query_with_bindings("INSERT INTO player_career_stats (player_id, fish_caught, total_gold_earned, highest_balance, highest_catch_value, treasure_found, junk_caught, rare_catches, legendary_catches) VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(player_id) DO UPDATE SET fish_caught = fish_caught + 1, total_gold_earned = total_gold_earned + excluded.total_gold_earned, highest_balance = MAX(highest_balance, excluded.highest_balance), highest_catch_value = MAX(highest_catch_value, excluded.highest_catch_value), treasure_found = treasure_found + excluded.treasure_found, junk_caught = junk_caught + excluded.junk_caught, rare_catches = rare_catches + excluded.rare_catches, legendary_catches = legendary_catches + excluded.legendary_catches", [player_id, earned, session.coins, earned, 1 if fish_id == "legendary_chest" or fish_id == "legendary_key" else 0, 1 if fish_id.begins_with("junk_") else 0, 1 if fish and fish.rarity == "rare" else 0, 1 if fish and fish.rarity == "legendary" else 0])
 	db.query_with_bindings("UPDATE player_career_stats SET fastest_catch_ms = CASE WHEN fastest_catch_ms = 0 THEN ? ELSE MIN(fastest_catch_ms, ?) END WHERE player_id = ?", [elapsed_ms, elapsed_ms, player_id])
@@ -114,10 +127,12 @@ func record_chat_message(session: PlayerSession) -> void:
 func record_chat_received(session: PlayerSession) -> void:
 	_increment(session, "chat_messages_received", 1)
 
-func record_shop_purchase(session: PlayerSession, cost: int) -> void:
+func record_shop_purchase(session: PlayerSession, cost: int, skin: bool = false) -> void:
 	_increment(session, "shop_spent", cost)
 	_increment(session, "items_bought", 1)
 	_increment(session, "total_gold_spent", cost)
+	if skin:
+		_increment(session, "skins_purchased", 1)
 
 func record_time_played(session: PlayerSession, milliseconds: int) -> void:
 	_increment(session, "time_played_seconds", maxi(0, milliseconds / 1000))
@@ -157,14 +172,15 @@ func _update_fishing_streak(session: PlayerSession, caught: bool) -> void:
 		db.query_with_bindings("UPDATE player_career_stats SET current_fish_streak = 0 WHERE player_id = ?", [player_id])
 
 func _send_quests(peer_id: int, session: PlayerSession) -> void:
-	var db = _db(); var player_id := _player_id(session.username); var day := _day_key()
+	var db = _db(); var player_id := _player_id(session.username); var day := _quest_day(player_id)
 	if db == null or player_id < 0: return
 	_ensure_day(player_id, day)
 	db.query_with_bindings("SELECT slot, kind, fish_id, target, progress, reward, difficulty, claimed FROM daily_quests WHERE player_id = ? AND day_key = ? ORDER BY slot", [player_id, day])
 	var quests: Array = db.query_result.duplicate()
-	db.query_with_bindings("SELECT free_rerolls_used FROM daily_quest_state WHERE player_id = ? AND day_key = ?", [player_id, day])
+	db.query_with_bindings("SELECT free_rerolls_used, reset_at FROM daily_quest_state WHERE player_id = ? AND day_key = ?", [player_id, day])
 	var used := int(db.query_result[0].free_rerolls_used) if not db.query_result.is_empty() else 0
-	NetAPI.rpc_id(peer_id, "notify_daily_quests", {"quests": quests, "free_rerolls_left": maxi(0, FREE_REROLLS - used), "reroll_cost": REROLL_COST, "coins": session.coins})
+	var reset_at := int(db.query_result[0].reset_at) if not db.query_result.is_empty() else 0
+	NetAPI.rpc_id(peer_id, "notify_daily_quests", {"quests": quests, "free_rerolls_left": maxi(0, FREE_REROLLS - used), "reroll_cost": REROLL_COST, "coins": session.coins, "reset_at": reset_at})
 
 func _ensure_day(player_id: int, day: String) -> void:
 	var db = _db()
@@ -193,7 +209,7 @@ func _roll_quest() -> Dictionary:
 func _progress(player_id: int, kind: String, fish_id: String, amount: int) -> void:
 	var db = _db()
 	if db == null: return
-	var day := _day_key()
+	var day := _quest_day(player_id)
 	_ensure_day(player_id, day)
 	var sql := "UPDATE daily_quests SET progress = MIN(target, progress + ?) WHERE player_id = ? AND day_key = ? AND kind = ? AND claimed = 0"
 	var bindings: Array = [amount, player_id, day, kind]
@@ -228,3 +244,12 @@ func _player_id(username: String) -> int:
 
 func _day_key() -> String:
 	return Time.get_datetime_string_from_system(false).left(10)
+
+func _quest_day(player_id: int) -> String:
+	var db = _db()
+	if db == null:
+		return _day_key()
+	db.query_with_bindings("SELECT day_key, reset_at FROM daily_quest_state WHERE player_id = ? ORDER BY day_key DESC LIMIT 1", [player_id])
+	if not db.query_result.is_empty() and int(db.query_result[0].reset_at) > int(Time.get_unix_time_from_system()):
+		return str(db.query_result[0].day_key)
+	return _day_key()

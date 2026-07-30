@@ -6,6 +6,10 @@ func handle_buy(peer_id: int, item_id: String) -> void:
 		NetAPI.rpc_id(peer_id, "notify_shop_result", false, "Not in shop.", session.coins if session else 0)
 		return
 
+	var cosmetic := CosmeticCatalog.get_item(item_id)
+	if not cosmetic.is_empty():
+		_buy_cosmetic(peer_id, session, item_id, cosmetic)
+		return
 	var item: ItemData = ItemRegistry.get_item(item_id)
 	if item == null or item.buy_price <= 0:
 		push_warning("ShopServer: buy rejected peer=%d item=%s found=%s price=%d" % [peer_id, item_id, str(item != null), item.buy_price if item else -1])
@@ -34,6 +38,22 @@ func handle_buy(peer_id: int, item_id: String) -> void:
 	elif item is BaitData or item is TackleData:
 		result_msg += " Equip it before fishing."
 	NetAPI.rpc_id(peer_id, "notify_shop_result", true, result_msg, session.coins)
+
+func _buy_cosmetic(peer_id: int, session: PlayerSession, item_id: String, cosmetic: Dictionary) -> void:
+	if session.get_owned(item_id) > 0:
+		NetAPI.rpc_id(peer_id, "notify_shop_result", false, "You already own this cosmetic.", session.coins)
+		return
+	var price := int(cosmetic.price)
+	if session.coins < price:
+		NetAPI.rpc_id(peer_id, "notify_shop_result", false, "Not enough coins.", session.coins)
+		return
+	session.coins -= price
+	session.add_owned(item_id, 1)
+	var progression := GameServer.get_node_or_null("ProgressionServer")
+	if progression: progression.record_shop_purchase(session, price, str(cosmetic.category) == "skins")
+	_persist_buy(session, item_id)
+	NetAPI.rpc_id(peer_id, "notify_inventory_updated", item_id, 1)
+	NetAPI.rpc_id(peer_id, "notify_shop_result", true, "Purchased %s!" % str(cosmetic.name), session.coins)
 
 func handle_equip(peer_id: int, item_id: String) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
@@ -72,6 +92,19 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 	NetAPI.rpc_id(peer_id, "notify_equip_result", true, item_id, slot)
 	if item_id == "treasure_magnet":
 		NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, session.hook_durability, (item as TackleData).durability)
+
+func handle_equip_cosmetic(peer_id: int, item_id: String) -> void:
+	var session := GameServer.get_authenticated_session(peer_id)
+	var cosmetic := CosmeticCatalog.get_item(item_id)
+	if session == null or cosmetic.is_empty() or session.get_owned(item_id) <= 0:
+		return
+	match str(cosmetic.category):
+		"skins": session.equipped_skin_id = item_id
+		"bobbers": session.equipped_bobber_id = item_id
+		_: return
+	_persist_equipment(session)
+	NetAPI.rpc_id(peer_id, "notify_cosmetics_equipped", session.equipped_skin_id, session.equipped_bobber_id)
+	NetAPI.rpc("notify_player_cosmetics", peer_id, session.equipped_skin_id, session.equipped_bobber_id)
 
 # ── Persistence (DB only, session is authoritative) ───────────────────────────
 

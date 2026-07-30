@@ -111,7 +111,7 @@ git lfs pull
 1. To play the latest deployed Web build, open `https://fishgame.dudeltron14.win`
 2. Register or log in from the main menu; the client connects to `wss://fishserver.dudeltron14.win`.
 3. For local development, open **Godot 4.7.1**, import `project.godot`, and press **Play** to run the client.
-4. For UI, assets, sounds, and other client-only changes, run `./scripts/play_local_client.ps1`. It launches the uncommitted working tree against the staging server without building or deploying. Server or RPC changes still need the local-server workflow.
+4. On Windows, run `./scripts/play_local_client.ps1` to test the uncommitted working tree against a matching local server on port 7073. This is required for server or RPC changes. For a client-only staging check, use `./scripts/play_local_client.ps1 -Staging`. Linux uses `./scripts/play_local.sh`.
 5. On Linux, run `./scripts/play_local.sh` to test uncommitted client and server changes together. It starts a local server on port 7073, opens a local client, and stops the server when the client closes. Set `GODOT_BIN=godot4` first if that is your Godot command.
 
 ---

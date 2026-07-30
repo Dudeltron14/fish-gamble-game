@@ -7,6 +7,7 @@ signal owned_changed()
 @warning_ignore("unused_signal")
 signal hook_durability_changed(current: int, max_val: int)
 signal camera_zoom_changed(value: float)
+signal cosmetics_changed(skin_id: String, bobber_id: String)
 signal fishing_result_completed()
 
 var current_player_name: String = ""
@@ -15,6 +16,8 @@ var current_zone: String = ""
 var equipped_rod_id: String = ""
 var equipped_bait_id: String = ""
 var equipped_tackle_id: String = ""
+var equipped_skin_id: String = ""
+var equipped_bobber_id: String = ""
 var is_hosting: bool = false
 var owned_items: Dictionary = {}  # item_id -> quantity
 var hook_durability: int = 0
@@ -68,6 +71,11 @@ func set_owned(item_id: String, qty: int) -> void:
 
 func get_owned(item_id: String) -> int:
 	return owned_items.get(item_id, 0)
+
+func set_equipped_cosmetics(skin_id: String, bobber_id: String) -> void:
+	equipped_skin_id = skin_id
+	equipped_bobber_id = bobber_id
+	cosmetics_changed.emit(skin_id, bobber_id)
 
 func set_camera_zoom(value: float) -> void:
 	camera_zoom = clampf(value, 1.0, 4.0)

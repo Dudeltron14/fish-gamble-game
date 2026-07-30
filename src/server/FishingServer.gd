@@ -48,6 +48,7 @@ func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 	var progression := GameServer.get_node_or_null("ProgressionServer")
 	if progression:
 		progression.record_line_cast(session, cast_quality >= 0.95)
+	NetAPI.rpc("notify_player_cast", peer_id, cast_quality)
 
 	var fish := _pick_fish(session, cast_quality)
 	if fish == null:
@@ -132,7 +133,7 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	var personal_record: bool = progression.record_fish_catch(session, fish_id, earned, elapsed_ms, measurement, measurement_unit) if progression else false
 	GameServer.broadcast_leaderboard()
 	NetAPI.rpc_id(peer_id, "notify_fishing_result", true, fish_id, earned, session.coins, measurement, measurement_unit, personal_record)
-	NetAPI.rpc("notify_player_catch", peer_id, fish_id, personal_record)
+	NetAPI.rpc("notify_player_catch", peer_id, fish_id, personal_record, measurement, measurement_unit)
 
 func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 	# Treasure Magnet finds a chest or key often enough to profit across one 10-use hook.
