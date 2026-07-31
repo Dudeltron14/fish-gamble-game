@@ -40,6 +40,9 @@ func handle_buy(peer_id: int, item_id: String) -> void:
 	NetAPI.rpc_id(peer_id, "notify_shop_result", true, result_msg, session.coins)
 
 func _buy_cosmetic(peer_id: int, session: PlayerSession, item_id: String, cosmetic: Dictionary) -> void:
+	if CosmeticCatalog.is_default(item_id):
+		NetAPI.rpc_id(peer_id, "notify_shop_result", false, "That cosmetic is already available.", session.coins)
+		return
 	if session.get_owned(item_id) > 0:
 		NetAPI.rpc_id(peer_id, "notify_shop_result", false, "You already own this cosmetic.", session.coins)
 		return
@@ -96,7 +99,7 @@ func handle_equip(peer_id: int, item_id: String) -> void:
 func handle_equip_cosmetic(peer_id: int, item_id: String) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
 	var cosmetic := CosmeticCatalog.get_item(item_id)
-	if session == null or cosmetic.is_empty() or session.get_owned(item_id) <= 0:
+	if session == null or cosmetic.is_empty() or (not CosmeticCatalog.is_default(item_id) and session.get_owned(item_id) <= 0):
 		return
 	match str(cosmetic.category):
 		"skins": session.equipped_skin_id = item_id

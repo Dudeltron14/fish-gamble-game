@@ -169,6 +169,7 @@ func _add_cosmetic_tab(tabs: TabContainer, category: String, title: String) -> v
 	var scroll := ScrollContainer.new()
 	scroll.name = title
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	tabs.add_child(scroll)
 	var list := VBoxContainer.new()
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -176,11 +177,12 @@ func _add_cosmetic_tab(tabs: TabContainer, category: String, title: String) -> v
 	scroll.add_child(list)
 	var found := false
 	for item: Dictionary in CosmeticCatalog.get_category(category):
-		if GameManager.get_owned(str(item.id)) <= 0:
+		if not bool(item.get("default", false)) and GameManager.get_owned(str(item.id)) <= 0:
 			continue
 		found = true
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 10)
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var icon := TextureRect.new()
 		icon.texture = CosmeticCatalog.icon_for(item)
 		icon.custom_minimum_size = Vector2(40, 40)
@@ -190,6 +192,7 @@ func _add_cosmetic_tab(tabs: TabContainer, category: String, title: String) -> v
 		var label := Label.new()
 		label.text = "%s\n%s" % [str(item.name), str(item.description)]
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		row.add_child(label)
 		var equipped: bool = GameManager.equipped_skin_id == item.id if category == "skins" else GameManager.equipped_bobber_id == item.id
 		var equip := Button.new()

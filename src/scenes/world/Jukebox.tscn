@@ -1,28 +1,28 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://odma41ck5231"]
 
-[ext_resource type="Texture2D" path="res://assets/props/harbor_jukebox.png" id="1"]
+[ext_resource type="Texture2D" uid="uid://7j4jyh5lbfut" path="res://assets/props/harbor_jukebox.png" id="1"]
 
 [sub_resource type="RectangleShape2D" id="Interact"]
-size = Vector2(58, 50)
+size = Vector2(70, 112)
 
 [sub_resource type="RectangleShape2D" id="Block"]
-size = Vector2(28, 18)
+size = Vector2(31, 71)
 
-[node name="JukeboxZone" type="Area2D"]
+[node name="JukeboxZone" type="Area2D" unique_id=853718443]
 collision_layer = 2
 collision_mask = 4
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(0, -56)
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1116722390]
 texture_filter = 1
+position = Vector2(0, -56)
 texture = ExtResource("1")
 
-[node name="InteractionShape" type="CollisionShape2D" parent="."]
-position = Vector2(0, -24)
+[node name="InteractionShape" type="CollisionShape2D" parent="." unique_id=1559999943]
+position = Vector2(0, -55)
 shape = SubResource("Interact")
 
-[node name="StaticBody2D" type="StaticBody2D" parent="."]
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=1028364886]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(0, -9)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=1678851853]
+position = Vector2(-0.5, -52.5)
 shape = SubResource("Block")

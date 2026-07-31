@@ -6,8 +6,8 @@
 [ext_resource type="Texture2D" uid="uid://brtij3k6eeu6b" path="res://assets/ForgottenMemories/Props.png" id="4_xidhj"]
 [ext_resource type="Texture2D" uid="uid://bwgkhtyomk2rs" path="res://assets/User_Gen_ChatGPT/shop_new.png" id="5_hq2y8"]
 [ext_resource type="Texture2D" uid="uid://b11tesx03o2mo" path="res://assets/User_Gen_ChatGPT/casino.png" id="6_hq2y8"]
-[ext_resource type="PackedScene" path="res://src/scenes/world/HarborMaster.tscn" id="7_harbor"]
-[ext_resource type="PackedScene" path="res://src/scenes/world/MailboxRight.tscn" id="8_mailbox"]
+[ext_resource type="PackedScene" uid="uid://dsf3vc0x24iev" path="res://src/scenes/world/HarborMaster.tscn" id="7_harbor"]
+[ext_resource type="PackedScene" uid="uid://bdod18d7tlsf4" path="res://src/scenes/world/MailboxRight.tscn" id="8_mailbox"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_8b1u2"]
 texture = ExtResource("2_0jnxf")
@@ -4207,7 +4207,7 @@ position = Vector2(244, 203)
 shape = SubResource("RectangleShape2D_vvrex")
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=719380304]
-polygon = PackedVector2Array(-278, 275, -48, 271, -47, 357, -115, 359, -115, 424, 113, 426, 110, 348, 48, 348, 42, 256, 67, 269, 233, 274, 92, 308, 92, 331, 157, 334, 153, 450, 152, 474, -160, 470, -159, 331, -83, 328, -82, 293, -280, 296)
+polygon = PackedVector2Array(-278, 275, -48, 271, -47, 357, -115, 359, -115, 424, 113, 426, 110, 348, 48, 348, 45, 270, 69, 273, 233, 274, 92, 308, 92, 331, 157, 334, 153, 450, 152, 474, -160, 470, -159, 331, -83, 328, -82, 293, -280, 296)
 
 [node name="CollisionShape2D7" type="CollisionShape2D" parent="StaticBody2D" unique_id=448371229]
 position = Vector2(-12, -70)

@@ -23,7 +23,7 @@ if ($Staging) {
 	return
 }
 
-$server = Start-Process -FilePath $Godot -ArgumentList @("--headless", "--path", $projectRoot, "--", "--server", "--port", $Port) -PassThru
+$server = Start-Process -FilePath $Godot -ArgumentList @("--headless", "--path", $projectRoot, "--", "--server", "--port", $Port, "--local-test") -PassThru
 Start-Sleep -Seconds 1
 if ($server.HasExited) {
 	throw "Local server exited during startup."

@@ -309,6 +309,7 @@ func _on_hit(card: Dictionary, new_val: int, deck_remaining: int) -> void:
 	double_btn.disabled = true
 
 func _on_dealer_reveal(full_hand: Array, value: int, deck_remaining: int) -> void:
+	action_timer.hide()
 	_dealer_cards = full_hand.duplicate()
 	_dealer_hole_hidden = false
 	_update_dealer_info(value)

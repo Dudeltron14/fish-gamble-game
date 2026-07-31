@@ -84,7 +84,7 @@ func is_username_authenticated(username: String) -> bool:
 			return true
 	return false
 
-func get_leaderboard(metric: String = "coins", page: int = 0, page_size: int = 8) -> Dictionary:
+func get_leaderboard(metric: String = "coins", page: int = 0, page_size: int = 10) -> Dictionary:
 	var auth := get_node_or_null("AuthServer")
 	if auth != null and auth._db != null:
 		var ranking := "p.coins"

@@ -72,9 +72,12 @@ func _ready() -> void:
 			spawn_player(1, host_session.username)
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and _can_open_settings():
-		ClientSettings.open(self)
-		get_viewport().set_input_as_handled()
+	if event.is_action_pressed("ui_cancel"):
+		if _overlay_scene == HARBOR_MASTER_DIALOGUE_SCENE:
+			return
+		if _can_open_settings():
+			ClientSettings.open(self)
+			get_viewport().set_input_as_handled()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):

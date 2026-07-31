@@ -48,7 +48,6 @@ var _escape_timer := ESCAPE_TIME_MAX  # drains when off fish, fills when on — 
 @onready var catch_zone: ColorRect = %CatchZone
 @onready var cursor_rect: ColorRect = %Cursor
 @onready var reel_label: Label = %ReelLabel
-@onready var result_label: Label = %ResultLabel
 
 func _ready() -> void:
 	ClientSettings.register_ui_scale_target(panel, Vector2(0.5, 0.5))
@@ -335,38 +334,9 @@ func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance:
 func _show_result(success: bool, msg: String, personal_record: bool = false) -> void:
 	_stage = Stage.RESULT
 	_result_shown = true
-	reel_container.visible = false
-	reel_label.visible = false
-	cast_bar.visible = false
-	status.text = ""
-	status.visible = false
-	title.visible = false
-	bg.visible = false
-	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	panel.set_as_top_level(true)
-	panel.global_position += Vector2(0, 143)
-	result_label.text = msg
-	result_label.modulate = Color(0.3, 1.0, 0.4) if success else Color(1.0, 0.4, 0.4)
-	if not success:
-		result_label.add_theme_color_override("font_outline_color", Color(0.12, 0.03, 0.03))
-		result_label.add_theme_constant_override("outline_size", 3)
-	result_label.visible = true
-	result_label.scale = Vector2(0.6, 0.6)
-	var tween := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	tween.tween_property(result_label, "scale", Vector2.ONE, 0.35)
-	var color_tween: Tween
-	if personal_record:
-		color_tween = create_tween().set_loops()
-		color_tween.tween_property(result_label, "modulate", Color(1.0, 0.2, 0.2), 0.12)
-		color_tween.tween_property(result_label, "modulate", Color(1.0, 0.9, 0.15), 0.12)
-		color_tween.tween_property(result_label, "modulate", Color(0.2, 1.0, 0.8), 0.12)
-		color_tween.tween_property(result_label, "modulate", Color(0.3, 0.5, 1.0), 0.12)
-	await get_tree().create_timer(9.0 if personal_record else 2.5).timeout
-	if personal_record:
-		color_tween.kill()
-		var fade := create_tween()
-		fade.tween_property(result_label, "modulate:a", 0.0, 1.0)
-		await fade.finished
+	var hud := get_tree().get_first_node_in_group("hud")
+	if hud and hud.has_method("show_fishing_reward"):
+		hud.show_fishing_reward(success, msg, personal_record)
 	_close()
 
 func _measurement_tier(fish: FishData, measurement: float) -> String:

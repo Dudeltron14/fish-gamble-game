@@ -42,9 +42,10 @@ func _timer(wait_time: float, callback: Callable) -> Timer:
 
 func handle_table_enter(peer_id: int) -> void:
 	var session: PlayerSession = GameServer.get_authenticated_session(peer_id)
-	if session == null or session.current_zone != TABLE_ZONE:
-		_err(peer_id, "Not at a table.")
+	if session == null:
 		return
+	# ponytail: trust overlay entry; verify server-side position if table access needs anti-cheat.
+	session.current_zone = TABLE_ZONE
 	if _shoe.is_empty():
 		_start_new_shoe()
 	_tables().watch(TABLE_ID, peer_id)
@@ -113,7 +114,9 @@ func handle_bet(peer_id: int, amount: int) -> void:
 	var hand_id: int = _next_hand_id
 	_next_hand_id += 1
 	_hands[peer_id] = {"peer_id": peer_id, "username": session.username, "hand_id": hand_id, "bet": amount, "cards": [], "state": "ready", "doubled": false, "balance": session.coins}
-	if _round_timer.is_stopped():
+	if not _has_multiple_seated_players():
+		_start_round()
+	elif _round_timer.is_stopped():
 		_round_timer.start()
 	_broadcast_table()
 
@@ -183,6 +186,7 @@ func handle_forfeit(peer_id: int) -> void:
 func _start_round() -> void:
 	if _phase != Phase.BETTING or _hands.is_empty():
 		return
+	_round_timer.stop()
 	if _shoe.size() <= SHUFFLE_CUT_CARD:
 		_start_new_shoe()
 		_table_rpc("notify_bj_shuffled", [_shoe.size()])
@@ -219,7 +223,8 @@ func _advance_turn() -> void:
 		if not hand.is_empty() and str(hand["state"]) == "ready":
 			hand["state"] = "turn"
 			_hands[peer_id] = hand
-			_turn_timer.start()
+			if _has_multiple_seated_players():
+				_turn_timer.start()
 			_broadcast_table()
 			return
 		peer_id = _tables().next_turn_peer(TABLE_ID)
@@ -245,6 +250,7 @@ func _run_dealer() -> void:
 	_phase = Phase.DEALER_TURN
 	_dealer_hole_hidden = false
 	_tables().set_active_seat(TABLE_ID, -1)
+	_broadcast_table()
 	for peer_id: int in _tables().recipients(TABLE_ID):
 		_rpc_to(peer_id, "notify_bj_dealer_reveal", [_dealer_hand, _val(_dealer_hand), _shoe.size()])
 	while _val(_dealer_hand) < 17:
@@ -338,6 +344,9 @@ func _next_action_seconds() -> float:
 	if _phase == Phase.PLAYER_TURNS:
 		return _turn_timer.time_left
 	return 0.0
+
+func _has_multiple_seated_players() -> bool:
+	return _tables().occupied_peers(TABLE_ID).size() > 1
 
 func _is_active_turn(peer_id: int) -> bool:
 	if _phase != Phase.PLAYER_TURNS:

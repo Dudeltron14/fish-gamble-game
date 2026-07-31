@@ -6,8 +6,12 @@ extends CanvasLayer
 @onready var bait_warning_label: Label = %WarningLabel
 @onready var hook_warning_label: Label = %HookWarningLabel
 @onready var chat_input: LineEdit = %ChatInput
+@onready var fishing_reward_label: Label = %FishingRewardLabel
 
 var _hint_tween: Tween
+var _reward_tween: Tween
+var _reward_color_tween: Tween
+var _reward_token := 0
 
 var _warning_clear_token := 0
 var _last_hook_durability := -1
@@ -15,12 +19,14 @@ var _last_hook_max := 0
 var _has_seen_hook_state := false
 
 func _ready() -> void:
+	add_to_group("hud")
 	ClientSettings.register_ui_scale_target($TopPanel, Vector2.ZERO)
 	ClientSettings.register_ui_scale_target(context_hint, Vector2(0.5, 1.0))
 	ClientSettings.register_ui_scale_target(bait_warning_label, Vector2(0.5, 0.0))
 	ClientSettings.register_ui_scale_target(hook_warning_label, Vector2(0.5, 0.0))
 	ClientSettings.register_ui_scale_target(%SettingsBtn, Vector2(1.0, 0.0))
 	ClientSettings.register_ui_scale_target(chat_input, Vector2(0.5, 1.0))
+	ClientSettings.register_ui_scale_target(fishing_reward_label, Vector2(0.5, 0.0))
 	_style_context_hint()
 	_style_warning_label(bait_warning_label)
 	_style_warning_label(hook_warning_label)
@@ -72,6 +78,34 @@ func _on_zone_hint_changed(hint: String) -> void:
 	_hint_tween = create_tween().set_parallel(true)
 	_hint_tween.tween_property(context_hint, "modulate:a", 1.0, 0.12)
 	_hint_tween.tween_property(context_hint, "scale", Vector2.ONE, 0.18).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+
+func show_fishing_reward(success: bool, message: String, personal_record: bool) -> void:
+	_reward_token += 1
+	if _reward_tween and _reward_tween.is_valid(): _reward_tween.kill()
+	if _reward_color_tween and _reward_color_tween.is_valid(): _reward_color_tween.kill()
+	fishing_reward_label.text = message
+	fishing_reward_label.modulate = Color(0.3, 1.0, 0.4) if success else Color(1.0, 0.4, 0.4)
+	fishing_reward_label.visible = true
+	fishing_reward_label.scale = Vector2.ONE * 0.6
+	_reward_tween = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	_reward_tween.tween_property(fishing_reward_label, "scale", Vector2.ONE, 0.35)
+	if personal_record:
+		_reward_color_tween = create_tween().set_loops()
+		for color in [Color(1.0, 0.2, 0.2), Color(1.0, 0.9, 0.15), Color(0.2, 1.0, 0.8), Color(0.3, 0.5, 1.0)]:
+			_reward_color_tween.tween_property(fishing_reward_label, "modulate", color, 0.12)
+	_hide_fishing_reward_after(_reward_token, 9.0 if personal_record else 2.5, personal_record)
+
+func _hide_fishing_reward_after(token: int, delay: float, personal_record: bool) -> void:
+	await get_tree().create_timer(delay).timeout
+	if token != _reward_token:
+		return
+	if personal_record and _reward_color_tween and _reward_color_tween.is_valid():
+		_reward_color_tween.kill()
+	_reward_tween = create_tween()
+	_reward_tween.tween_property(fishing_reward_label, "modulate:a", 0.0, 1.0 if personal_record else 0.25)
+	await _reward_tween.finished
+	if token == _reward_token:
+		fishing_reward_label.visible = false
 
 func _on_hook_durability_changed(current: int, max_val: int) -> void:
 	if _has_seen_hook_state \

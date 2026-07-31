@@ -49,7 +49,8 @@ func _populate() -> void:
 
 	if _category in ["skins", "bobbers"]:
 		for item: Dictionary in CosmeticCatalog.get_category(_category):
-			item_list.add_child(_make_cosmetic_row(item))
+			if not bool(item.get("default", false)):
+				item_list.add_child(_make_cosmetic_row(item))
 		return
 	var shop_items: Array = ItemRegistry.get(_category).values()
 	shop_items = shop_items.filter(func(i: ItemData) -> bool: return i.buy_price > 0)

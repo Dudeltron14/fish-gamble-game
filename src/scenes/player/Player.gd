@@ -11,6 +11,8 @@ const FISH_SHEET_COLUMNS := 3
 const CATCH_IMPACT_BLUE := preload("res://assets/vfx/catch_impact_blue_sheet.png")
 const CATCH_SPARKLE_BLUE := preload("res://assets/vfx/catch_sparkle_blue_sheet.png")
 const CATCH_IMPACT_GOLD := preload("res://assets/vfx/catch_impact_gold_sheet.png")
+const CATCH_AURA_SHADER := preload("res://src/shaders/catch_aura.gdshader")
+const KRAKEN_SWIRL_EFFECT := preload("res://src/scenes/vfx/KrakenSwirlEffect.gd")
 const PLAYER_RENDER_LAYER := 1000
 const SPRITE_RIGHT_POSITION := Vector2(8, -2)
 const SPRITE_LEFT_POSITION := Vector2(-10, -2)
@@ -239,6 +241,7 @@ func show_catch(fish_id: String, trophy: bool = false, measurement: float = 0.0,
 		return
 	for effect in catch_sprite.get_children():
 		effect.queue_free()
+	catch_sprite.material = null
 	catch_sprite.texture = _catch_texture_for(fish)
 	if catch_sprite.texture == null:
 		return
@@ -247,8 +250,6 @@ func show_catch(fish_id: String, trophy: bool = false, measurement: float = 0.0,
 	catch_sprite.position = Vector2(8, -41)
 	catch_sprite.visible = true
 	_play_catch_effects(fish, trophy)
-	if trophy and not measurement_unit.is_empty():
-		show_chat_bubble("TROPHY %s! %.1f %s" % [fish.display_name, measurement, measurement_unit], 10.0)
 	if _catch_tween:
 		_catch_tween.kill()
 	_catch_tween = create_tween().set_parallel(true)
@@ -257,6 +258,7 @@ func show_catch(fish_id: String, trophy: bool = false, measurement: float = 0.0,
 	_catch_tween.finished.connect(func() -> void:
 		catch_sprite.visible = false
 		catch_sprite.texture = null
+		catch_sprite.material = null
 		for effect in catch_sprite.get_children():
 			effect.queue_free()
 	)
@@ -305,19 +307,37 @@ func _remove_chat_message(bubble: Label) -> void:
 	_layout_chat_messages()
 
 func _play_catch_effects(fish: FishData, trophy: bool = false) -> void:
-	if fish.id.begins_with("junk_") or fish.id == "legendary_kraken":
+	if fish.id == "legendary_kraken":
+		_set_catch_aura(Color(0.52, 0.08, 0.65, 1.0), 1.0, true)
+		var swirl := KRAKEN_SWIRL_EFFECT.new() as Node2D
+		swirl.scale = Vector2.ONE / catch_sprite.scale
+		swirl.show_behind_parent = true
+		catch_sprite.add_child(swirl)
+		return
+	if fish.id.begins_with("junk_"):
 		return
 	if trophy:
+		_set_catch_aura(Color(1.0, 0.76, 0.20, 1.0), 0.95)
 		_play_catch_effect(CATCH_IMPACT_GOLD, Vector2i(48, 48), 1.5)
 		_play_catch_effect(CATCH_SPARKLE_BLUE, Vector2i(32, 32), 2.25)
 		return
 	if fish.id in ["legendary_chest", "legendary_key"]:
+		_set_catch_aura(Color(1.0, 0.76, 0.20, 1.0), 0.8)
 		_play_catch_effect(CATCH_IMPACT_GOLD, Vector2i(48, 48))
 	elif fish.rarity == "rare":
+		_set_catch_aura(Color(0.25, 0.72, 1.0, 1.0), 0.75)
 		_play_catch_effect(CATCH_IMPACT_BLUE, Vector2i(48, 48))
 		_play_catch_effect(CATCH_SPARKLE_BLUE, Vector2i(32, 32), 1.75)
 	elif fish.rarity in ["common", "uncommon"]:
 		_play_catch_effect(CATCH_IMPACT_BLUE, Vector2i(48, 48))
+
+func _set_catch_aura(color: Color, strength: float, kraken_mode: bool = false) -> void:
+	var material := ShaderMaterial.new()
+	material.shader = CATCH_AURA_SHADER
+	material.set_shader_parameter("glow_color", color)
+	material.set_shader_parameter("strength", strength)
+	material.set_shader_parameter("kraken_mode", kraken_mode)
+	catch_sprite.material = material
 
 func _play_catch_effect(sheet: Texture2D, frame_size: Vector2i, effect_scale: float = 1.0) -> void:
 	var frames := SpriteFrames.new()

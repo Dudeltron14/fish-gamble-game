@@ -395,7 +395,7 @@ func _is_owned_slot_item(session: PlayerSession, item_id: String, slot: String) 
 	return session.get_owned(item_id) > 0 and _item_matches_slot(ItemRegistry.get_item(item_id), slot)
 
 func _is_owned_cosmetic(session: PlayerSession, item_id: String, category: String) -> bool:
-	return session.get_owned(item_id) > 0 and str(CosmeticCatalog.get_item(item_id).get("category", "")) == category
+	return (CosmeticCatalog.is_default(item_id) or session.get_owned(item_id) > 0) and str(CosmeticCatalog.get_item(item_id).get("category", "")) == category
 
 func _item_matches_slot(item: ItemData, slot: String) -> bool:
 	match slot:

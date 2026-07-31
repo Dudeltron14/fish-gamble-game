@@ -2,8 +2,10 @@ class_name CosmeticCatalog
 extends RefCounted
 
 const ITEMS := {
+	"skin_default": {"category": "skins", "name": "Original Fisherman", "description": "The harbor's classic working look.", "default": true, "icon": preload("res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_idle.png"), "region": Rect2(0, 0, 48, 48)},
 	"skin_deep_sea_diver": {"category": "skins", "name": "Deep Sea Diver", "description": "Brass, pressure, and the deep blue unknown.", "price": 500, "icon": preload("res://assets/skins/deep_sea_diver/DS_Diver_idle.png"), "region": Rect2(0, 0, 48, 48)},
 	"skin_high_roller": {"category": "skins", "name": "High Roller", "description": "Royal purple, gold trim, and a crown that knows odds.", "price": 500, "icon": preload("res://assets/skins/high_roller/High_Roller_idle.png"), "region": Rect2(0, 0, 48, 48)},
+	"bobber_default": {"category": "bobbers", "name": "Classic Red Bobber", "description": "The original. It still floats.", "default": true, "icon": preload("res://assets/props/bobber_candy_stripe.png")},
 	"bobber_sapphire": {"category": "bobbers", "name": "Sapphire Bobber", "description": "Blue enough to make the water jealous.", "price": 75, "icon": preload("res://assets/props/bobber_sapphire.png")},
 	"bobber_gilded": {"category": "bobbers", "name": "Gilded Bobber", "description": "A little gold where the fish can see it.", "price": 100, "icon": preload("res://assets/props/bobber_gilded.png")},
 	"bobber_candy_stripe": {"category": "bobbers", "name": "Candy Stripe Bobber", "description": "Sweet-looking. Strictly business.", "price": 75, "icon": preload("res://assets/props/bobber_candy_stripe.png")},
@@ -16,6 +18,9 @@ const ITEMS := {
 
 static func get_item(id: String) -> Dictionary:
 	return ITEMS.get(id, {})
+
+static func is_default(id: String) -> bool:
+	return bool(get_item(id).get("default", false))
 
 static func get_category(category: String) -> Array:
 	var results: Array = []

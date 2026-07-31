@@ -3,11 +3,12 @@ extends Node2D
 const OUTLINE := Color(0.10, 0.10, 0.18, 1.0)
 const RED := Color(0.86, 0.18, 0.14, 1.0)
 const WHITE := Color(0.94, 0.92, 0.82, 1.0)
-const WATER_RING := Color(0.30, 0.62, 0.82, 0.75)
 const SPLASH_SHEET := preload("res://assets/User_Gen_ChatGPT/bobber_splash_sheet.png")
+const BOBBER_RIPPLE_SHADER := preload("res://src/shaders/bobber_ripple.gdshader")
 const SPLASH_FRAME_SIZE := Vector2(32, 32)
 const SPLASH_FRAMES := 8
 const SPLASH_FRAME_TIME := 0.07
+const RIPPLE_SECONDS := 0.75
 const CAST_GRAVITY := 730.0
 const CAST_ARC_HEIGHT := Vector2(15.68, 51.52)
 const LINE_SEGMENTS := 16
@@ -30,11 +31,22 @@ var _cast_target := Vector2.ZERO
 var _line_settle := 1.0
 var _skin_texture: Texture2D
 var _line_origin := Vector2(16, -15)
+var _ripple_age := RIPPLE_SECONDS
+var _ripple: ColorRect
 
 func _ready() -> void:
 	visible = false
 	set_process(false)
 	z_index = 8
+	_ripple = ColorRect.new()
+	_ripple.size = Vector2(52, 26)
+	_ripple.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ripple.show_behind_parent = true
+	var material := ShaderMaterial.new()
+	material.shader = BOBBER_RIPPLE_SHADER
+	_ripple.material = material
+	add_child(_ripple)
+	_ripple.hide()
 
 func set_cast_visible(show: bool, flip_h: bool, cast_quality: float) -> void:
 	var was_visible := visible
@@ -48,6 +60,8 @@ func set_cast_visible(show: bool, flip_h: bool, cast_quality: float) -> void:
 	else:
 		_is_casting = false
 		_splash_active = false
+		_ripple_age = RIPPLE_SECONDS
+		_ripple.hide()
 	queue_redraw()
 
 func play_cast(flip_h: bool, cast_quality: float) -> void:
@@ -66,11 +80,13 @@ func play_cast(flip_h: bool, cast_quality: float) -> void:
 	_bobber_velocity = Vector2((_cast_target.x - _bobber_position.x) / maxf(flight_time, 0.1), upward_speed)
 	_line_settle = 0.0
 	_splash_active = false
+	_ripple_age = RIPPLE_SECONDS
+	_ripple.hide()
 	queue_redraw()
 
 func set_skin(bobber_id: String) -> void:
 	var item := CosmeticCatalog.get_item(bobber_id)
-	_skin_texture = item.get("icon") as Texture2D
+	_skin_texture = null if CosmeticCatalog.is_default(bobber_id) else item.get("icon") as Texture2D
 	queue_redraw()
 
 func set_line_origin(origin: Vector2) -> void:
@@ -93,6 +109,9 @@ func _process(delta: float) -> void:
 		_splash_time += delta
 		if _splash_time >= SPLASH_FRAMES * SPLASH_FRAME_TIME:
 			_splash_active = false
+	if _ripple_age < RIPPLE_SECONDS:
+		_ripple_age = minf(RIPPLE_SECONDS, _ripple_age + delta)
+		_update_ripple(_bobber_position if _is_casting else _resting_position())
 	queue_redraw()
 
 func _draw() -> void:
@@ -101,7 +120,6 @@ func _draw() -> void:
 	var bob := _bobber_position if _is_casting else _resting_position() + Vector2(0, sin(_time * 5.5) * 2.0)
 	_draw_line(_rod_tip(), bob)
 	_draw_splash(bob)
-	draw_arc(bob + Vector2(0, 2), 7.0, 0.0, TAU, 28, WATER_RING, 1.0)
 	if _skin_texture:
 		draw_texture(_skin_texture, bob - Vector2(8, 8))
 	else:
@@ -144,4 +162,13 @@ func _land() -> void:
 	_line_settle = 0.0
 	_splash_time = 0.0
 	_splash_active = true
+	_ripple_age = 0.0
+	_update_ripple(_bobber_position)
 	AudioManager.sfx("sfx_bobber_splash")
+
+func _update_ripple(center: Vector2) -> void:
+	if _ripple == null:
+		return
+	_ripple.visible = _ripple_age < RIPPLE_SECONDS
+	_ripple.position = center - _ripple.size * 0.5 + Vector2(0, 4)
+	(_ripple.material as ShaderMaterial).set_shader_parameter("age", _ripple_age / RIPPLE_SECONDS)

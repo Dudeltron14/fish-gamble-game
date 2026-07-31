@@ -11,7 +11,7 @@ var _metrics := ["coins", "fish", "casino"]
 var _metric_index := 0
 var _page := 0
 
-const PAGE_SIZE := 8
+const PAGE_SIZE := 10
 
 func _ready() -> void:
 	_set_expanded(true)
@@ -42,16 +42,18 @@ func _set_expanded(expand: bool) -> void:
 	call_deferred("_resize_panel")
 
 func _resize_panel() -> void:
-	panel.offset_bottom = panel.offset_top + panel.get_combined_minimum_size().y
+	panel.size.y = panel.get_combined_minimum_size().y
 
 func _request() -> void:
 	NetAPI.rpc_id(1, "c2s_leaderboard_request", _metrics[_metric_index], _page)
 
 func _on_leaderboard_result(data: Dictionary) -> void:
 	if str(data.get("metric", "coins")) != _metrics[_metric_index] or int(data.get("page", 0)) != _page:
+		if _expanded:
+			_request()
 		return
 	for child in rows_container.get_children():
-		child.queue_free()
+		child.free()
 	if not _expanded:
 		return
 	var entries: Array = data.get("entries", [])
@@ -60,6 +62,7 @@ func _on_leaderboard_result(data: Dictionary) -> void:
 	if entries.is_empty():
 		empty_lbl.text = "No players listed.  Press K to cycle type."
 		empty_lbl.visible = true
+		call_deferred("_resize_panel")
 		return
 	for i in entries.size():
 		var entry: Dictionary = entries[i]

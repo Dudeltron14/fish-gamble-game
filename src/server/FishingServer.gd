@@ -40,7 +40,7 @@ const RARE_CATCH_WEIGHTS := {
 func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 	cast_quality = clampf(cast_quality, 0.0, 1.0)
 	var session := GameServer.get_authenticated_session(peer_id)
-	if session == null or session.current_zone != "DockZone":
+	if session == null or (not _is_local_test_mode() and session.current_zone != "DockZone"):
 		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0, 1.0, 1.0)
 		return
 	if session.enforce_equipment_rules():
@@ -134,6 +134,9 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	GameServer.broadcast_leaderboard()
 	NetAPI.rpc_id(peer_id, "notify_fishing_result", true, fish_id, earned, session.coins, measurement, measurement_unit, personal_record)
 	NetAPI.rpc("notify_player_catch", peer_id, fish_id, personal_record, measurement, measurement_unit)
+
+func _is_local_test_mode() -> bool:
+	return "--local-test" in OS.get_cmdline_args() or "--local-test" in OS.get_cmdline_user_args()
 
 func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 	# Treasure Magnet finds a chest or key often enough to profit across one 10-use hook.
