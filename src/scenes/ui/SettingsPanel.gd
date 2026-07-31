@@ -186,8 +186,10 @@ func _add_cosmetic_tab(tabs: TabContainer, category: String, title: String) -> v
 		var icon := TextureRect.new()
 		icon.texture = CosmeticCatalog.icon_for(item)
 		icon.custom_minimum_size = Vector2(40, 40)
-		icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(icon)
 		var label := Label.new()
 		label.text = "%s\n%s" % [str(item.name), str(item.description)]
