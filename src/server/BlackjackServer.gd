@@ -250,7 +250,6 @@ func _run_dealer() -> void:
 	_phase = Phase.DEALER_TURN
 	_dealer_hole_hidden = false
 	_tables().set_active_seat(TABLE_ID, -1)
-	_broadcast_table()
 	for peer_id: int in _tables().recipients(TABLE_ID):
 		_rpc_to(peer_id, "notify_bj_dealer_reveal", [_dealer_hand, _val(_dealer_hand), _shoe.size()])
 	while _val(_dealer_hand) < 17:
