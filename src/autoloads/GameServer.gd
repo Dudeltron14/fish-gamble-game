@@ -8,11 +8,19 @@ const STARTER_ROD_ID := "starter_rod"
 const STARTER_BAIT_ID := "worm"
 const STARTER_TACKLE_ID := "basic_hook"
 const LEADERBOARD_LIMIT := 20
+const LEADERBOARD_BROADCAST_INTERVAL := 0.5
+
+var _leaderboard_timer: Timer
 
 func init_server() -> void:
 	if _active:
 		return
 	_active = true
+	_leaderboard_timer = Timer.new()
+	_leaderboard_timer.one_shot = true
+	_leaderboard_timer.wait_time = LEADERBOARD_BROADCAST_INTERVAL
+	_leaderboard_timer.timeout.connect(_flush_leaderboard)
+	add_child(_leaderboard_timer)
 	for script_path in [
 		"res://src/server/AuthServer.gd",
 		"res://src/server/FishingServer.gd",
@@ -103,4 +111,8 @@ func get_leaderboard(metric: String = "coins", page: int = 0, page_size: int = 1
 	return {"entries": entries.slice(page * page_size, (page + 1) * page_size), "total": entries.size(), "metric": metric, "page": page, "page_size": page_size}
 
 func broadcast_leaderboard() -> void:
+	if _leaderboard_timer.is_stopped():
+		_leaderboard_timer.start()
+
+func _flush_leaderboard() -> void:
 	NetAPI.rpc("notify_leaderboard", get_leaderboard())

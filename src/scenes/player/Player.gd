@@ -1,7 +1,8 @@
 extends CharacterBody2D
 
 const SPEED := 100.0
-const STATE_SEND_INTERVAL := 1.0 / 30.0
+const INPUT_SEND_INTERVAL := 1.0 / 30.0
+const SNAPSHOT_SEND_INTERVAL := 1.0 / 20.0
 const REMOTE_LERP_SPEED := 18.0
 const CATCH_DISPLAY_SECONDS := 2.0
 const CATCH_DISPLAY_SIZE := 32.0
@@ -445,7 +446,7 @@ func apply_server_input(input_dir: Vector2, animation: String, flip_h: bool, men
 
 func _send_input_if_due(delta: float) -> void:
 	_state_send_accum += delta
-	if _state_send_accum < STATE_SEND_INTERVAL:
+	if _state_send_accum < INPUT_SEND_INTERVAL:
 		return
 	_state_send_accum = 0.0
 	_send_input()
@@ -479,7 +480,7 @@ func _server_physics(delta: float) -> void:
 
 func _broadcast_server_state_if_due(delta: float) -> void:
 	_server_state_send_accum += delta
-	if _server_state_send_accum < STATE_SEND_INTERVAL:
+	if _server_state_send_accum < SNAPSHOT_SEND_INTERVAL:
 		return
 	_server_state_send_accum = 0.0
 	NetAPI.rpc("notify_player_state", name.to_int(), position, str(sprite.animation), sprite.flip_h, _is_hidden_for_menu, _bobber_cast_quality)

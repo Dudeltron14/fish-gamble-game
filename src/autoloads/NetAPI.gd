@@ -47,7 +47,6 @@ const CHAT_MAX_LENGTH := 48
 func request_login(username: String, pw_hash: String) -> void:
 	if not multiplayer.is_server(): return
 	var peer_id := _peer_id()
-	push_warning("NetAPI: request_login from peer %d username=%s" % [peer_id, username])
 	var auth := _srv("AuthServer")
 	if auth:
 		auth.handle_login(peer_id, username, pw_hash)
@@ -58,7 +57,6 @@ func request_login(username: String, pw_hash: String) -> void:
 func request_register(username: String, pw_hash: String) -> void:
 	if not multiplayer.is_server(): return
 	var peer_id := _peer_id()
-	push_warning("NetAPI: request_register from peer %d username=%s" % [peer_id, username])
 	var auth := _srv("AuthServer")
 	if auth:
 		auth.handle_register(peer_id, username, pw_hash)
@@ -69,10 +67,8 @@ func request_register(username: String, pw_hash: String) -> void:
 func c2s_world_ready() -> void:
 	if not multiplayer.is_server(): return
 	var peer_id := _peer_id()
-	push_warning("NetAPI: c2s_world_ready from peer %d" % peer_id)
 	var session := GameServer.get_authenticated_session(peer_id)
 	if session == null:
-		push_warning("NetAPI: world_ready ignored; peer %d is not authenticated" % peer_id)
 		return
 	for world in get_tree().get_nodes_in_group("world"):
 		world.spawn_player(peer_id, session.username)
@@ -439,6 +435,9 @@ func notify_cosmetics_loaded(skin_id: String, bobber_id: String) -> void:
 func notify_cosmetics_equipped(skin_id: String, bobber_id: String) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	GameManager.set_equipped_cosmetics(skin_id, bobber_id)
+	for world in get_tree().get_nodes_in_group("world"):
+		if world.has_method("apply_local_cosmetics"):
+			world.apply_local_cosmetics(skin_id, bobber_id)
 	cosmetics_equipped.emit(skin_id, bobber_id)
 
 @rpc("authority", "call_local", "reliable")

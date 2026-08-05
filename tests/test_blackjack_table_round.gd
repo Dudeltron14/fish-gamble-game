@@ -33,6 +33,7 @@ func _check() -> void:
 	assert(blackjack._next_action_seconds() > 0.0)
 	blackjack._start_round()
 	assert(blackjack._round_id == 1 and blackjack._hands.size() == 2)
+	assert(blackjack._shoe_dirty and not blackjack._shoe_persist_timer.is_stopped())
 	if blackjack._phase == blackjack.Phase.PLAYER_TURNS:
 		assert(blackjack._next_action_seconds() > 0.0)
 		var tables: Node = server_root.get_node("TableManager")

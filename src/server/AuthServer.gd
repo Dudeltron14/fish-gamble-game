@@ -18,6 +18,8 @@ func _ready() -> void:
 	if not _db.open_db():
 		push_error("AuthServer: failed to open database")
 		return
+	_db.query("PRAGMA journal_mode=WAL")
+	_db.query("PRAGMA busy_timeout=5000")
 	_init_schema()
 	print("AuthServer: database ready")
 
@@ -143,7 +145,6 @@ func _init_schema() -> void:
 # ── Public API ────────────────────────────────────────────────────────────────
 
 func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
-	push_warning("AuthServer: login attempt peer=%d username=%s" % [peer_id, username])
 	if _db == null:
 		NetAPI.rpc_id(peer_id, "notify_login", false, "Server database unavailable.", 0)
 		return
@@ -155,13 +156,11 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 	_db.query_with_bindings("SELECT * FROM players WHERE username = ?", [username])
 	var rows: Array = _db.query_result
 	if rows.is_empty():
-		push_warning("AuthServer: login failed unknown username=%s" % username)
 		NetAPI.rpc_id(peer_id, "notify_login", false, "Unknown username.", 0)
 		return
 
 	var row: Dictionary = rows[0]
 	if _hash_salted(pw_hash, row.salt) != row.password_hash:
-		push_warning("AuthServer: login failed bad password username=%s" % username)
 		NetAPI.rpc_id(peer_id, "notify_login", false, "Incorrect password.", 0)
 		return
 	if GameServer.is_username_authenticated(username):
@@ -199,19 +198,8 @@ func handle_login(peer_id: int, username: String, pw_hash: String) -> void:
 	elif session:
 		NetAPI.rpc_id(peer_id, "notify_equipment_loaded", session.equipped_rod_id, session.equipped_bait_id, session.equipped_tackle_id, 0, 0)
 	NetAPI.rpc_id(peer_id, "notify_login", true, "", int(row.coins))
-	push_warning("AuthServer: login ok peer=%d username=%s owned=%s equipped=[%s,%s,%s] hook=%d registry_items=%d" % [
-		peer_id,
-		username,
-		str(session.owned_items if session else {}),
-		session.equipped_rod_id if session else "",
-		session.equipped_bait_id if session else "",
-		session.equipped_tackle_id if session else "",
-		session.hook_durability if session else 0,
-		ItemRegistry.items.size(),
-	])
 
 func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
-	push_warning("AuthServer: register attempt peer=%d username=%s" % [peer_id, username])
 	if _db == null:
 		NetAPI.rpc_id(peer_id, "notify_register", false, "Server database unavailable.")
 		return
@@ -230,9 +218,7 @@ func handle_register(peer_id: int, username: String, pw_hash: String) -> void:
 	if ok:
 		_ensure_starter_items(username, -1, true)
 		NetAPI.rpc_id(peer_id, "notify_register", true, "")
-		push_warning("AuthServer: register ok peer=%d username=%s" % [peer_id, username])
 	else:
-		push_warning("AuthServer: register failed duplicate username=%s" % username)
 		NetAPI.rpc_id(peer_id, "notify_register", false, "Username already taken.")
 
 func reset_password(username: String, new_password: String) -> bool:

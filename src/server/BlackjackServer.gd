@@ -7,6 +7,7 @@ const SHUFFLE_CUT_CARD := 52 * 3
 const BETTING_WINDOW_SECONDS := 8.0
 const TURN_TIMEOUT_SECONDS := 20.0
 const RESULT_SECONDS := 3.0
+const SHOE_PERSIST_INTERVAL_SECONDS := 1.0
 
 enum Phase { BETTING, PLAYER_TURNS, DEALER_TURN, RESULTS }
 
@@ -25,12 +26,15 @@ var _dealer_hole_hidden := true
 var _round_timer: Timer
 var _turn_timer: Timer
 var _result_timer: Timer
+var _shoe_persist_timer: Timer
+var _shoe_dirty := false
 
 func _ready() -> void:
 	_tables().register_table(TABLE_ID, "blackjack", TABLE_ZONE, SEAT_COUNT)
 	_round_timer = _timer(BETTING_WINDOW_SECONDS, _start_round)
 	_turn_timer = _timer(TURN_TIMEOUT_SECONDS, _on_turn_timeout)
 	_result_timer = _timer(RESULT_SECONDS, _reset_round)
+	_shoe_persist_timer = _timer(SHOE_PERSIST_INTERVAL_SECONDS, _flush_shoe_persist)
 
 func _timer(wait_time: float, callback: Callable) -> Timer:
 	var timer := Timer.new()
@@ -286,6 +290,7 @@ func _resolve_round() -> void:
 		_hands[peer_id] = hand
 		_record_audit(str(hand["username"]), outcome, int(hand["hand_id"]), peer_id)
 		_settle_hand(peer_id, hand, outcome, payout)
+	_flush_shoe_persist()
 	_broadcast_table()
 	_result_timer.start()
 
@@ -379,16 +384,29 @@ func _draw_card(actor: String, action: String, hand_id: int, peer_id: int = 0) -
 	var card: Dictionary = _shoe.pop_back()
 	_shoe_dealt.append(card)
 	_shoe_audit.append({"actor": actor, "action": action, "card": card, "round_id": _round_id, "hand_id": hand_id, "seat": _tables().seat_index(TABLE_ID, peer_id)})
-	_persist_shoe(false)
+	_queue_shoe_persist()
 	return card
 
 func _record_audit(actor: String, action: String, hand_id: int, peer_id: int = 0) -> void:
 	_shoe_audit.append({"actor": actor, "action": action, "round_id": _round_id, "hand_id": hand_id, "seat": _tables().seat_index(TABLE_ID, peer_id)})
-	_persist_shoe(false)
+	_queue_shoe_persist()
 
 func _reveal_current_shoe() -> void:
+	_flush_shoe_persist()
 	_persist_shoe(true)
 	_table_rpc("notify_bj_shoe_revealed", [_shoe_commitment, _shoe_seed, _shoe_nonce, _shoe_dealt, _shoe_audit])
+
+func _queue_shoe_persist() -> void:
+	_shoe_dirty = true
+	if _shoe_persist_timer.is_stopped():
+		_shoe_persist_timer.start()
+
+func _flush_shoe_persist() -> void:
+	if not _shoe_dirty:
+		return
+	_shoe_dirty = false
+	_shoe_persist_timer.stop()
+	_persist_shoe(false)
 
 func _persist_shoe(revealed: bool) -> void:
 	var auth: Node = GameServer.get_node_or_null("AuthServer")

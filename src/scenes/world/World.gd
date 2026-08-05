@@ -99,10 +99,8 @@ func spawn_player(peer_id: int, p_name: String) -> void:
 	if not multiplayer.is_server():
 		return
 	if players.get_node_or_null(str(peer_id)):
-		push_warning("World: spawn ignored; peer %d already exists" % peer_id)
 		_sync_players_to_peer(peer_id)
 		return
-	push_warning("World: spawning player peer=%d name=%s" % [peer_id, p_name])
 	var player: CharacterBody2D = PLAYER_SCENE.instantiate()
 	player.name = str(peer_id)
 	player.set_multiplayer_authority(peer_id)
