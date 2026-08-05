@@ -184,6 +184,10 @@ func record_mail(session: PlayerSession, recipient: String) -> void:
 		db.query_with_bindings("SELECT COUNT(*) AS total FROM player_encounters WHERE player_id = ?", [id])
 		db.query_with_bindings("UPDATE player_career_stats SET unique_players_encountered = ? WHERE player_id = ?", [int(db.query_result[0].total), id])
 
+func record_mail_coins_sent(session: PlayerSession, coins: int) -> void:
+	if coins > 0:
+		_increment(session, "mail_coins_sent", coins)
+
 func _update_fishing_streak(session: PlayerSession, caught: bool) -> void:
 	var db = _db(); var player_id := _player_id(session.username)
 	if db == null or player_id < 0: return

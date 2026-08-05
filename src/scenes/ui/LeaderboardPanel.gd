@@ -7,7 +7,7 @@ extends CanvasLayer
 @onready var title: Label                   = %Title
 
 var _expanded := false
-var _metrics := ["coins", "fish", "casino"]
+var _metrics := ["coins", "fish", "casino", "mail"]
 var _metric_index := 0
 var _page := 0
 
@@ -65,7 +65,7 @@ func _on_leaderboard_result(data: Dictionary) -> void:
 	if not _expanded:
 		return
 	var entries: Array = data.get("entries", [])
-	var metric_name: String = str({"coins": "COINS", "fish": "FISH CAUGHT", "casino": "CASINO PROFIT"}.get(_metrics[_metric_index], "COINS"))
+	var metric_name: String = str({"coins": "COINS", "fish": "FISH CAUGHT", "casino": "CASINO PROFIT", "mail": "MAIL GOLD SENT"}.get(_metrics[_metric_index], "COINS"))
 	title.text = "LEADERBOARD — %s  [K]" % metric_name
 	if entries.is_empty():
 		empty_lbl.text = "No players listed.  Press K to cycle type."

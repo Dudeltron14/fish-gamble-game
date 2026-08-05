@@ -90,6 +90,7 @@ func get_leaderboard(metric: String = "coins", page: int = 0, page_size: int = 1
 		var ranking := "p.coins"
 		if metric == "fish": ranking = "COALESCE(s.fish_caught, 0)"
 		elif metric == "casino": ranking = "COALESCE(s.casino_won, 0) - COALESCE(s.casino_lost, 0)"
+		elif metric == "mail": ranking = "COALESCE(s.mail_coins_sent, 0)"
 		auth._db.query("SELECT COUNT(*) AS total FROM players")
 		var total := int(auth._db.query_result[0].total) if not auth._db.query_result.is_empty() else 0
 		auth._db.query("SELECT p.username, %s AS score FROM players p LEFT JOIN player_career_stats s ON s.player_id = p.id ORDER BY score DESC, p.username ASC LIMIT %d OFFSET %d" % [ranking, page_size, page * page_size])

@@ -49,9 +49,12 @@ func handle_table_enter(peer_id: int) -> void:
 	if _shoe.is_empty():
 		_start_new_shoe()
 	_tables().watch(TABLE_ID, peer_id)
+	var was_solo := _tables().occupied_peers(TABLE_ID).size() == 1
 	var seat: int = _tables().join(TABLE_ID, peer_id)
 	if seat < 0:
 		_err(peer_id, "Table is full. You are spectating.")
+	elif was_solo and _phase == Phase.PLAYER_TURNS and _tables().current_turn_peer(TABLE_ID) != 0 and _turn_timer.is_stopped():
+		_turn_timer.start()
 	_broadcast_table()
 	_rpc_to(peer_id, "notify_bj_shoe_commitment", [_shoe_commitment, _shoe.size()])
 	_rpc_to(peer_id, "notify_bj_shoe_count", [_shoe.size()])

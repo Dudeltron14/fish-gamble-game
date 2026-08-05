@@ -45,12 +45,14 @@ func handle_send(peer_id: int, recipients: Array, body: String, coin_amount: int
 		session.coins -= total_coins
 		auth._db.query_with_bindings("UPDATE players SET coins = ? WHERE username = ?", [session.coins, session.username])
 		NetAPI.rpc_id(peer_id, "notify_coin_balance", session.coins)
+		GameServer.broadcast_leaderboard()
 	var recipient_list := JSON.stringify(names)
 	for username in names:
 		auth._db.query_with_bindings("INSERT INTO mailbox_messages (sender_username, recipient_username, recipient_list, body, sent_at, coin_amount) VALUES (?, ?, ?, ?, ?, ?)", [session.username, username, recipient_list, body, int(Time.get_unix_time_from_system()), coin_amount])
 	var progression := GameServer.get_node_or_null("ProgressionServer")
 	if progression:
 		for username in names: progression.record_mail(session, username)
+		progression.record_mail_coins_sent(session, total_coins)
 	NetAPI.rpc_id(peer_id, "notify_mailbox_result", true, "Letter sent to %d %s%s." % [names.size(), "player" if names.size() == 1 else "players", " with %d gold each" % coin_amount if coin_amount > 0 else ""])
 	handle_fetch(peer_id)
 
@@ -78,6 +80,7 @@ func handle_claim_coins(peer_id: int, message_id: int) -> void:
 	session.coins += coins
 	auth._db.query_with_bindings("UPDATE players SET coins = ? WHERE username = ?", [session.coins, session.username])
 	NetAPI.rpc_id(peer_id, "notify_coin_balance", session.coins)
+	GameServer.broadcast_leaderboard()
 	NetAPI.rpc_id(peer_id, "notify_mailbox_result", true, "Claimed %d gold." % coins)
 	handle_fetch(peer_id)
 
