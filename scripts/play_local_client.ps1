@@ -23,7 +23,10 @@ if ($Staging) {
 	return
 }
 
+$previousLocalTest = $env:BRINDLE_LOCAL_TEST
+$env:BRINDLE_LOCAL_TEST = "1"
 $server = Start-Process -FilePath $Godot -ArgumentList @("--headless", "--path", $projectRoot, "--", "--server", "--port", $Port, "--local-test") -PassThru
+$env:BRINDLE_LOCAL_TEST = $previousLocalTest
 Start-Sleep -Seconds 1
 if ($server.HasExited) {
 	throw "Local server exited during startup."

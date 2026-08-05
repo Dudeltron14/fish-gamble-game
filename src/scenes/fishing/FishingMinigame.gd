@@ -9,7 +9,7 @@ const REACT_WINDOW := 1.2  # base at difficulty 1.0, no hook
 const REEL_BAR_WIDTH := 420.0
 const CATCH_ZONE_FRAC := 0.18
 const CURSOR_SPEED := 150.0
-const FISH_SPEED_MAX_NORM := CURSOR_SPEED / REEL_BAR_WIDTH  # 0.357 — cursor speed in bar units
+const FISH_SPEED_MAX_NORM := CURSOR_SPEED / REEL_BAR_WIDTH * 0.85  # cursor always has a 15% speed advantage
 const FISH_SPEED_LERP := 2.5   # how fast speed transitions (higher = snappier changes)
 const PROGRESS_RATE := 0.35    # base fill rate; multiplied by rod line_strength
 const DRAIN_RATE := 0.35       # base drain rate; multiplied by fish difficulty
@@ -35,21 +35,24 @@ var _fish_dir_timer := 0.0
 var _fish_speed := 0.0          # current speed (normalized bar units/s), slides smoothly
 var _fish_speed_target := 0.0   # target to lerp toward
 var _fish_speed_timer := 0.0    # countdown to next random speed change
+var _fish_turn_timer := 0.0
+var _pending_fish_dir := 0.0
 var _cursor_pos := 0.5
 var _reel_progress := 0.0
 var _escape_timer := ESCAPE_TIME_MAX  # drains when off fish, fills when on — hits 0 = loss
 
 @onready var status: Label = %StatusLabel
-@onready var bg: ColorRect = $BG
 @onready var panel: PanelContainer = $Center/Panel
-@onready var title: Label = $Center/Panel/Margin/VBox/Title
 @onready var cast_bar: ProgressBar = %CastBar
 @onready var reel_container: Control = %ReelContainer
 @onready var catch_zone: ColorRect = %CatchZone
 @onready var cursor_rect: ColorRect = %Cursor
-@onready var reel_label: Label = %ReelLabel
 
 func _ready() -> void:
+	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	var cast_background := StyleBoxFlat.new()
+	cast_background.bg_color = Color(0.16, 0.07, 0.025, 0.94)
+	cast_bar.add_theme_stylebox_override("background", cast_background)
 	ClientSettings.register_ui_scale_target(panel, Vector2(0.5, 0.5))
 	NetAPI.fishing_start.connect(_on_fishing_start)
 	NetAPI.fishing_result.connect(_on_fishing_result)
@@ -110,6 +113,8 @@ func _enter_wait() -> void:
 	for world in get_tree().get_nodes_in_group("world"):
 		if world.has_method("play_local_player_cast"):
 			world.play_local_player_cast(_cast_quality)
+		if world.has_method("start_local_player_fishing"):
+			world.start_local_player_fishing()
 	NetAPI.rpc_id(1, "c2s_fishing_start", _cast_quality)
 
 func _process_wait(delta: float) -> void:
@@ -163,7 +168,6 @@ func _enter_reel() -> void:
 	_fish_speed_target = _fish_speed
 	_fish_speed_timer = randf_range(0.5, 1.5)
 	reel_container.visible = true
-	reel_label.visible = true
 	status.text = "Reeling in…"
 	_update_reel_visuals()
 
@@ -180,7 +184,16 @@ func _process_reel(delta: float) -> void:
 		var speed_min := speed_max * 0.50
 		_fish_speed_target = randf_range(speed_min, speed_max)
 		_fish_speed_timer = randf_range(0.5, 1.5)
-	_fish_speed = lerpf(_fish_speed, _fish_speed_target, FISH_SPEED_LERP * delta)
+	if _fish_turn_timer > 0.0:
+		_fish_turn_timer -= delta
+		_fish_speed = move_toward(_fish_speed, 0.0, FISH_SPEED_MAX_NORM * 5.0 * delta)
+		if _fish_speed <= 0.001 or _fish_turn_timer <= 0.0:
+			_fish_dir = _pending_fish_dir
+			_fish_turn_timer = 0.0
+			_fish_speed_timer = 0.0
+	else:
+		_fish_speed = lerpf(_fish_speed, _fish_speed_target, minf(1.0, FISH_SPEED_LERP * delta))
+	_fish_speed = minf(_fish_speed, FISH_SPEED_MAX_NORM)
 	_fish_pos += _fish_speed * _fish_dir * delta
 	# Bounce when the EDGE of the catch zone would leave the bar, not the fish centre
 	var zone_half_norm := (CATCH_ZONE_FRAC / _difficulty) * 0.5
@@ -242,7 +255,7 @@ func _execute_fish_action() -> void:
 	var speed_max := minf(FISH_SPEED_MAX_NORM, _difficulty * 0.22)
 	match _pick_fish_action():
 		"flip":
-			_fish_dir *= -1.0
+			_queue_fish_turn()
 			_fish_dir_timer = randf_range(0.6, 1.6)
 		"continue":
 			_fish_dir_timer = randf_range(0.6, 1.6)
@@ -255,20 +268,27 @@ func _execute_fish_action() -> void:
 			_fish_speed_timer  = randf_range(1.5, 3.5)
 			_fish_dir_timer    = randf_range(2.0, 4.0)
 		"burst":
-			if randf() > 0.5: _fish_dir *= -1.0
+			if randf() > 0.5: _queue_fish_turn()
 			_fish_speed_target = speed_max
 			_fish_speed_timer  = randf_range(0.2, 0.6)
-			_fish_dir_timer    = randf_range(0.3, 0.7)
+			_fish_dir_timer    = randf_range(0.5, 0.9)
 		"shimmy":
-			_fish_dir *= -1.0
+			_queue_fish_turn()
 			_fish_speed_target = speed_max * 0.8
-			_fish_speed_timer  = randf_range(0.1, 0.3)
-			_fish_dir_timer    = randf_range(0.1, 0.25)
+			_fish_speed_timer  = randf_range(0.35, 0.65)
+			_fish_dir_timer    = randf_range(0.35, 0.65)
 		"freezedash":
 			_fish_speed_target = 0.0
 			_fish_speed_timer  = randf_range(0.5, 1.2)
 			_fish_dir          = 1.0 if randf() > 0.5 else -1.0
 			_fish_dir_timer    = randf_range(0.4, 0.8)
+
+func _queue_fish_turn() -> void:
+	if _fish_turn_timer > 0.0:
+		return
+	_pending_fish_dir = -_fish_dir
+	_fish_turn_timer = 0.16
+	_fish_speed_target = 0.0
 
 func _update_reel_visuals(overlapping: bool = false) -> void:
 	var w := REEL_BAR_WIDTH
@@ -334,6 +354,10 @@ func _on_fishing_result(caught: bool, fish_id: String, earned: int, new_balance:
 func _show_result(success: bool, msg: String, personal_record: bool = false) -> void:
 	_stage = Stage.RESULT
 	_result_shown = true
+	# The world-side record banner is the only PR announcement; don't duplicate it in the HUD.
+	if personal_record:
+		_close()
+		return
 	var hud := get_tree().get_first_node_in_group("hud")
 	if hud and hud.has_method("show_fishing_reward"):
 		hud.show_fishing_reward(success, msg, personal_record)

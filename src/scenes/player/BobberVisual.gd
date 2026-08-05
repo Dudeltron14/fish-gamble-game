@@ -1,5 +1,7 @@
 extends Node2D
 
+signal cast_landed
+
 const OUTLINE := Color(0.10, 0.10, 0.18, 1.0)
 const RED := Color(0.86, 0.18, 0.14, 1.0)
 const WHITE := Color(0.94, 0.92, 0.82, 1.0)
@@ -84,6 +86,9 @@ func play_cast(flip_h: bool, cast_quality: float) -> void:
 	_ripple.hide()
 	queue_redraw()
 
+func is_casting() -> bool:
+	return _is_casting
+
 func set_skin(bobber_id: String) -> void:
 	var item := CosmeticCatalog.get_item(bobber_id)
 	_skin_texture = null if CosmeticCatalog.is_default(bobber_id) else item.get("icon") as Texture2D
@@ -165,6 +170,7 @@ func _land() -> void:
 	_ripple_age = 0.0
 	_update_ripple(_bobber_position)
 	AudioManager.sfx("sfx_bobber_splash")
+	cast_landed.emit()
 
 func _update_ripple(center: Vector2) -> void:
 	if _ripple == null:

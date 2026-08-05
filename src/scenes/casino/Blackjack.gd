@@ -12,7 +12,7 @@ const MAX_BET := 999999
 const TABLE_SEAT_COUNT := 4
 const COIN_BURST_SCENE := preload("res://src/scenes/vfx/CoinBurst.tscn")
 const FAIRNESS := preload("res://src/server/BlackjackFairness.gd")
-const CASINO_LOG_FONT := preload("res://assets/fonts/NotoSans-Variable.ttf")
+const CASINO_LOG_FONT := preload("res://assets/fonts/pixel_operator/PixelOperator.ttf")
 const WIN_EFFECT_DESIGN_SIZE := Vector2(1280.0, 720.0)
 
 enum State { IDLE, PLAYER_TURN }

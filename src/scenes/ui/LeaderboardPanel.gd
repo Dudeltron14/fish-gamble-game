@@ -12,8 +12,12 @@ var _metric_index := 0
 var _page := 0
 
 const PAGE_SIZE := 10
+const REGULAR_FONT := preload("res://assets/fonts/pixel_operator/PixelOperator.ttf")
 
 func _ready() -> void:
+	ClientSettings.register_ui_scale_target(panel, Vector2.ZERO)
+	ClientSettings.ui_scale_changed.connect(_layout_for_ui_scale)
+	call_deferred("_layout_for_ui_scale")
 	_set_expanded(true)
 	NetAPI.leaderboard_result.connect(_on_leaderboard_result)
 
@@ -44,6 +48,10 @@ func _set_expanded(expand: bool) -> void:
 func _resize_panel() -> void:
 	panel.size.y = panel.get_combined_minimum_size().y
 
+func _layout_for_ui_scale(_value: float = -1.0) -> void:
+	# Keep the leaderboard below the scaled coins panel with its original 22px gap.
+	panel.position.y = 10.0 + 84.0 * panel.scale.y
+
 func _request() -> void:
 	NetAPI.rpc_id(1, "c2s_leaderboard_request", _metrics[_metric_index], _page)
 
@@ -67,7 +75,8 @@ func _on_leaderboard_result(data: Dictionary) -> void:
 	for i in entries.size():
 		var entry: Dictionary = entries[i]
 		var row := Label.new()
-		row.add_theme_font_size_override("font_size", 12)
+		row.add_theme_font_override("font", REGULAR_FONT)
+		row.add_theme_font_size_override("font_size", 18)
 		row.text = "%d. %s — %d" % [_page * PAGE_SIZE + i + 1, entry.username, int(entry.score)]
 		if entry.username == GameManager.current_player_name:
 			row.modulate = Color(1.0, 0.85, 0.3)
@@ -81,6 +90,7 @@ func _on_leaderboard_result(data: Dictionary) -> void:
 		previous.pressed.connect(func(): _page -= 1; _request())
 		pages.add_child(previous)
 		var page_label := Label.new()
+		page_label.add_theme_font_override("font", REGULAR_FONT)
 		page_label.text = "  %d / %d  " % [_page + 1, ceili(float(total) / PAGE_SIZE)]
 		pages.add_child(page_label)
 		var next := Button.new()

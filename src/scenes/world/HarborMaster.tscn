@@ -42,11 +42,13 @@ animations = [{
 size = Vector2(52, 52)
 
 [sub_resource type="RectangleShape2D" id="Block"]
-size = Vector2(15, 28)
+size = Vector2(13, 12)
 
 [node name="HarborMasterZone" type="Area2D" unique_id=423153968]
 collision_layer = 2
 collision_mask = 4
+z_as_relative = false
+z_index = 1011
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1391662981]
 texture_filter = 1
@@ -63,5 +65,5 @@ shape = SubResource("Interact")
 [node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=2080460266]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=84426541]
-position = Vector2(-3.5, -23)
+position = Vector2(-3.5, -8)
 shape = SubResource("Block")

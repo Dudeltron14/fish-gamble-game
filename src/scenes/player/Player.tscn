@@ -6,17 +6,8 @@
 [ext_resource type="Texture2D" uid="uid://fh602gok0f8v" path="res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_hook.png" id="3_12jx5"]
 [ext_resource type="Texture2D" uid="uid://1nrj76tdce3r" path="res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_walk.png" id="3_xxciv"]
 [ext_resource type="Script" path="res://src/scenes/player/BobberVisual.gd" id="5_bobber"]
-[ext_resource type="FontFile" uid="uid://cmv6od8e8mh1p" path="res://assets/fonts/m5x7.ttf" id="6_namefont"]
-[ext_resource type="FontFile" path="res://assets/fonts/PixelifySans[wght].ttf" id="7_pixelfont"]
-[ext_resource type="FontFile" uid="uid://8fysf4g5x32r" path="res://assets/fonts/NotoSans-Variable.ttf" id="8_chatfont"]
-
-[sub_resource type="FontVariation" id="FontVariation_pixelfont_bold"]
-base_font = ExtResource("7_pixelfont")
-variation_opentype = {"wght": 700}
-
-[sub_resource type="FontVariation" id="FontVariation_pixelfont_chat"]
-base_font = ExtResource("8_chatfont")
-spacing_glyph = 1
+[ext_resource type="FontFile" path="res://assets/fonts/pixel_operator/PixelOperator-Bold.ttf" id="6_namefont"]
+[ext_resource type="FontFile" path="res://assets/fonts/pixel_operator/PixelOperator.ttf" id="8_chatfont"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chat_bubble"]
 bg_color = Color(0.08, 0.07, 0.05, 0.94)
@@ -198,6 +189,9 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="Shape_1"]
+size = Vector2(12, 8)
+
+[sub_resource type="RectangleShape2D" id="InteractionShape"]
 size = Vector2(12, 20)
 
 [node name="Player" type="CharacterBody2D" unique_id=840624881]
@@ -213,9 +207,17 @@ sprite_frames = SubResource("SpriteFrames_1")
 animation = &"idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1642416971]
+position = Vector2(0, 13)
+shape = SubResource("Shape_1")
+
+[node name="InteractionArea" type="Area2D" parent="." unique_id=1642416972]
+collision_layer = 4
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea" unique_id=1642416973]
 position = Vector2(0, 2)
 scale = Vector2(1.985, 1.985)
-shape = SubResource("Shape_1")
+shape = SubResource("InteractionShape")
 
 [node name="BobberVisual" type="Node2D" parent="." unique_id=1713500716]
 script = ExtResource("5_bobber")
@@ -233,10 +235,10 @@ offset_right = 48.0
 offset_bottom = -11.0
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_fonts/font = SubResource("FontVariation_pixelfont_bold")
+theme_override_fonts/font = ExtResource("6_namefont")
 theme_override_colors/font_color = Color(1, 0.91, 0.72, 1)
 theme_override_colors/font_outline_color = Color(0.05, 0.06, 0.11, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
 theme_override_constants/outline_size = 4
 
 [node name="ChatBubble" type="Label" parent="."]
@@ -249,10 +251,10 @@ offset_bottom = -42.0
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 1
-theme_override_fonts/font = SubResource("FontVariation_pixelfont_chat")
+theme_override_fonts/font = ExtResource("8_chatfont")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.05, 0.06, 0.11, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 16
 theme_override_constants/outline_size = 0
 theme_override_styles/normal = SubResource("StyleBoxFlat_chat_bubble")
 
@@ -271,5 +273,4 @@ color = Color(0.08, 0.07, 0.05, 0.94)
 [node name="Camera2D" type="Camera2D" parent="." unique_id=888123456]
 enabled = false
 zoom = Vector2(2, 2)
-position_smoothing_enabled = true
-position_smoothing_speed = 8.0
+position_smoothing_enabled = false

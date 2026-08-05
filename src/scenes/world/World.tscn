@@ -4095,19 +4095,19 @@ sources/0 = SubResource("TileSetAtlasSource_jvqxg")
 sources/1 = SubResource("TileSetAtlasSource_wrwle")
 
 [sub_resource type="RectangleShape2D" id="Shape_dock"]
-size = Vector2(26.5, 89)
+size = Vector2(26.5, 71.5)
 
 [sub_resource type="RectangleShape2D" id="Shape_shop"]
-size = Vector2(41, 51.25)
+size = Vector2(41, 44.625)
 
 [sub_resource type="RectangleShape2D" id="Shape_casino"]
-size = Vector2(38, 33.5)
+size = Vector2(49, 33.5)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hq2y8"]
-size = Vector2(121, 95.1875)
+size = Vector2(113.5, 126.30469)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vvrex"]
-size = Vector2(23, 137.75)
+size = Vector2(27.5, 137.875)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_guu8q"]
 size = Vector2(183, 23)
@@ -4124,15 +4124,21 @@ tile_map_data = PackedByteArray("AAD0/wgAAAAfAA4AAAD1/wgAAAAgAA4AAAD2/wgAAAAhAA4
 tile_set = SubResource("TileSet_26m1k")
 
 [node name="Deco-TileMap" type="TileMapLayer" parent="Base-TileMap/Layer2-TileMap" unique_id=1991139571]
+z_index = 1270
+z_as_relative = false
 tile_map_data = PackedByteArray("AAABAAgAAQA7AAEAAAADAA0AAQA6AAEAAAADAAsAAQA6AAAAAAD8/w0AAQA5AAEAAAD8/wsAAQA5AAAAAAD+/wgAAQA7AAEAAAABAAsAAQA5AAEAAAD+/wsAAQA6AAEAAAD9/w0AAQA6AAUAAAD+/w0AAQA6AAUAAAD//w0AAQA6AAUAAAAAAA0AAQA6AAUAAAABAA0AAQA6AAUAAAACAA0AAQA6AAUAAAD9/wsAAQA6AAUAAAACAAsAAQA6AAUAAAABAAkAAQA7AAUAAAABAAoAAQA7AAUAAAD+/wkAAQA7AAUAAAD+/woAAQA7AAUAAAD8/wwAAQA7AAUAAAADAAwAAQA7AAUAAAD0//7/AAAGAAgAAAD0////AAAGAAkAAAD1//7/AAAHAAgAAAD1////AAAHAAkAAADz/wIAAAAEAAcAAADz/wMAAAAEAAgAAADz/wQAAAAEAAkAAAD0/wIAAAAFAAcAAAD0/wMAAAAFAAgAAAD0/wQAAAAFAAkAAAD0/wYAAAACAAgAAAD2/wcAAAACAAcAAAAHAP//AAAAAAcAAAAIAP//AAABAAcAAAADAP3/AAAHAAAAAAADAP7/AAAHAAEAAAADAP//AAAHAAIAAAADAAAAAAAHAAMAAAAEAP3/AAAIAAAAAAAEAP7/AAAIAAEAAAAEAP//AAAIAAIAAAAEAAAAAAAIAAMAAAAIAAYAAAAGAAgAAAAIAAcAAAAGAAkAAAAJAAYAAAAHAAgAAAAJAAcAAAAHAAkAAAAEAAcAAAACAAoAAAAFAAEAAAAAAAoAAAD2////AAAEAAoAAAD2/wAAAAAEAAsAAAD2/wEAAAAEAAwAAAD3////AAAFAAoAAAD3/wAAAAAFAAsAAAD3/wEAAAAFAAwAAAAFAP7/AAAGAAsAAAAFAP//AAAGAAwAAAAGAP7/AAAHAAsAAAAGAP//AAAHAAwAAAAIAAQAAAAFAAUAAAD5/wAAAAAAAAgAAAD1/wAAAAACAAcAAAACAP//AQA+AAEAAAACAAEAAQA+AAUAAAACAAAAAQA+AAUAAAD3/wcAAQA5AAUAAAAHAAcAAQA8AAUAAAD6/wEAAQAvAAEAAAACAAIAAQA+AAIAAAA=")
 tile_set = SubResource("TileSet_iroh4")
 
 [node name="Shop" type="Sprite2D" parent="Base-TileMap/Layer2-TileMap" unique_id=704679494]
+z_index = 1208
+z_as_relative = false
 position = Vector2(-184.50002, 169)
 scale = Vector2(0.2080078, 0.18359376)
 texture = ExtResource("5_hq2y8")
 
 [node name="Casino" type="Sprite2D" parent="Base-TileMap/Layer2-TileMap" unique_id=2028011356]
+z_index = 1208
+z_as_relative = false
 position = Vector2(158.00002, 156)
 scale = Vector2(0.19529949, 0.20139064)
 texture = ExtResource("6_hq2y8")
@@ -4151,11 +4157,11 @@ collision_layer = 2
 collision_mask = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Zones/DockZone" unique_id=1518249438]
-position = Vector2(-105.25, 18)
+position = Vector2(-100, 25)
 shape = SubResource("Shape_dock")
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="Zones/DockZone" unique_id=1466786873]
-position = Vector2(101, 18)
+position = Vector2(98, 25)
 shape = SubResource("Shape_dock")
 
 [node name="ShopZone" type="Area2D" parent="Zones" unique_id=82314120]
@@ -4164,7 +4170,7 @@ collision_layer = 2
 collision_mask = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Zones/ShopZone" unique_id=964036192]
-position = Vector2(6, 45)
+position = Vector2(6, 67.6875)
 shape = SubResource("Shape_shop")
 
 [node name="CasinoZone" type="Area2D" parent="Zones" unique_id=2062965260]
@@ -4173,7 +4179,7 @@ collision_layer = 2
 collision_mask = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Zones/CasinoZone" unique_id=967810186]
-position = Vector2(-2, 48)
+position = Vector2(-0.5, 84)
 shape = SubResource("Shape_casino")
 
 [node name="SpawnPoint" type="Marker2D" parent="." unique_id=399711041]
@@ -4183,11 +4189,11 @@ shape = SubResource("Shape_casino")
 [node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=179472957]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=1216840876]
-position = Vector2(159, 141)
+position = Vector2(162.75, 156.15234)
 shape = SubResource("RectangleShape2D_hq2y8")
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D" unique_id=1335296596]
-position = Vector2(-184.5, 138.40625)
+position = Vector2(-184.5, 154.10156)
 shape = SubResource("RectangleShape2D_hq2y8")
 
 [node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D" unique_id=802880106]
@@ -4199,7 +4205,7 @@ position = Vector2(-269, 200)
 shape = SubResource("RectangleShape2D_vvrex")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="StaticBody2D" unique_id=1888367285]
-position = Vector2(87, 25)
+position = Vector2(89.25, 25.0625)
 shape = SubResource("RectangleShape2D_vvrex")
 
 [node name="CollisionShape2D5" type="CollisionShape2D" parent="StaticBody2D" unique_id=320922363]
@@ -4207,8 +4213,8 @@ position = Vector2(244, 203)
 shape = SubResource("RectangleShape2D_vvrex")
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=719380304]
-polygon = PackedVector2Array(-278, 275, -48, 271, -47, 357, -115, 359, -115, 424, 113, 426, 110, 348, 48, 348, 45, 270, 69, 273, 233, 274, 92, 308, 92, 331, 157, 334, 153, 450, 152, 474, -160, 470, -159, 331, -83, 328, -82, 293, -280, 296)
+polygon = PackedVector2Array(-281, 271, -49, 274, -48, 371, -112, 372, -112, 439, 112, 440, 111, 372, 48, 370, 46, 277, 69, 273, 233, 274, 92, 308, 92, 331, 157, 334, 153, 450, 152, 474, -160, 470, -159, 331, -83, 328, -82, 293, -280, 296)
 
 [node name="CollisionShape2D7" type="CollisionShape2D" parent="StaticBody2D" unique_id=448371229]
-position = Vector2(-12, -70)
+position = Vector2(-14, -58)
 shape = SubResource("RectangleShape2D_guu8q")

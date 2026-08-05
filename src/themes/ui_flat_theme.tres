@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://ypeck0juioui" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_InputField02a.png" id="7_input_focus"]
 [ext_resource type="Texture2D" uid="uid://depnkxt764ks1" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_Bar11a.png" id="8_bar"]
 [ext_resource type="Texture2D" uid="uid://b0bgxjx4crt3x" path="res://assets/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Sprites/UI_Flat_BarFill01e.png" id="9_bar_fill"]
+[ext_resource type="FontFile" uid="uid://b6dy66m2jvjky" path="res://assets/fonts/pixel_operator/PixelOperator-Bold.ttf" id="10_pixel_operator"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_button_disabled"]
 content_margin_left = 10.0
@@ -116,6 +117,8 @@ modulate_color = Color(0.28, 0.18, 0.11, 1)
 
 [resource]
 default_base_scale = 1.0
+default_font = ExtResource("10_pixel_operator")
+default_font_size = 22
 Button/colors/font_color = Color(0.96, 0.91, 0.78, 1)
 Button/colors/font_disabled_color = Color(0.62, 0.52, 0.39, 1)
 Button/colors/font_focus_color = Color(1, 0.96, 0.82, 1)

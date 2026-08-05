@@ -58,7 +58,8 @@ func _init_schema() -> void:
 			sender_username TEXT NOT NULL,
 			recipient_username TEXT NOT NULL,
 			body TEXT NOT NULL,
-			sent_at INTEGER NOT NULL
+			sent_at INTEGER NOT NULL,
+			recipient_list TEXT NOT NULL DEFAULT '[]'
 		)
 	""")
 	_db.query("""
@@ -99,7 +100,10 @@ func _init_schema() -> void:
 	_db.query("CREATE TABLE IF NOT EXISTS player_login_days (player_id INTEGER NOT NULL, day_key TEXT NOT NULL, PRIMARY KEY(player_id, day_key))")
 	_db.query("CREATE TABLE IF NOT EXISTS player_encounters (player_id INTEGER NOT NULL, other_player_id INTEGER NOT NULL, PRIMARY KEY(player_id, other_player_id))")
 	_db.query("CREATE TABLE IF NOT EXISTS player_catch_log (id INTEGER PRIMARY KEY AUTOINCREMENT, player_id INTEGER NOT NULL, fish_id TEXT NOT NULL, earned INTEGER NOT NULL, measurement REAL NOT NULL DEFAULT 0, measurement_unit TEXT NOT NULL DEFAULT '', caught_at INTEGER NOT NULL)")
-	for column in ["lines_cast INTEGER NOT NULL DEFAULT 0", "fish_got_away INTEGER NOT NULL DEFAULT 0", "perfect_casts INTEGER NOT NULL DEFAULT 0", "hands_played INTEGER NOT NULL DEFAULT 0", "hands_won INTEGER NOT NULL DEFAULT 0", "hands_lost INTEGER NOT NULL DEFAULT 0", "double_downs INTEGER NOT NULL DEFAULT 0", "double_downs_won INTEGER NOT NULL DEFAULT 0", "biggest_win INTEGER NOT NULL DEFAULT 0", "biggest_loss INTEGER NOT NULL DEFAULT 0", "chat_messages INTEGER NOT NULL DEFAULT 0", "chat_messages_received INTEGER NOT NULL DEFAULT 0", "shop_spent INTEGER NOT NULL DEFAULT 0", "items_bought INTEGER NOT NULL DEFAULT 0", "time_played_seconds INTEGER NOT NULL DEFAULT 0", "total_gold_earned INTEGER NOT NULL DEFAULT 0", "total_gold_spent INTEGER NOT NULL DEFAULT 0", "highest_balance INTEGER NOT NULL DEFAULT 0", "skins_purchased INTEGER NOT NULL DEFAULT 0", "treasure_found INTEGER NOT NULL DEFAULT 0", "junk_caught INTEGER NOT NULL DEFAULT 0", "rare_catches INTEGER NOT NULL DEFAULT 0", "legendary_catches INTEGER NOT NULL DEFAULT 0", "highest_catch_value INTEGER NOT NULL DEFAULT 0", "biggest_fish_length REAL NOT NULL DEFAULT 0", "heaviest_junk REAL NOT NULL DEFAULT 0", "fastest_catch_ms INTEGER NOT NULL DEFAULT 0", "blackjacks INTEGER NOT NULL DEFAULT 0", "pushes INTEGER NOT NULL DEFAULT 0", "busts INTEGER NOT NULL DEFAULT 0", "total_wagered INTEGER NOT NULL DEFAULT 0", "longest_win_streak INTEGER NOT NULL DEFAULT 0", "longest_loss_streak INTEGER NOT NULL DEFAULT 0", "current_win_streak INTEGER NOT NULL DEFAULT 0", "current_loss_streak INTEGER NOT NULL DEFAULT 0", "current_fish_streak INTEGER NOT NULL DEFAULT 0", "longest_fish_streak INTEGER NOT NULL DEFAULT 0", "longest_login_streak INTEGER NOT NULL DEFAULT 0", "letters_sent INTEGER NOT NULL DEFAULT 0", "letters_received INTEGER NOT NULL DEFAULT 0", "unique_players_encountered INTEGER NOT NULL DEFAULT 0", "derbies_entered INTEGER NOT NULL DEFAULT 0", "derbies_won INTEGER NOT NULL DEFAULT 0", "best_derby_place INTEGER NOT NULL DEFAULT 0", "derby_fish_caught INTEGER NOT NULL DEFAULT 0"]:
+	for column in ["coin_amount INTEGER NOT NULL DEFAULT 0", "read_at INTEGER NOT NULL DEFAULT 0", "claimed_at INTEGER NOT NULL DEFAULT 0", "deleted_at INTEGER NOT NULL DEFAULT 0", "recipient_list TEXT NOT NULL DEFAULT '[]'"]:
+		var parts: PackedStringArray = column.split(" ", false, 1)
+		_ensure_mailbox_column(parts[0], parts[1])
+	for column in ["lines_cast INTEGER NOT NULL DEFAULT 0", "fish_got_away INTEGER NOT NULL DEFAULT 0", "perfect_casts INTEGER NOT NULL DEFAULT 0", "hands_played INTEGER NOT NULL DEFAULT 0", "hands_won INTEGER NOT NULL DEFAULT 0", "hands_lost INTEGER NOT NULL DEFAULT 0", "double_downs INTEGER NOT NULL DEFAULT 0", "double_downs_won INTEGER NOT NULL DEFAULT 0", "biggest_win INTEGER NOT NULL DEFAULT 0", "biggest_loss INTEGER NOT NULL DEFAULT 0", "chat_messages INTEGER NOT NULL DEFAULT 0", "chat_messages_received INTEGER NOT NULL DEFAULT 0", "shop_spent INTEGER NOT NULL DEFAULT 0", "items_bought INTEGER NOT NULL DEFAULT 0", "time_played_seconds INTEGER NOT NULL DEFAULT 0", "total_gold_earned INTEGER NOT NULL DEFAULT 0", "total_gold_spent INTEGER NOT NULL DEFAULT 0", "highest_balance INTEGER NOT NULL DEFAULT 0", "skins_purchased INTEGER NOT NULL DEFAULT 0", "treasure_found INTEGER NOT NULL DEFAULT 0", "junk_caught INTEGER NOT NULL DEFAULT 0", "rare_catches INTEGER NOT NULL DEFAULT 0", "legendary_catches INTEGER NOT NULL DEFAULT 0", "highest_catch_value INTEGER NOT NULL DEFAULT 0", "biggest_fish_length REAL NOT NULL DEFAULT 0", "heaviest_junk REAL NOT NULL DEFAULT 0", "fastest_catch_ms INTEGER NOT NULL DEFAULT 0", "blackjacks INTEGER NOT NULL DEFAULT 0", "pushes INTEGER NOT NULL DEFAULT 0", "busts INTEGER NOT NULL DEFAULT 0", "total_wagered INTEGER NOT NULL DEFAULT 0", "longest_win_streak INTEGER NOT NULL DEFAULT 0", "longest_loss_streak INTEGER NOT NULL DEFAULT 0", "current_win_streak INTEGER NOT NULL DEFAULT 0", "current_loss_streak INTEGER NOT NULL DEFAULT 0", "current_fish_streak INTEGER NOT NULL DEFAULT 0", "longest_fish_streak INTEGER NOT NULL DEFAULT 0", "longest_login_streak INTEGER NOT NULL DEFAULT 0", "letters_sent INTEGER NOT NULL DEFAULT 0", "letters_received INTEGER NOT NULL DEFAULT 0", "unique_players_encountered INTEGER NOT NULL DEFAULT 0", "derbies_entered INTEGER NOT NULL DEFAULT 0", "derbies_won INTEGER NOT NULL DEFAULT 0", "best_derby_place INTEGER NOT NULL DEFAULT 0", "derby_fish_caught INTEGER NOT NULL DEFAULT 0", "quest_gold_earned INTEGER NOT NULL DEFAULT 0", "quests_completed INTEGER NOT NULL DEFAULT 0", "free_quest_rerolls INTEGER NOT NULL DEFAULT 0", "paid_quest_rerolls INTEGER NOT NULL DEFAULT 0", "legendary_quests_completed INTEGER NOT NULL DEFAULT 0"]:
 		var parts: PackedStringArray = column.split(" ", false, 1)
 		_ensure_career_stat_column(parts[0], parts[1])
 	_db.query("""
@@ -444,6 +448,13 @@ func _ensure_blackjack_shoe_column(column_name: String, column_def: String) -> v
 		if str(row.name) == column_name:
 			return
 	_db.query("ALTER TABLE blackjack_shoes ADD COLUMN %s %s" % [column_name, column_def])
+
+func _ensure_mailbox_column(column_name: String, column_def: String) -> void:
+	_db.query("PRAGMA table_info(mailbox_messages)")
+	for row in _db.query_result:
+		if str(row.name) == column_name:
+			return
+	_db.query("ALTER TABLE mailbox_messages ADD COLUMN %s %s" % [column_name, column_def])
 
 func _ensure_daily_quest_state_column(column_name: String, column_def: String) -> void:
 	_db.query("PRAGMA table_info(daily_quest_state)")

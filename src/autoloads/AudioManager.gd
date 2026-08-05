@@ -134,6 +134,7 @@ var _music_vol_linear: float      = 1.0
 var _sfx_vol_linear: float        = 1.0
 var _music_tween: Tween = null
 var _music_fade_tween: Tween = null
+var _music_duck_tween: Tween = null
 var _music_transition_id := 0
 var _world_resume_stream: AudioStream
 var _world_resume_position := 0.0
@@ -191,6 +192,31 @@ func sfx(name: String) -> void:
 	else:
 		play_sfx(entry)
 
+func play_kraken_event() -> void:
+	if _music_duck_tween and _music_duck_tween.is_valid():
+		_music_duck_tween.kill()
+	_music_duck_tween = create_tween()
+	_music_duck_tween.set_parallel(true)
+	_music_duck_tween.tween_property(_music_player, "volume_db", -80.0, 0.18)
+	_music_duck_tween.tween_property(_music_fade_player, "volume_db", -80.0, 0.18)
+	_music_duck_tween.chain().tween_callback(_play_kraken_rumble)
+	_music_duck_tween.tween_interval(2.6)
+	_music_duck_tween.tween_property(_music_player, "volume_db", _music_volume_db(), 0.8)
+
+func _play_kraken_rumble() -> void:
+	var entry = _sfx_lib.get("sfx_bite")
+	var stream: AudioStream = entry.pick_random() if entry is Array and not entry.is_empty() else entry
+	if stream == null:
+		return
+	for player: AudioStreamPlayer in _sfx_pool:
+		if not player.playing:
+			player.stream = stream
+			player.pitch_scale = 0.42
+			player.volume_db = linear_to_db(maxf(_sfx_vol_linear, 0.0001)) + 5.0
+			player.play()
+			player.finished.connect(func(): player.pitch_scale = 1.0, CONNECT_ONE_SHOT)
+			return
+
 func _load_sfx_variants(paths: Array) -> Array:
 	var streams: Array = []
 	for path: String in paths:
@@ -201,12 +227,17 @@ func _load_sfx_variants(paths: Array) -> Array:
 # ── Playlist system ───────────────────────────────────────────────────────────
 
 func _preload_playlists() -> void:
-	for context in PLAYLIST_PATHS:
-		var streams: Array = []
-		for path: String in PLAYLIST_PATHS[context]:
-			if ResourceLoader.exists(path):
-				streams.append(load(path))
-		_playlist_loaded[context] = streams
+	_load_playlist("menu")
+
+func _load_playlist(context: String) -> Array:
+	if _playlist_loaded.has(context):
+		return _playlist_loaded[context]
+	var streams: Array = []
+	for path: String in PLAYLIST_PATHS.get(context, []):
+		if ResourceLoader.exists(path):
+			streams.append(load(path))
+	_playlist_loaded[context] = streams
+	return streams
 
 func set_music_context(context: String) -> void:
 	if context == _current_context:
@@ -220,7 +251,7 @@ func set_music_context(context: String) -> void:
 	_current_context = context
 	if new_paths == old_paths and not _current_playlist.is_empty():
 		return
-	var playlist: Array = _playlist_loaded.get(context, [])
+	var playlist: Array = _load_playlist(context)
 	if context in ["world", "fishing", "shop"] and not _world_track_path.is_empty():
 		playlist = [load(_world_track_path)]
 	if playlist.is_empty():
@@ -252,7 +283,7 @@ func current_track_name() -> String:
 func set_world_track(path: String) -> void:
 	_world_track_path = path
 	if _current_context in ["world", "fishing", "shop"]:
-		_current_playlist = [load(path)] if not path.is_empty() else _playlist_loaded[_current_context].duplicate()
+		_current_playlist = [load(path)] if not path.is_empty() else _load_playlist(_current_context).duplicate()
 		if path.is_empty() and shuffle_playlists:
 			_current_playlist.shuffle()
 		_track_index = 0

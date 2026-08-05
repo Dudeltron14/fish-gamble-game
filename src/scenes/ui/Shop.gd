@@ -5,6 +5,7 @@ signal completed
 const GEAR_STATS_SCENE := preload("res://src/scenes/ui/GearStatsPanel.tscn")
 
 @onready var coins_label: Label = %CoinsLabel
+@onready var equipped_label: Label = %EquippedLabel
 @onready var item_list: VBoxContainer = %ItemList
 @onready var status_label: Label = %StatusLabel
 @onready var rods_tab: Button = %RodsTab
@@ -15,12 +16,16 @@ const GEAR_STATS_SCENE := preload("res://src/scenes/ui/GearStatsPanel.tscn")
 
 var _gear_stats_panel: CanvasLayer = null
 var _category := "rods"
+var _pending_buys: Array[Dictionary] = []
 
 func _ready() -> void:
 	ClientSettings.register_ui_scale_target($Center/Panel, Vector2(0.5, 0.5))
 	NetAPI.shop_result.connect(_on_shop_result)
 	NetAPI.equip_result.connect(_on_equip_result)
 	GameManager.owned_changed.connect(_populate.call_deferred)
+	GameManager.owned_changed.connect(_refresh_equipped)
+	GameManager.equipped_changed.connect(_refresh_equipped)
+	GameManager.hook_durability_changed.connect(func(_current: int, _max_val: int): _refresh_equipped())
 	GameManager.coins_changed.connect(_on_coins_changed)
 	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_close)
 	rods_tab.pressed.connect(_select_category.bind("rods"))
@@ -30,6 +35,7 @@ func _ready() -> void:
 	bobbers_tab.pressed.connect(_select_category.bind("bobbers"))
 	AudioManager.set_music_context("shop")
 	coins_label.text = "Coins: %d" % GameManager.current_coins
+	_refresh_equipped()
 	_add_gear_stats_panel()
 	_populate()
 	call_deferred("_animate_open")
@@ -86,12 +92,12 @@ func _make_cosmetic_row(item: Dictionary) -> Control:
 	info.add_child(name_lbl)
 	var desc_lbl := Label.new()
 	desc_lbl.text = str(item.description)
-	desc_lbl.add_theme_font_size_override("font_size", 11)
+	desc_lbl.add_theme_font_size_override("font_size", 17)
 	desc_lbl.modulate = Color(0.75, 0.75, 0.75)
 	info.add_child(desc_lbl)
 	var owned_lbl := Label.new()
 	owned_lbl.text = "Owned: %d" % owned
-	owned_lbl.add_theme_font_size_override("font_size", 10)
+	owned_lbl.add_theme_font_size_override("font_size", 16)
 	owned_lbl.modulate = Color(0.55, 0.85, 0.55) if owned > 0 else Color(0.65, 0.65, 0.65)
 	info.add_child(owned_lbl)
 	row.add_child(info)
@@ -142,14 +148,14 @@ func _make_row(item: ItemData) -> Control:
 
 	var desc_lbl := Label.new()
 	desc_lbl.text = item.description
-	desc_lbl.add_theme_font_size_override("font_size", 11)
+	desc_lbl.add_theme_font_size_override("font_size", 17)
 	desc_lbl.modulate = Color(0.75, 0.75, 0.75)
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.add_child(desc_lbl)
 
 	var owned_lbl := Label.new()
 	owned_lbl.text = "%s  Owned: %d" % [slot, owned] if not slot.is_empty() else "Owned: %d" % owned
-	owned_lbl.add_theme_font_size_override("font_size", 10)
+	owned_lbl.add_theme_font_size_override("font_size", 16)
 	owned_lbl.modulate = Color(0.55, 0.85, 0.55) if owned > 0 else Color(0.65, 0.65, 0.65)
 	info.add_child(owned_lbl)
 
@@ -185,13 +191,19 @@ func _make_row(item: ItemData) -> Control:
 	return wrapper
 
 func _on_buy_pressed(item_id: String, btn: Button) -> void:
-	btn.disabled = true
-	status_label.text = "Buying…"
+	var purchase := _purchase_data(item_id)
+	if purchase.is_empty() or GameManager.current_coins < int(purchase.price):
+		return
+	_pending_buys.append(purchase)
+	GameManager.set_coins(GameManager.current_coins - int(purchase.price))
+	GameManager.set_owned(item_id, GameManager.get_owned(item_id) + int(purchase.qty))
+	status_label.text = "Purchased %s!" % str(purchase.name)
+	status_label.modulate = Color(0.3, 1.0, 0.4)
+	AudioManager.sfx("sfx_buy")
 	_pulse(btn)
 	NetAPI.rpc_id(1, "c2s_shop_buy", item_id)
 
 func _on_equip_pressed(item_id: String, btn: Button) -> void:
-	status_label.text = "Equipping…"
 	_pulse(btn)
 	NetAPI.rpc_id(1, "c2s_equip", item_id)
 
@@ -219,19 +231,42 @@ func _on_equip_result(ok: bool, item_id: String, slot: String) -> void:
 		status_label.modulate = Color(1.0, 0.4, 0.4)
 
 func _on_shop_result(ok: bool, reason: String, new_balance: int) -> void:
-	GameManager.set_coins(new_balance)
-	coins_label.text = "Coins: %d" % new_balance
+	var purchase: Dictionary = _pending_buys.pop_front() if not _pending_buys.is_empty() else {}
+	var pending_cost := 0
+	for pending: Dictionary in _pending_buys:
+		pending_cost += int(pending.price)
+	GameManager.set_coins(new_balance - pending_cost)
+	if not ok and not purchase.is_empty():
+		GameManager.set_owned(str(purchase.item_id), GameManager.get_owned(str(purchase.item_id)) - int(purchase.qty))
+	elif not purchase.is_empty():
+		var queued_qty := 0
+		for pending: Dictionary in _pending_buys:
+			if str(pending.item_id) == str(purchase.item_id):
+				queued_qty += int(pending.qty)
+		if queued_qty > 0:
+			GameManager.set_owned(str(purchase.item_id), GameManager.get_owned(str(purchase.item_id)) + queued_qty)
+	coins_label.text = "Coins: %d" % GameManager.current_coins
 	status_label.text = reason
 	status_label.modulate = Color(0.3, 1.0, 0.4) if ok else Color(1.0, 0.4, 0.4)
-	if ok:
-		AudioManager.sfx("sfx_buy")
-	else:
+	if not ok:
 		AudioManager.sfx("sfx_not_enough_coins")
 	_populate.call_deferred()
+
+func _purchase_data(item_id: String) -> Dictionary:
+	var cosmetic := CosmeticCatalog.get_item(item_id)
+	if not cosmetic.is_empty():
+		return {"item_id": item_id, "price": int(cosmetic.price), "qty": 1, "name": str(cosmetic.name)}
+	var item := ItemRegistry.get_item(item_id) as ItemData
+	if item == null:
+		return {}
+	return {"item_id": item_id, "price": item.buy_price, "qty": (item as BaitData).uses_per_stack if item is BaitData else 1, "name": item.display_name}
 
 func _on_coins_changed(new_balance: int) -> void:
 	coins_label.text = "Coins: %d" % new_balance
 	_populate.call_deferred()
+
+func _refresh_equipped() -> void:
+	equipped_label.text = GameManager.get_equipped_summary()
 
 func _slot_for_item(item: ItemData) -> String:
 	if item is RodData:
@@ -252,6 +287,10 @@ func _is_equipped(item: ItemData) -> bool:
 	return false
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("stats_toggle") and _gear_stats_panel:
+		_gear_stats_panel.set_expanded(not _gear_stats_panel.is_expanded())
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		_close()

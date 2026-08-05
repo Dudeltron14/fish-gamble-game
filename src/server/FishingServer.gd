@@ -136,7 +136,9 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	NetAPI.rpc("notify_player_catch", peer_id, fish_id, personal_record, measurement, measurement_unit)
 
 func _is_local_test_mode() -> bool:
-	return "--local-test" in OS.get_cmdline_args() or "--local-test" in OS.get_cmdline_user_args()
+	return OS.get_environment("BRINDLE_LOCAL_TEST") == "1" \
+		or "--local-test" in OS.get_cmdline_args() \
+		or "--local-test" in OS.get_cmdline_user_args()
 
 func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 	# Treasure Magnet finds a chest or key often enough to profit across one 10-use hook.
@@ -255,7 +257,7 @@ func _candidate_weight(fish: FishData) -> float:
 func _is_junk(fish_id: String) -> bool:
 	return fish_id.begins_with("junk_")
 
-func _fish_candidates(ids: Array[String]) -> Array[FishData]:
+func _fish_candidates(ids: Array) -> Array[FishData]:
 	var candidates: Array[FishData] = []
 	for id: String in ids:
 		var fish := ItemRegistry.get_item(id) as FishData

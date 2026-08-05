@@ -22,6 +22,7 @@ layer = 2
 script = ExtResource("1")
 
 [node name="Panel" type="PanelContainer" parent="." unique_id=89946165]
+texture_filter = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -44,9 +45,9 @@ layout_mode = 2
 theme_override_constants/separation = 3
 
 [node name="Title" type="Label" parent="Panel/Margin/VBox" unique_id=888349711]
-modulate = Color(0.65, 0.65, 0.65, 1)
+modulate = Color(1, 1, 1, 1)
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 22
 text = "GEAR MODIFIERS  [Tab]"
 
 [node name="Sep0" type="HSeparator" parent="Panel/Margin/VBox" unique_id=316329078]
@@ -68,7 +69,7 @@ stretch_mode = 5
 unique_name_in_owner = true
 modulate = Color(0.9, 0.75, 0.4, 1)
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 text = "ROD"
 
 [node name="CastRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=977775313]
@@ -86,7 +87,7 @@ stretch_mode = 3
 [node name="CastLabel" type="Label" parent="Panel/Margin/VBox/CastRow" unique_id=2143277759]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 text = "Cast: x1.0"
 
 [node name="ReelRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1081079049]
@@ -104,7 +105,7 @@ stretch_mode = 5
 [node name="ReelLabel" type="Label" parent="Panel/Margin/VBox/ReelRow" unique_id=1304634627]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 text = "Reel: x1.0"
 
 [node name="RarityBonusRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=2006248570]
@@ -122,7 +123,7 @@ stretch_mode = 5
 [node name="RarityBonusLabel" type="Label" parent="Panel/Margin/VBox/RarityBonusRow" unique_id=551971577]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 text = "Rare bonus: none"
 
 [node name="Sep1" type="HSeparator" parent="Panel/Margin/VBox" unique_id=917679277]
@@ -144,7 +145,7 @@ stretch_mode = 5
 unique_name_in_owner = true
 modulate = Color(0.5, 0.9, 0.5, 1)
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 text = "BAIT"
 
 [node name="BiteRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=434860464]
@@ -162,7 +163,7 @@ stretch_mode = 5
 [node name="BiteLabel" type="Label" parent="Panel/Margin/VBox/BiteRow" unique_id=1124895702]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 text = "Bite wait: —"
 
 [node name="PoolRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1519218093]
@@ -182,7 +183,7 @@ stretch_mode = 5
 unique_name_in_owner = true
 modulate = Color(0.7, 0.7, 0.7, 1)
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 16
 text = "0%"
 
 [node name="UncommonIcon" type="TextureRect" parent="Panel/Margin/VBox/PoolRow" unique_id=1947241889]
@@ -198,7 +199,7 @@ stretch_mode = 5
 unique_name_in_owner = true
 modulate = Color(0.4, 0.9, 0.4, 1)
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 16
 text = "0%"
 
 [node name="RareIcon" type="TextureRect" parent="Panel/Margin/VBox/PoolRow" unique_id=1049110595]
@@ -214,7 +215,7 @@ stretch_mode = 5
 unique_name_in_owner = true
 modulate = Color(0.4, 0.6, 1, 1)
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 16
 text = "0%"
 
 [node name="LegendaryIcon" type="TextureRect" parent="Panel/Margin/VBox/PoolRow" unique_id=1419357477]
@@ -230,7 +231,7 @@ stretch_mode = 5
 unique_name_in_owner = true
 modulate = Color(1, 0.8, 0.2, 1)
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 16
 text = "0%"
 
 [node name="Sep2" type="HSeparator" parent="Panel/Margin/VBox" unique_id=655049511]
@@ -252,7 +253,7 @@ stretch_mode = 5
 unique_name_in_owner = true
 modulate = Color(0.9, 0.5, 0.3, 1)
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 text = "HOOK"
 
 [node name="DurabilityRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=2011828028]
@@ -270,7 +271,7 @@ stretch_mode = 5
 [node name="DurabilityLabel" type="Label" parent="Panel/Margin/VBox/DurabilityRow" unique_id=903536195]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 text = "Durability: —"
 
 [node name="CoinRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1144137569]
@@ -288,7 +289,7 @@ stretch_mode = 5
 [node name="CoinLabel" type="Label" parent="Panel/Margin/VBox/CoinRow" unique_id=634564446]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 text = "Coins: x1.0"
 
 [node name="ReactRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=935058604]
@@ -306,7 +307,7 @@ stretch_mode = 5
 [node name="ReactLabel" type="Label" parent="Panel/Margin/VBox/ReactRow" unique_id=494800920]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 text = "React: +0%"
 
 [node name="Sep3" type="HSeparator" parent="Panel/Margin/VBox" unique_id=1940090736]
@@ -328,5 +329,5 @@ stretch_mode = 5
 unique_name_in_owner = true
 modulate = Color(0.75, 0.75, 0.5, 1)
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 16
 text = "Perfect cast: +10% rare/legendary"

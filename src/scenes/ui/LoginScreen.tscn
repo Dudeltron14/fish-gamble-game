@@ -113,7 +113,7 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Checking server…"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 modulate = Color(0.35, 1, 0.5, 1)
 
 [node name="UsernameLabel" type="Label" parent="Center/Panel/Margin/VBox" unique_id=176230672]

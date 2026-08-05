@@ -36,7 +36,7 @@ func _ready() -> void:
 	var title := Label.new()
 	title.text = "Settings"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_font_size_override("font_size", 28)
 	box.add_child(title)
 	box.add_child(HSeparator.new())
 	var world := get_tree().get_first_node_in_group("world")
@@ -45,7 +45,7 @@ func _ready() -> void:
 	if world:
 		_add_music_selector(box)
 	_zoom_value = _add_slider(box, "View Zoom", 0.5, 2.0, 0.125, ClientSettings.get_view_zoom_scale(), ClientSettings.set_camera_zoom)
-	_ui_scale_value = _add_slider(box, "UI Scale", 0.0, 1.5, 0.05, ClientSettings.ui_scale, ClientSettings.set_ui_scale)
+	_ui_scale_value = _add_slider(box, "UI Scale", ClientSettings.UI_SCALE_MIN, 1.5, 0.05, ClientSettings.ui_scale, ClientSettings.set_ui_scale)
 	_refresh_values()
 	var controls := Button.new()
 	controls.text = "Controls"
@@ -84,6 +84,7 @@ func _show_controls() -> void:
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(620, 400)
 	center.add_child(panel)
+	ClientSettings.register_ui_scale_target(panel, Vector2(0.5, 0.5), 0.25)
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 24)
 	margin.add_theme_constant_override("margin_right", 24)
@@ -96,20 +97,20 @@ func _show_controls() -> void:
 	var title := Label.new()
 	title.text = "Controls"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_font_size_override("font_size", 28)
 	box.add_child(title)
 	box.add_child(HSeparator.new())
 	var columns := HBoxContainer.new()
 	columns.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var keys := Label.new()
 	keys.text = "WASD / Arrow Keys\nE\nT\nTab\nL\nK\nESC"
-	keys.add_theme_font_size_override("font_size", 18)
+	keys.add_theme_font_size_override("font_size", 24)
 	keys.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	columns.add_child(keys)
 	columns.add_child(VSeparator.new())
 	var actions := Label.new()
 	actions.text = "Move\nHold to fish / interact\nLocal chat\nGear modifiers\nExpand / collapse leaderboard\nCycle leaderboard metric\nSettings"
-	actions.add_theme_font_size_override("font_size", 18)
+	actions.add_theme_font_size_override("font_size", 24)
 	actions.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	actions.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	columns.add_child(actions)
@@ -140,6 +141,7 @@ func _show_cosmetics() -> void:
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(520, 420)
 	center.add_child(panel)
+	ClientSettings.register_ui_scale_target(panel, Vector2(0.5, 0.5), 0.25)
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 24)
 	margin.add_theme_constant_override("margin_right", 24)
@@ -152,7 +154,7 @@ func _show_cosmetics() -> void:
 	var title := Label.new()
 	title.text = "Cosmetics"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_font_size_override("font_size", 28)
 	box.add_child(title)
 	box.add_child(HSeparator.new())
 	var tabs := TabContainer.new()

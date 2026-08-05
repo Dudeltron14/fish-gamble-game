@@ -45,7 +45,7 @@ theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Center/Panel/Margin/VBox" unique_id=1814874503]
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 28
 text = "Harbor Ledger — Daily Quests"
 horizontal_alignment = 1
 

@@ -14,6 +14,7 @@ const CATCH_IMPACT_GOLD := preload("res://assets/vfx/catch_impact_gold_sheet.png
 const CATCH_AURA_SHADER := preload("res://src/shaders/catch_aura.gdshader")
 const KRAKEN_SWIRL_EFFECT := preload("res://src/scenes/vfx/KrakenSwirlEffect.gd")
 const PLAYER_RENDER_LAYER := 1000
+const PLAYER_FOOT_OFFSET := 13.0
 const SPRITE_RIGHT_POSITION := Vector2(8, -2)
 const SPRITE_LEFT_POSITION := Vector2(-10, -2)
 const CHAT_BUBBLE_MIN_WIDTH := 65.0
@@ -22,6 +23,7 @@ const CHAT_BUBBLE_HEIGHT := 18.0
 const CHAT_BUBBLE_BASELINE := -42.0
 const CHAT_BUBBLE_GAP := 3.0
 const CHAT_BUBBLE_LIFETIME := 15.0
+const PERSONAL_RECORD_Y := 21.0 # Feet collider ends at y=17.
 const ROD_TIP_TEXTURE_POINTS := {
 	"fishing": [Vector2(42, 26), Vector2(42, 26), Vector2(41, 27), Vector2(41, 26)],
 	"hook": [Vector2(42, 26), Vector2(33, 21), Vector2(33, 19), Vector2(31, 13), Vector2(26, 6), Vector2(24, 5)],
@@ -29,6 +31,10 @@ const ROD_TIP_TEXTURE_POINTS := {
 const SKIN_SHEETS := {
 	"skin_deep_sea_diver": {"fishing": preload("res://assets/skins/deep_sea_diver/DS_Diver_fish_clean.png"), "idle": preload("res://assets/skins/deep_sea_diver/DS_Diver_idle.png"), "hook": preload("res://assets/skins/deep_sea_diver/DS_Diver_hook.png"), "walk_right": preload("res://assets/skins/deep_sea_diver/DS_Diver_walk.png")},
 	"skin_high_roller": {"fishing": preload("res://assets/skins/high_roller/High_Roller_fish_clean.png"), "idle": preload("res://assets/skins/high_roller/High_Roller_idle.png"), "hook": preload("res://assets/skins/high_roller/High_Roller_hook.png"), "walk_right": preload("res://assets/skins/high_roller/High_Roller_walk.png")},
+	# The pack only ships fishing and hook sheets for these characters; retain the established locomotion sheets rather than using its boat-row frames.
+	"skin_grave_robber": {"fishing": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/GraveRobber_fish_clean.png"), "idle": preload("res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_idle.png"), "hook": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/GraveRobber_hook.png"), "walk_right": preload("res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_walk.png")},
+	"skin_steam_man": {"fishing": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/SteamMan_fish_clean.png"), "idle": preload("res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_idle.png"), "hook": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/SteamMan_hook.png"), "walk_right": preload("res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_walk.png")},
+	"skin_woodcutter": {"fishing": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/Woodcutter_fish_clean.png"), "idle": preload("res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_idle.png"), "hook": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/Woodcutter_hook.png"), "walk_right": preload("res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_walk.png")},
 }
 
 @export var player_name: String = "":
@@ -55,6 +61,7 @@ var _last_input_dir := Vector2.ZERO
 var _server_input_dir := Vector2.ZERO
 var _remote_target_position := Vector2.ZERO
 var _bobber_cast_quality := -1.0
+var _start_fishing_after_cast := false
 var _catch_tween: Tween = null
 var _recoil_tween: Tween = null
 var _chat_messages: Array[Label] = []
@@ -73,6 +80,8 @@ func _ready() -> void:
 		set_process(true)
 	else:
 		apply_cosmetics(GameManager.equipped_skin_id, GameManager.equipped_bobber_id)
+	if bobber_visual and bobber_visual.has_signal("cast_landed"):
+		bobber_visual.connect("cast_landed", _on_bobber_cast_landed)
 
 func _enter_tree() -> void:
 	if name.is_valid_int():
@@ -99,7 +108,7 @@ func _process(delta: float) -> void:
 	position = position.lerp(_remote_target_position, minf(1.0, REMOTE_LERP_SPEED * delta))
 
 func _update_draw_order() -> void:
-	z_index = PLAYER_RENDER_LAYER + floori(global_position.y)
+	z_index = PLAYER_RENDER_LAYER + floori(global_position.y + PLAYER_FOOT_OFFSET)
 
 func _physics_process(delta: float) -> void:
 	if _is_dedicated_server_player():
@@ -107,7 +116,9 @@ func _physics_process(delta: float) -> void:
 		return
 	if not _is_local_authority():
 		return
-	var dir := Vector2.ZERO if _movement_locked or get_viewport().gui_get_focus_owner() is LineEdit else Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	var focused := get_viewport().gui_get_focus_owner()
+	var typing := focused is LineEdit or focused is TextEdit
+	var dir := Vector2.ZERO if _movement_locked or typing else Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	velocity = dir * SPEED
 	move_and_slide()
 	_update_animation(dir)
@@ -122,7 +133,8 @@ func _update_animation(dir: Vector2) -> void:
 	if dir == Vector2.ZERO:
 		sprite.play("idle")
 	else:
-		_set_sprite_direction(dir.x < 0)
+		if not is_zero_approx(dir.x):
+			_set_sprite_direction(dir.x < 0)
 		sprite.play("walk_right")
 
 func _set_sprite_direction(flip: bool) -> void:
@@ -130,8 +142,8 @@ func _set_sprite_direction(flip: bool) -> void:
 	sprite.position = SPRITE_LEFT_POSITION if flip else SPRITE_RIGHT_POSITION
 
 func start_fishing() -> void:
+	_start_fishing_after_cast = false
 	_is_fishing = true
-	_bobber_cast_quality = -1.0
 	_last_input_dir = Vector2.ZERO
 	if not _is_dedicated_server_player():
 		set_physics_process(false)
@@ -139,6 +151,17 @@ func start_fishing() -> void:
 	sprite.play("fishing")
 	_update_bobber(true)
 	_send_input()
+
+func start_fishing_after_cast() -> void:
+	if _is_fishing:
+		return
+	_start_fishing_after_cast = true
+	if bobber_visual == null or not bobber_visual.has_method("is_casting") or not bool(bobber_visual.call("is_casting")):
+		start_fishing()
+
+func _on_bobber_cast_landed() -> void:
+	if _start_fishing_after_cast:
+		start_fishing()
 
 func play_hook() -> void:
 	sprite.play("hook")
@@ -223,8 +246,8 @@ func play_bobber_cast(cast_quality: float) -> void:
 	_bobber_cast_quality = clampf(cast_quality, 0.0, 1.0)
 	if bobber_visual and bobber_visual.has_method("play_cast"):
 		bobber_visual.play_cast(sprite.flip_h, _bobber_cast_quality)
+	start_fishing()
 	_play_rod_recoil(lerpf(2.0, 5.0, _bobber_cast_quality))
-	_send_input()
 
 func _play_rod_recoil(distance: float) -> void:
 	if _recoil_tween and _recoil_tween.is_valid():
@@ -250,6 +273,8 @@ func show_catch(fish_id: String, trophy: bool = false, measurement: float = 0.0,
 	catch_sprite.position = Vector2(8, -41)
 	catch_sprite.visible = true
 	_play_catch_effects(fish, trophy)
+	if trophy:
+		_show_personal_record(fish, measurement, measurement_unit)
 	if _catch_tween:
 		_catch_tween.kill()
 	_catch_tween = create_tween().set_parallel(true)
@@ -310,9 +335,10 @@ func _play_catch_effects(fish: FishData, trophy: bool = false) -> void:
 	if fish.id == "legendary_kraken":
 		_set_catch_aura(Color(0.52, 0.08, 0.65, 1.0), 1.0, true)
 		var swirl := KRAKEN_SWIRL_EFFECT.new() as Node2D
-		swirl.scale = Vector2.ONE / catch_sprite.scale
+		swirl.scale = Vector2.ONE / catch_sprite.scale * 2.5
 		swirl.show_behind_parent = true
 		catch_sprite.add_child(swirl)
+		AudioManager.play_kraken_event()
 		return
 	if fish.id.begins_with("junk_"):
 		return
@@ -330,6 +356,28 @@ func _play_catch_effects(fish: FishData, trophy: bool = false) -> void:
 		_play_catch_effect(CATCH_SPARKLE_BLUE, Vector2i(32, 32), 1.75)
 	elif fish.rarity in ["common", "uncommon"]:
 		_play_catch_effect(CATCH_IMPACT_BLUE, Vector2i(48, 48))
+
+func _show_personal_record(fish: FishData, measurement: float, unit: String) -> void:
+	# This is a world celebration, not chat.  The server already broadcasts show_catch().
+	var name_was_visible := name_label.visible
+	name_label.hide()
+	var label := name_label.duplicate() as Label
+	add_child(label)
+	label.text = "NEW PERSONAL RECORD! %s%s" % [fish.display_name, " — %.1f %s" % [measurement, unit] if not unit.is_empty() else ""]
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	var font := label.get_theme_font("font")
+	var width := font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.get_theme_font_size("font_size")).x + 12.0
+	label.size = Vector2(width, CHAT_BUBBLE_HEIGHT)
+	label.position = Vector2(-width * 0.5, PERSONAL_RECORD_Y)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.show()
+	var tween := create_tween()
+	for cycle in 17: # ~10 seconds including the fade, matching the HUD record result.
+		for color in [Color(1.0, 0.2, 0.2), Color(1.0, 0.9, 0.15), Color(0.2, 1.0, 0.8), Color(0.3, 0.5, 1.0)]:
+			tween.tween_property(label, "modulate", color, 0.14)
+	tween.tween_property(label, "modulate:a", 0.0, 0.7)
+	tween.tween_callback(func() -> void: name_label.visible = name_was_visible)
+	tween.tween_callback(label.queue_free)
 
 func _set_catch_aura(color: Color, strength: float, kraken_mode: bool = false) -> void:
 	var material := ShaderMaterial.new()
@@ -365,6 +413,7 @@ func apply_remote_state(pos: Vector2, animation: String, flip_h: bool, menu_hidd
 		var correction := pos - position
 		if correction.length() > 48.0:
 			position = pos
+		return # Local cast/animation state is predicted; delayed server echoes must not cancel it.
 	visible = not menu_hidden
 	if sprite.sprite_frames and sprite.animation != animation:
 		sprite.play(animation)

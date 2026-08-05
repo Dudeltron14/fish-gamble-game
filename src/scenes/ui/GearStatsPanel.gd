@@ -57,6 +57,8 @@ var _flash_styles: Array[StyleBoxFlat] = []
 
 func _ready() -> void:
 	ClientSettings.register_ui_scale_target(panel, Vector2(1.0, 0.0))
+	ClientSettings.ui_scale_changed.connect(_layout_for_ui_scale)
+	call_deferred("_layout_for_ui_scale")
 	_vbox = $Panel/Margin/VBox
 	_expanded_bottom = panel.offset_bottom
 	_set_expanded(false)   # collapsed by default — only title shows
@@ -85,6 +87,14 @@ func _set_expanded(expand: bool) -> void:
 
 func _resize_panel(expand: bool) -> void:
 	panel.offset_bottom = _expanded_bottom if expand else panel.offset_top + panel.get_combined_minimum_size().y
+
+func _layout_for_ui_scale(_value: float = -1.0) -> void:
+	var expanded_height := _expanded_bottom - panel.offset_top
+	# Keep the gear panel below the scaled Settings button with its original 7px gap.
+	panel.position.y = 10.0 + 37.0 * panel.scale.y
+	_expanded_bottom = panel.offset_top + expanded_height
+	if _expanded:
+		panel.offset_bottom = _expanded_bottom
 
 func is_expanded() -> bool:
 	return _expanded
@@ -146,7 +156,7 @@ func _clear_flash() -> void:
 
 func _apply_shop_mode() -> void:
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	_set_expanded(get_viewport().get_visible_rect().size.x >= 980.0)
+	_set_expanded(true)
 
 func _tip(icon: TextureRect, lbl: Label, text: String) -> void:
 	icon.tooltip_text = text

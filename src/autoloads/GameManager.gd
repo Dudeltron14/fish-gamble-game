@@ -72,6 +72,15 @@ func set_owned(item_id: String, qty: int) -> void:
 func get_owned(item_id: String) -> int:
 	return owned_items.get(item_id, 0)
 
+func get_equipped_summary() -> String:
+	var rod := ItemRegistry.get_item(equipped_rod_id) as ItemData
+	var bait := ItemRegistry.get_item(equipped_bait_id) as ItemData
+	var hook := ItemRegistry.get_item(equipped_tackle_id) as TackleData
+	var rod_text := rod.display_name if rod else "—"
+	var bait_text := "%s ×%d" % [bait.display_name, get_owned(equipped_bait_id)] if bait else "—"
+	var hook_text := "%s %d/%d" % [hook.display_name, hook_durability, hook_max_durability] if hook and hook_max_durability > 0 else (hook.display_name if hook else "—")
+	return "Rod: %s  Bait: %s  Hook: %s" % [rod_text, bait_text, hook_text]
+
 func set_equipped_cosmetics(skin_id: String, bobber_id: String) -> void:
 	equipped_skin_id = skin_id
 	equipped_bobber_id = bobber_id

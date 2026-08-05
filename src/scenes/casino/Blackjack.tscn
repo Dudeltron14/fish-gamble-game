@@ -4,11 +4,6 @@
 [ext_resource type="Texture2D" uid="uid://d01b16f17u1lb" path="res://assets/User_Gen_ChatGPT/Casino Backdrop.png" id="2_backdrop"]
 [ext_resource type="Texture2D" uid="uid://cwe0mabngqay" path="res://assets/Playing Cards/card-back1.png" id="3_card_back"]
 [ext_resource type="Script" uid="uid://bd5shnajqmosl" path="res://src/scenes/casino/BlackjackActionTimer.gd" id="4_timer"]
-[ext_resource type="Shader" uid="uid://cthgqofkwjmuj" path="res://src/shaders/casino_ambience.gdshader" id="5_ambience"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_casino_ambience"]
-shader = ExtResource("5_ambience")
-
 [sub_resource type="Shader" id="Shader_disabled_stripes"]
 code = "shader_type canvas_item;
 
@@ -113,15 +108,6 @@ texture = ExtResource("2_backdrop")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Atmosphere" type="ColorRect" parent="." unique_id=466528397]
-material = SubResource("ShaderMaterial_casino_ambience")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
 [node name="TableLayout" type="Control" parent="." unique_id=348534826]
 layout_mode = 3
 anchors_preset = 15
@@ -148,7 +134,7 @@ offset_right = 300.0
 offset_bottom = 20.0
 theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
 theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 20
 text = "DEALER"
 horizontal_alignment = 1
 
@@ -164,18 +150,18 @@ theme_override_constants/separation = 6
 layout_mode = 0
 offset_top = 118.0
 offset_right = 300.0
-offset_bottom = 164.0
+offset_bottom = 178.0
 theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 horizontal_alignment = 1
 
 [node name="DeckStack" type="TextureRect" parent="TableLayout/DealerSpot" unique_id=1649638029]
 texture_filter = 2
 layout_mode = 0
-offset_left = -32.0
+offset_left = -96.0
 offset_top = 20.0
-offset_right = 32.0
+offset_right = -32.0
 offset_bottom = 114.0
 texture = ExtResource("3_card_back")
 expand_mode = 1
@@ -183,13 +169,13 @@ stretch_mode = 5
 
 [node name="DeckCountLabel" type="Label" parent="TableLayout/DealerSpot" unique_id=1659562519]
 layout_mode = 0
-offset_left = -32.0
-offset_top = 114.0
-offset_right = 32.0
-offset_bottom = 130.0
+offset_left = -104.0
+offset_top = 116.0
+offset_right = -24.0
+offset_bottom = 134.0
 theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 9
+theme_override_font_sizes/font_size = 15
 text = "Cards left: —"
 horizontal_alignment = 1
 
@@ -212,16 +198,16 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Seat2Spot" type="Control" parent="TableLayout" unique_id=78479594]
 anchors_preset = 0
-anchor_left = 0.22
-anchor_top = 0.5
-anchor_right = 0.22
-anchor_bottom = 0.5
+anchor_left = 0.18
+anchor_top = 0.52
+anchor_right = 0.18
+anchor_bottom = 0.52
 offset_left = -112.0
 offset_top = -28.0
 offset_right = 112.0
@@ -235,7 +221,7 @@ offset_right = 224.0
 offset_bottom = 20.0
 theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
 theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 20
 horizontal_alignment = 1
 
 [node name="Seat2Hand" type="HBoxContainer" parent="TableLayout/Seat2Spot" unique_id=307161334]
@@ -249,13 +235,13 @@ theme_override_constants/separation = 6
 [node name="Seat3Spot" type="Control" parent="TableLayout" unique_id=402248345]
 layout_mode = 1
 anchor_left = 0.5
-anchor_top = 0.42
+anchor_top = 0.37
 anchor_right = 0.5
-anchor_bottom = 0.42
-offset_left = 42.0
-offset_top = 124.600006
-offset_right = 266.0
-offset_bottom = 292.6
+anchor_bottom = 0.37
+offset_left = -112.0
+offset_top = -28.0
+offset_right = 112.0
+offset_bottom = 140.0
 
 [node name="Seat3Label" type="Label" parent="TableLayout/Seat3Spot" unique_id=149267605]
 layout_mode = 0
@@ -263,7 +249,7 @@ offset_right = 224.0
 offset_bottom = 20.0
 theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
 theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 20
 horizontal_alignment = 1
 
 [node name="Seat3Hand" type="HBoxContainer" parent="TableLayout/Seat3Spot" unique_id=1629616335]
@@ -276,10 +262,10 @@ theme_override_constants/separation = 6
 
 [node name="Seat4Spot" type="Control" parent="TableLayout" unique_id=2054517770]
 layout_mode = 1
-anchor_left = 0.78
-anchor_top = 0.5
-anchor_right = 0.78
-anchor_bottom = 0.5
+anchor_left = 0.82
+anchor_top = 0.52
+anchor_right = 0.82
+anchor_bottom = 0.52
 offset_left = -112.0
 offset_top = -28.0
 offset_right = 112.0
@@ -291,7 +277,7 @@ offset_right = 224.0
 offset_bottom = 20.0
 theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
 theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 20
 horizontal_alignment = 1
 
 [node name="Seat4Hand" type="HBoxContainer" parent="TableLayout/Seat4Spot" unique_id=517768273]
@@ -305,13 +291,13 @@ theme_override_constants/separation = 6
 [node name="Player1Spot" type="Control" parent="TableLayout" unique_id=445804815]
 layout_mode = 1
 anchor_left = 0.5
-anchor_top = 0.61
+anchor_top = 0.62
 anchor_right = 0.5
-anchor_bottom = 0.61
-offset_left = -245.0
-offset_top = -6.200012
-offset_right = -21.0
-offset_bottom = 161.79999
+anchor_bottom = 0.62
+offset_left = -112.0
+offset_top = -28.0
+offset_right = 112.0
+offset_bottom = 140.0
 
 [node name="Player1Label" type="Label" parent="TableLayout/Player1Spot" unique_id=747463795]
 layout_mode = 0
@@ -319,7 +305,7 @@ offset_right = 224.0
 offset_bottom = 20.0
 theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
 theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 20
 horizontal_alignment = 1
 
 [node name="PlayerHand" type="HBoxContainer" parent="TableLayout/Player1Spot" unique_id=1154807138]
@@ -337,7 +323,7 @@ offset_right = 224.0
 offset_bottom = 140.0
 theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.02, 1)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 
 [node name="Center" type="Control" parent="." unique_id=369039004]
@@ -378,7 +364,7 @@ layout_mode = 2
 [node name="Title" type="Label" parent="Center/Panel/Margin/VBox/Header" unique_id=1732289072]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 22
 text = "Blackjack"
 
 [node name="CoinsLabel" type="Label" parent="Center/Panel/Margin/VBox/Header" unique_id=1162611784]
@@ -390,7 +376,7 @@ vertical_alignment = 1
 [node name="TableInfoLabel" type="Label" parent="Center/Panel/Margin/VBox" unique_id=1515454282]
 visible = false
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 
 [node name="StatusLabel" type="Label" parent="Center/Panel/Margin/VBox" unique_id=341991860]
 unique_name_in_owner = true
@@ -431,7 +417,7 @@ text = "Bet"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(86, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 20
 text = "ALL IN"
 
 [node name="ActionRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox/ActionControls" unique_id=60444022]
@@ -444,7 +430,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 disabled = true
 text = "Hit"
 
@@ -453,7 +439,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 disabled = true
 text = "Stand"
 
@@ -462,14 +448,14 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 disabled = true
 text = "Double Down"
 
 [node name="CloseBtn" type="Button" parent="Center/Panel/Margin/VBox/ActionControls" unique_id=766292465]
 custom_minimum_size = Vector2(112, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 text = "Leave  [Esc]"
 
 [node name="FairnessOverlay" type="VBoxContainer" parent="." unique_id=925739536]
@@ -490,7 +476,7 @@ theme_override_constants/separation = 4
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.55)
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 text = "Fair shoe: waiting…"
 horizontal_alignment = 2
 
@@ -499,7 +485,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
 size_flags_horizontal = 8
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 disabled = true
 text = "Fairness Reveal Locked"
 alignment = 2
@@ -520,7 +506,7 @@ unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(0, 22)
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 17
 text = "View Completed Casino Log"
 flat = true
 alignment = 2

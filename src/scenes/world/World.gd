@@ -248,7 +248,7 @@ func _zone_contains_player(zone: Area2D, player: Node2D) -> bool:
 		if zone_rect == null:
 			continue
 		var zone_bounds := _rect_shape_global_bounds(zone_shape, zone_rect)
-		for player_shape_node in player.get_children():
+		for player_shape_node in player.find_children("*", "CollisionShape2D"):
 			var player_shape := player_shape_node as CollisionShape2D
 			if player_shape == null or player_shape.disabled:
 				continue
@@ -317,9 +317,6 @@ func _open_overlay(scene: PackedScene) -> void:
 		if scene == HARBOR_MASTER_DIALOGUE_SCENE and player.has_method("set_movement_locked"):
 			player.set_movement_locked(true)
 	_set_local_player_menu_hidden(_overlay_hides_player)
-	if scene == FISHING_SCENE:
-		if player:
-			player.start_fishing()
 
 func _on_overlay_closed() -> void:
 	AudioManager.sfx("sfx_menu_close")
@@ -410,6 +407,11 @@ func play_local_player_cast(cast_quality: float) -> void:
 	var player := _get_local_player()
 	if player and player.has_method("play_bobber_cast"):
 		player.play_bobber_cast(cast_quality)
+
+func start_local_player_fishing() -> void:
+	var player := _get_local_player()
+	if player and player.has_method("start_fishing_after_cast"):
+		player.start_fishing_after_cast()
 
 func _on_zone_entered(body: Node2D, zone_name: String) -> void:
 	if not body is CharacterBody2D: return

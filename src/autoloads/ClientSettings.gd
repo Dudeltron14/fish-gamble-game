@@ -1,8 +1,11 @@
 extends Node
 
+signal ui_scale_changed(value: float)
+
 const SETTINGS_FILE := "user://settings.cfg"
 const SETTINGS_PANEL := preload("res://src/scenes/ui/SettingsPanel.gd")
 const UI_SCALE_BASE := 1.0
+const UI_SCALE_MIN := 0.9
 const UI_SCALE_VERSION := 3
 const VIEW_ZOOM_BASE := 2.0
 const VIEW_ZOOM_VERSION := 2
@@ -57,7 +60,7 @@ func set_world_track(path: String) -> void:
 	_save_global_settings()
 
 func set_ui_scale(value: float) -> void:
-	ui_scale = clampf(value, 0.0, 1.5)
+	ui_scale = clampf(value, UI_SCALE_MIN, 1.5)
 	_apply_ui_scale()
 	_save_global_settings()
 
@@ -84,7 +87,7 @@ func _load_global_settings() -> void:
 		cfg.set_value("display", "ui_scale_version", UI_SCALE_VERSION)
 		cfg.save(SETTINGS_FILE)
 	else:
-		ui_scale = cfg.get_value("display", "ui_scale", ui_scale)
+		ui_scale = clampf(cfg.get_value("display", "ui_scale", ui_scale), UI_SCALE_MIN, 1.5)
 
 func _apply_global_settings() -> void:
 	AudioManager.set_music_volume(music_volume / 100.0)
@@ -95,8 +98,10 @@ func _apply_global_settings() -> void:
 func _apply_ui_scale() -> void:
 	for target in get_tree().get_nodes_in_group("ui_scale_target"):
 		_apply_ui_scale_target(target as Control)
+	ui_scale_changed.emit(ui_scale)
 
 func register_ui_scale_target(control: Control, pivot: Vector2, minimum_scale: float = 0.0) -> void:
+	control.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	control.add_to_group("ui_scale_target")
 	control.set_meta("ui_scale_pivot", pivot)
 	control.set_meta("ui_scale_minimum", minimum_scale)

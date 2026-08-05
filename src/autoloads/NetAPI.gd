@@ -27,8 +27,9 @@ signal bj_dealer_card(card: Dictionary, value: int, deck_remaining: int)
 signal bj_result(outcome: String, dealer_hand: Array, payout: int, new_balance: int)
 signal bj_error(msg: String)
 signal casino_table_state(table_id: String, state: Dictionary)
-signal mailbox_loaded(messages: Array)
+signal mailbox_loaded(messages: Array, players: Array)
 signal mailbox_result(ok: bool, reason: String)
+signal mailbox_unread_changed(count: int)
 signal harbor_stats_loaded(stats: Dictionary)
 signal daily_quests_loaded(ledger: Dictionary)
 signal daily_quest_result(ok: bool, reason: String)
@@ -75,6 +76,9 @@ func c2s_world_ready() -> void:
 		return
 	for world in get_tree().get_nodes_in_group("world"):
 		world.spawn_player(peer_id, session.username)
+	var mailbox := _srv("MailboxServer")
+	if mailbox and mailbox.has_method("handle_unread"):
+		mailbox.handle_unread(peer_id)
 
 @rpc("any_peer", "call_local", "reliable")
 func c2s_server_status(sent_ms: int) -> void:
@@ -223,10 +227,28 @@ func c2s_mailbox_fetch() -> void:
 		if mailbox: mailbox.handle_fetch(_peer_id())
 
 @rpc("any_peer", "call_local", "reliable")
-func c2s_mailbox_send(recipient: String, body: String) -> void:
+func c2s_mailbox_send(recipients: Array, body: String, coin_amount: int = 0) -> void:
 	if multiplayer.is_server():
 		var mailbox := _srv("MailboxServer")
-		if mailbox: mailbox.handle_send(_peer_id(), recipient, body)
+		if mailbox: mailbox.handle_send(_peer_id(), recipients, body, coin_amount)
+
+@rpc("any_peer", "call_local", "reliable")
+func c2s_mailbox_mark_read(message_id: int) -> void:
+	if multiplayer.is_server():
+		var mailbox := _srv("MailboxServer")
+		if mailbox: mailbox.handle_mark_read(_peer_id(), message_id)
+
+@rpc("any_peer", "call_local", "reliable")
+func c2s_mailbox_claim_coins(message_id: int) -> void:
+	if multiplayer.is_server():
+		var mailbox := _srv("MailboxServer")
+		if mailbox: mailbox.handle_claim_coins(_peer_id(), message_id)
+
+@rpc("any_peer", "call_local", "reliable")
+func c2s_mailbox_delete(message_id: int) -> void:
+	if multiplayer.is_server():
+		var mailbox := _srv("MailboxServer")
+		if mailbox: mailbox.handle_delete(_peer_id(), message_id)
 
 @rpc("any_peer", "call_local", "reliable")
 func c2s_harbor_stats(username: String = "") -> void:
@@ -311,14 +333,24 @@ func notify_chat_bubble(peer_id: int, message: String) -> void:
 			world.show_player_chat_bubble(peer_id, message)
 
 @rpc("authority", "call_local", "reliable")
-func notify_mailbox_loaded(messages: Array) -> void:
+func notify_mailbox_loaded(messages: Array, players: Array = []) -> void:
 	if not multiplayer.is_server():
-		mailbox_loaded.emit(messages)
+		mailbox_loaded.emit(messages, players)
 
 @rpc("authority", "call_local", "reliable")
 func notify_mailbox_result(ok: bool, reason: String) -> void:
 	if not multiplayer.is_server():
 		mailbox_result.emit(ok, reason)
+
+@rpc("authority", "call_local", "reliable")
+func notify_mailbox_unread(count: int) -> void:
+	if not multiplayer.is_server():
+		mailbox_unread_changed.emit(count)
+
+@rpc("authority", "call_local", "reliable")
+func notify_coin_balance(amount: int) -> void:
+	if not multiplayer.is_server():
+		GameManager.set_coins(amount)
 
 @rpc("authority", "call_local", "reliable")
 func notify_harbor_stats(stats: Dictionary) -> void:
@@ -499,7 +531,9 @@ func _refresh_peer_zone(peer_id: int, fallback_zone: String = "") -> void:
 		return
 	for world in get_tree().get_nodes_in_group("world"):
 		if world.has_method("get_zone_for_peer"):
-			session.current_zone = world.get_zone_for_peer(peer_id)
+			var zone: String = world.get_zone_for_peer(peer_id)
+			# Client zone events are reliable; dedicated-server movement can trail one input frame.
+			session.current_zone = zone if not zone.is_empty() else fallback_zone
 			return
 	session.current_zone = fallback_zone
 

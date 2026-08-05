@@ -7,6 +7,7 @@ extends CanvasLayer
 @onready var hook_warning_label: Label = %HookWarningLabel
 @onready var chat_input: LineEdit = %ChatInput
 @onready var fishing_reward_label: Label = %FishingRewardLabel
+@onready var mail_badge: Label = %MailBadge
 
 var _hint_tween: Tween
 var _reward_tween: Tween
@@ -38,6 +39,7 @@ func _ready() -> void:
 	GameManager.fishing_result_completed.connect(_hide_warnings_after_fishing_result)
 	NetAPI.bait_empty.connect(func(): _show_warning(bait_warning_label, "Bait ran out. Buy or equip more bait."))
 	NetAPI.hook_broken.connect(func(): _show_warning(hook_warning_label, "Hook broke. Buy or equip another hook."))
+	NetAPI.mailbox_unread_changed.connect(_show_mail_unread)
 	%SettingsBtn.pressed.connect(func(): ClientSettings.open(self))
 	chat_input.max_length = NetAPI.CHAT_MAX_LENGTH
 	chat_input.text_submitted.connect(_send_chat)
@@ -45,6 +47,8 @@ func _ready() -> void:
 	_refresh_equipped()
 
 func _input(event: InputEvent) -> void:
+	if not get_tree().get_nodes_in_group("mailbox_modal").is_empty():
+		return
 	if chat_input.visible:
 		if event.is_action_pressed("ui_cancel"):
 			chat_input.hide()
@@ -65,6 +69,10 @@ func _send_chat(message: String) -> void:
 
 func _on_coins_changed(amount: int) -> void:
 	coins_label.text = "Coins: %d" % amount
+
+func _show_mail_unread(count: int) -> void:
+	mail_badge.visible = count > 0
+	mail_badge.text = "✉  %d unread %s" % [count, "MESSAGE" if count == 1 else "MESSAGES"]
 
 func _on_zone_hint_changed(hint: String) -> void:
 	if _hint_tween and _hint_tween.is_valid():
@@ -119,29 +127,7 @@ func _on_hook_durability_changed(current: int, max_val: int) -> void:
 	_refresh_equipped()
 
 func _refresh_equipped() -> void:
-	var rod    := ItemRegistry.get_item(GameManager.equipped_rod_id)
-	var bait   := ItemRegistry.get_item(GameManager.equipped_bait_id)
-	var tackle := ItemRegistry.get_item(GameManager.equipped_tackle_id)
-
-	var rod_text    := rod.display_name if rod else "—"
-	var bait_text   := _consumable_text(bait, GameManager.equipped_bait_id)
-	var hook_text   := _hook_text(tackle)
-
-	equipped_label.text = "Rod: %s  Bait: %s  Hook: %s" % [rod_text, bait_text, hook_text]
-
-func _consumable_text(item: ItemData, item_id: String) -> String:
-	if item == null:
-		return "—"
-	return "%s ×%d" % [item.display_name, GameManager.get_owned(item_id)]
-
-func _hook_text(tackle: TackleData) -> String:
-	if tackle == null:
-		return "—"
-	var cur := GameManager.hook_durability
-	var max_val := GameManager.hook_max_durability
-	if max_val <= 0:
-		return tackle.display_name
-	return "%s %d/%d" % [tackle.display_name, cur, max_val]
+	equipped_label.text = GameManager.get_equipped_summary()
 
 func _style_context_hint() -> void:
 	var style := StyleBoxFlat.new()
@@ -154,7 +140,7 @@ func _style_context_hint() -> void:
 	style.content_margin_top = 6
 	style.content_margin_bottom = 6
 	context_hint.add_theme_stylebox_override("normal", style)
-	context_hint.add_theme_font_size_override("font_size", 19)
+	context_hint.add_theme_font_size_override("font_size", 25)
 
 func _style_warning_label(label: Label) -> void:
 	var style := StyleBoxFlat.new()
@@ -167,7 +153,7 @@ func _style_warning_label(label: Label) -> void:
 	style.content_margin_top = 6
 	style.content_margin_bottom = 6
 	label.add_theme_stylebox_override("normal", style)
-	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_font_size_override("font_size", 22)
 
 func _show_warning(label: Label, message: String) -> void:
 	_warning_clear_token += 1
