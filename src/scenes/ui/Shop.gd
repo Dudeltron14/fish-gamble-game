@@ -25,6 +25,7 @@ func _ready() -> void:
 	GameManager.owned_changed.connect(_populate.call_deferred)
 	GameManager.owned_changed.connect(_refresh_equipped)
 	GameManager.equipped_changed.connect(_refresh_equipped)
+	GameManager.cosmetics_changed.connect(_populate.call_deferred)
 	GameManager.hook_durability_changed.connect(func(_current: int, _max_val: int): _refresh_equipped())
 	GameManager.coins_changed.connect(_on_coins_changed)
 	$Center/Panel/Margin/VBox/CloseBtn.pressed.connect(_close)
@@ -108,12 +109,18 @@ func _make_cosmetic_row(item: Dictionary) -> Control:
 	price_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	price_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(price_lbl)
-	var buy := Button.new()
-	buy.text = "Owned" if owned > 0 else "Buy"
-	buy.custom_minimum_size = Vector2(52, 0)
-	buy.disabled = owned > 0 or GameManager.current_coins < price
-	buy.pressed.connect(_on_buy_pressed.bind(str(item.id), buy))
-	row.add_child(buy)
+	var action := Button.new()
+	action.custom_minimum_size = Vector2(52, 0)
+	if owned > 0:
+		var equipped := _is_cosmetic_equipped(item)
+		action.text = "Equipped" if equipped else "Equip"
+		action.disabled = equipped
+		action.pressed.connect(_on_cosmetic_equip_pressed.bind(str(item.id), action))
+	else:
+		action.text = "Buy"
+		action.disabled = GameManager.current_coins < price
+		action.pressed.connect(_on_buy_pressed.bind(str(item.id), action))
+	row.add_child(action)
 	var wrapper := VBoxContainer.new()
 	wrapper.add_child(row)
 	wrapper.add_child(HSeparator.new())
@@ -207,6 +214,10 @@ func _on_equip_pressed(item_id: String, btn: Button) -> void:
 	_pulse(btn)
 	NetAPI.rpc_id(1, "c2s_equip", item_id)
 
+func _on_cosmetic_equip_pressed(item_id: String, btn: Button) -> void:
+	_pulse(btn)
+	NetAPI.rpc_id(1, "c2s_equip_cosmetic", item_id)
+
 func _pulse(control: Control) -> void:
 	var tween := create_tween()
 	tween.tween_property(control, "modulate", Color(1.0, 0.85, 0.35), 0.06)
@@ -285,6 +296,9 @@ func _is_equipped(item: ItemData) -> bool:
 	if item is TackleData:
 		return GameManager.equipped_tackle_id == item.id
 	return false
+
+func _is_cosmetic_equipped(item: Dictionary) -> bool:
+	return GameManager.equipped_skin_id == str(item.id) if str(item.category) == "skins" else GameManager.equipped_bobber_id == str(item.id)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("stats_toggle") and _gear_stats_panel:
