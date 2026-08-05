@@ -49,7 +49,7 @@ func handle_table_enter(peer_id: int) -> void:
 	if _shoe.is_empty():
 		_start_new_shoe()
 	_tables().watch(TABLE_ID, peer_id)
-	var was_solo := _tables().occupied_peers(TABLE_ID).size() == 1
+	var was_solo: bool = _tables().occupied_peers(TABLE_ID).size() == 1
 	var seat: int = _tables().join(TABLE_ID, peer_id)
 	if seat < 0:
 		_err(peer_id, "Table is full. You are spectating.")
