@@ -6,6 +6,7 @@
 [resource]
 script = ExtResource("1")
 rarity = "legendary"
+family = "treasure"
 base_coin_value = 150
 catch_difficulty = 2.2
 sprite_frame = 5

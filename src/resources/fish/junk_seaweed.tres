@@ -5,6 +5,7 @@
 
 [resource]
 script = ExtResource("1")
+family = "junk"
 base_coin_value = 0
 catch_difficulty = 0.2
 sprite_frame = -1

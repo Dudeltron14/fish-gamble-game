@@ -8,6 +8,7 @@ const FISH_SHEET_COLUMNS := 3
 const ICON_SIZE := Vector2(32, 32)
 
 @onready var fish_rows: VBoxContainer = %FishRows
+@onready var collection_rows: VBoxContainer = %Rows
 @onready var player_picker: OptionButton = %PlayerPicker
 var _stats: Dictionary = {}
 var _sort_by_best := false
@@ -22,6 +23,7 @@ func _ready() -> void:
 	tabs.set_tab_title(0, "General Stats")
 	tabs.set_tab_title(1, "Fishing Stats")
 	tabs.set_tab_title(2, "Gambling Stats")
+	tabs.set_tab_title(3, "Collections")
 	NetAPI.harbor_stats_loaded.connect(_show_stats)
 	%Close.pressed.connect(_close)
 	%Sort.pressed.connect(_toggle_sort)
@@ -88,6 +90,7 @@ func _show_stats(stats: Dictionary) -> void:
 		entries.sort_custom(func(a: FishData, b: FishData) -> bool: return float(by_id.get(a.id, {}).get("best_measurement" if _sort_by_best else "caught_count", 0)) > float(by_id.get(b.id, {}).get("best_measurement" if _sort_by_best else "caught_count", 0)))
 		for fish: FishData in entries:
 			_add_fish_row(fish, by_id.get(fish.id, {}))
+	_populate_collection(by_id)
 
 func _toggle_sort() -> void:
 	_sort_by_best = not _sort_by_best
@@ -128,6 +131,41 @@ func _add_fish_row(fish: FishData, stat: Dictionary) -> void:
 	var best := Label.new(); best.custom_minimum_size.x = 150; best.text = "Best: ????" if escaped_only else "Best: %.1f %s%s" % [float(stat.get("best_measurement", 0)), unit, str(best_compare.get("arrow", ""))] if not unit.is_empty() and float(stat.get("best_measurement", 0)) > 0.0 else "Best: —"; best.modulate = best_compare.get("color", Color.WHITE); row.add_child(best)
 	fish_rows.add_child(row)
 
+func _populate_collection(by_id: Dictionary) -> void:
+	for child in collection_rows.get_children(): child.queue_free()
+	for category in ["Fish", "Junk", "Treasure"]:
+		var heading := Label.new()
+		heading.text = category
+		heading.add_theme_font_size_override("font_size", 20)
+		collection_rows.add_child(heading)
+		for fish: FishData in ItemRegistry.fish.values():
+			if _catch_category(fish) != category: continue
+			var stat: Dictionary = by_id.get(fish.id, {})
+			_add_collection_row(fish, stat)
+
+func _add_collection_row(fish: FishData, stat: Dictionary) -> void:
+	var row := HBoxContainer.new()
+	row.custom_minimum_size = Vector2(0, 36)
+	row.add_theme_constant_override("separation", 10)
+	var icon := TextureRect.new()
+	icon.custom_minimum_size = ICON_SIZE
+	icon.texture = _fish_texture(fish)
+	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	row.add_child(icon)
+	var label := Label.new()
+	var caught := int(stat.get("caught_count", 0))
+	var away := int(stat.get("got_away_count", 0))
+	var unit := "lb" if fish.id.begins_with("junk_") else "in" if _catch_category(fish) == "Fish" else ""
+	var best := float(stat.get("best_measurement", 0.0))
+	var size_text := ""
+	if not unit.is_empty() and caught > 0: size_text = " · Best %.1f %s" % [best, unit]
+	label.text = "%s  ·  Caught %d%s%s" % [fish.display_name, caught, " · Away %d" % away if _catch_category(fish) == "Fish" else "", size_text]
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(label)
+	collection_rows.add_child(row)
+
 func _catch_category(fish: FishData) -> String:
 	if fish.id.begins_with("junk_"):
 		return "Junk"
@@ -161,7 +199,7 @@ func _comparison_values(mine: float, target: float, lower_is_better: bool = fals
 	if not _compare_mode or is_equal_approx(mine, target):
 		return {}
 	var mine_is_better := mine < target if lower_is_better else mine > target
-	return {"arrow": "  ↑" if mine_is_better else "  ↓", "color": Color(0.35, 1.0, 0.45) if mine_is_better else Color(1.0, 0.42, 0.38)}
+	return {"arrow": "  +" if mine_is_better else "  -", "color": Color(0.35, 1.0, 0.45) if mine_is_better else Color(1.0, 0.42, 0.38)}
 
 func _fish_texture(fish: FishData) -> Texture2D:
 	if fish.icon: return fish.icon

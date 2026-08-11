@@ -12,6 +12,7 @@ icon = ExtResource("2_snail")
 buy_price = 0
 sell_price = 0
 rarity = "common"
+family = "snail"
 base_coin_value = 8
 catch_difficulty = 0.4
 sprite_frame = -1

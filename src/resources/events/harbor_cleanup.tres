@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FishingEventData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/events/FishingEventData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "harbor_cleanup"
+display_name = "Harbor Cleanup"
+description = "The harbor crew is paying extra for odd finds pulled from the shallows."
+active_locations = ["ReedbankZone", "PierZone"]
+duration_seconds = 600
+family_modifiers = {"junk": 1.6}
+reward_multiplier = 1.25

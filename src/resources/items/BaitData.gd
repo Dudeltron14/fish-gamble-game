@@ -10,3 +10,7 @@ class_name BaitData extends ItemData
 }
 @export var uses_per_stack: int = 10
 @export var wait_modifier: float = 1.0  ## Multiplier on bite wait time. < 1.0 = fish bite sooner.
+@export var family_affinity: Array[String] = []
+@export var location_affinity: Array[String] = []
+@export var time_affinity: Array[String] = []
+@export var size_bonus: float = 0.0

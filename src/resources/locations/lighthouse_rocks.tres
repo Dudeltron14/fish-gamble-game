@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FishingLocationData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/FishingLocationData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "lighthouse_rocks"
+display_name = "Lighthouse Rocks"
+zone_name = "LighthouseRocksZone"
+biome = "rocky_shore"
+fish_ids = ["common_harbor_eel", "common_harbor_sunfish", "uncommon_harbor_catfish", "uncommon_harbor_herring", "rare_pearl_clam", "rare_pike", "legendary_kraken"]
+rarity_weights = {"common": 0.62, "uncommon": 0.27, "rare": 0.105, "legendary": 0.005}
+day_modifiers = {"common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0}
+night_modifiers = {"common": 0.78, "uncommon": 1.12, "rare": 1.45, "legendary": 1.35}
+allowed_tags = ["rocky_shore", "starter"]

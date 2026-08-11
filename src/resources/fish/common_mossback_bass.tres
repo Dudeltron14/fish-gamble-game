@@ -10,6 +10,7 @@ description = "A green-striped pond regular with a stubborn streak."
 buy_price = 0
 sell_price = 0
 rarity = "common"
+family = "bass"
 base_coin_value = 15
 catch_difficulty = 0.8
 sprite_frame = 7

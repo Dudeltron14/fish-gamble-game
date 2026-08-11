@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FishingEventData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/events/FishingEventData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "fish_school"
+display_name = "Fish School"
+description = "A silver flash is moving through the water. One fish family is unusually active."
+active_locations = ["PierZone", "ReedbankZone"]
+duration_seconds = 600
+family_modifiers = {"herring": 1.8, "perch": 1.35}
+reward_multiplier = 1.1

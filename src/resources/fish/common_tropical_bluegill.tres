@@ -12,6 +12,7 @@ icon = ExtResource("2_bluegill")
 buy_price = 0
 sell_price = 0
 rarity = "common"
+family = "sunfish"
 base_coin_value = 15
 catch_difficulty = 0.7
 sprite_frame = -1

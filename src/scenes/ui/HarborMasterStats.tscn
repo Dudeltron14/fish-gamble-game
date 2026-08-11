@@ -75,7 +75,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 22)
 bbcode_enabled = true
 fit_content = true
-text = "[color=white]Comparison: [/color][color=#59ff73]green ↑[/color][color=white] = you have more; [/color][color=#ff6b61]red ↓[/color][color=white] = they have more.[/color]"
+text = "[color=white]Comparison: [/color][color=#59ff73]green +[/color][color=white] = you have more; [/color][color=#ff6b61]red -[/color][color=white] = they have more.[/color]"
 
 [node name="GeneralStats" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Tabs" unique_id=1690889058]
 layout_mode = 2
@@ -120,7 +120,26 @@ size_flags_horizontal = 3
 [node name="GamblingStats" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Tabs" unique_id=1869381152]
 visible = false
 layout_mode = 2
+metadata/_tab_index = 3
+
+[node name="Collections" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Tabs" unique_id=2114975008]
+visible = false
+layout_mode = 2
 metadata/_tab_index = 2
+
+[node name="CollectionRows" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Tabs/Collections" unique_id=2114975009]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Scroll" type="ScrollContainer" parent="Center/Panel/Margin/VBox/Tabs/Collections" unique_id=2114975010]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Rows" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Tabs/Collections/Scroll" unique_id=2114975011]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="Gambling" type="GridContainer" parent="Center/Panel/Margin/VBox/Tabs/GamblingStats" unique_id=260374802]
 unique_name_in_owner = true

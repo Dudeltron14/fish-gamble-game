@@ -6,6 +6,8 @@ signal server_status(player_count: int, sent_ms: int)
 signal leaderboard_result(data: Dictionary)
 signal fishing_start(ok: bool, fish_id: String, difficulty: float, cast_speed: float, line_strength: float, wait_modifier: float, hook_react_bonus: float, auto_catch: bool)
 signal fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int, measurement: float, measurement_unit: String, personal_record: bool)
+signal world_clock_changed(phase: String, seconds_remaining: int)
+signal fishing_event_changed(event_id: String, display_name: String, description: String, seconds_remaining: int)
 signal shop_result(ok: bool, reason: String, new_balance: int)
 signal equip_result(ok: bool, item_id: String, slot: String)
 signal inventory_loaded(items: Dictionary)
@@ -75,6 +77,7 @@ func c2s_world_ready() -> void:
 	var mailbox := _srv("MailboxServer")
 	if mailbox and mailbox.has_method("handle_unread"):
 		mailbox.handle_unread(peer_id)
+	GameServer.send_world_clock(peer_id)
 
 @rpc("any_peer", "call_local", "reliable")
 func c2s_server_status(sent_ms: int) -> void:
@@ -139,7 +142,11 @@ func c2s_shop_buy(item_id: String) -> void:
 @rpc("any_peer", "call_local", "reliable")
 func c2s_bj_bet(amount: int) -> void:
 	if not multiplayer.is_server(): return
-	_refresh_peer_zone(_peer_id())
+	# Overlay entry is authoritative for the table. Do not let a trailing movement
+	# packet overwrite CasinoZone between opening the table and placing the bet.
+	var session := GameServer.get_authenticated_session(_peer_id())
+	if session == null or session.current_zone != "CasinoZone":
+		_refresh_peer_zone(_peer_id())
 	var bj := _srv("BlackjackServer")
 	if bj: bj.handle_bet(_peer_id(), amount)
 
@@ -387,6 +394,18 @@ func notify_fishing_start(ok: bool, fish_id: String, difficulty: float, cast_spe
 func notify_fishing_result(caught: bool, fish_id: String, earned: int, new_balance: int, measurement: float = 0.0, measurement_unit: String = "", personal_record: bool = false) -> void:
 	if multiplayer.is_server() and not GameManager.is_hosting: return
 	fishing_result.emit(caught, fish_id, earned, new_balance, measurement, measurement_unit, personal_record)
+
+@rpc("authority", "call_local", "reliable")
+func notify_world_clock(phase: String, seconds_remaining: int) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	GameManager.world_phase = phase
+	GameManager.world_time_remaining = seconds_remaining
+	world_clock_changed.emit(phase, seconds_remaining)
+
+@rpc("authority", "call_local", "reliable")
+func notify_fishing_event(event_id: String, display_name: String, description: String, seconds_remaining: int) -> void:
+	if multiplayer.is_server() and not GameManager.is_hosting: return
+	fishing_event_changed.emit(event_id, display_name, description, seconds_remaining)
 
 @rpc("authority", "call_local", "reliable")
 func notify_shop_result(ok: bool, reason: String, new_balance: int) -> void:

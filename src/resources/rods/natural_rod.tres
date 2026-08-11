@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RodData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/RodData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/fishing_content/equipment_atlas.png" id="2"]
+[sub_resource type="AtlasTexture" id="Atlas"]
+atlas = ExtResource("2")
+region = Rect2(32, 32, 32, 32)
+
+[resource]
+script = ExtResource("1")
+id = "natural_rod"
+display_name = "Harbor Natural Rod"
+description = "A balanced upgrade for anglers ready to leave the starter dock behind."
+icon = SubResource("Atlas")
+buy_price = 275
+cast_speed = 1.12
+line_strength = 1.15
+rarity_bonus = 0.04
+effect_tags = ["starter_harbor", "balanced"]

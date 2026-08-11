@@ -36,6 +36,13 @@ unique_name_in_owner = true
 text = "Hold SPACE to cast..."
 horizontal_alignment = 1
 
+[node name="PhaseLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.65, 0.82, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+text = "DAY · 15:00"
+horizontal_alignment = 1
+
 [node name="CastBar" type="ProgressBar" parent="Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 24)

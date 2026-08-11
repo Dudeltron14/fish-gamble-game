@@ -12,6 +12,7 @@ buy_price = 0
 sell_price = 0
 icon = ExtResource("2_perch")
 rarity = "common"
+family = "perch"
 base_coin_value = 15
 catch_difficulty = 0.6
 sprite_frame = 0

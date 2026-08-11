@@ -7,7 +7,7 @@ All values sourced directly from live code and .tres resource files.
 
 ## Overview
 
-Fishing is triggered by pressing **E** inside the **DockZone**. The server refreshes the player's world zone before gated actions, picks the catch, and deducts gear before the player sees the reel. The minigame runs client-side with server-side timing/result guardrails.
+Fishing is triggered by pressing **E** inside a registered fishing zone such as **PierZone**, **LighthouseRocksZone**, or **ReedbankZone**. The server refreshes the player's world zone before gated actions, resolves the zone's data-driven catch pool, and deducts gear before the player sees the reel. The minigame runs client-side with server-side timing/result guardrails.
 
 The bobber is multiplayer-synced. It appears only after the cast minigame completes, plays a splash animation on spawn, and lands farther from the player on better casts.
 

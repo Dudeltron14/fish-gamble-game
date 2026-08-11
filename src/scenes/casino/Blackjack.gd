@@ -25,6 +25,7 @@ var _all_in_confirm_pending := false
 var _last_shoe_reveal := {}
 var _win_effect_marker_positions := {}
 var _table_phase := ""
+var _last_table_phase := ""
 var _table_can_act := false
 var _bet_placed := false
 var _local_table_seat := -1
@@ -236,7 +237,13 @@ func _casino_log_text() -> String:
 	return "\n".join(lines)
 
 func _on_table_state(_table_id: String, state: Dictionary) -> void:
-	_table_phase = str(state.get("phase", ""))
+	var next_phase := str(state.get("phase", ""))
+	if next_phase == "betting" and _last_table_phase != "" and _last_table_phase != "betting":
+		_clear_hands()
+		_dealer_cards.clear()
+		_player_value = 0
+	_table_phase = next_phase
+	_last_table_phase = next_phase
 	var active_seat: int = int(state.get("active_seat", -1))
 	var seats: Array = state.get("seats", [])
 	var occupied := 0
@@ -256,8 +263,11 @@ func _on_table_state(_table_id: String, state: Dictionary) -> void:
 		var public_state: Dictionary = seat_data.get("state", {})
 		var username: String = str(seat_data.get("username", "Player"))
 		var cards: Array = public_state.get("cards", [])
-		var marker := "  ◀" if seat_index == active_seat else ""
-		table_seat_labels[display_slot].text = "PLAYER %d — %s%s" % [display_slot + 1, username, marker]
+		var marker := "  <" if seat_index == active_seat else ""
+		var bet_text := ""
+		if not public_state.is_empty():
+			bet_text = "  Bet: %d  Hand: %s" % [int(public_state.get("bet", 0)), str(public_state.get("value", "?"))]
+		table_seat_labels[display_slot].text = "PLAYER %d - %s%s%s" % [display_slot + 1, username, bet_text, marker]
 		table_seat_labels[display_slot].modulate = Color(1.0, 0.84, 0.4) if seat_index == active_seat else Color.WHITE
 		if display_slot != 0:
 			_sync_remote_hand(table_seat_hands[display_slot], cards, float(display_slot) * 0.12)

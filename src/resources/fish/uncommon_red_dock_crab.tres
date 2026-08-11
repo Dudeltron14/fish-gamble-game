@@ -10,6 +10,7 @@ description = "Pinchy, proud, and worth more than it has any right to be."
 buy_price = 0
 sell_price = 0
 rarity = "uncommon"
+family = "crab"
 base_coin_value = 20
 catch_difficulty = 1.0
 sprite_frame = 5

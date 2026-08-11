@@ -10,6 +10,7 @@ description = "Quick, bright, and slippery enough to make you earn it."
 buy_price = 0
 sell_price = 0
 rarity = "uncommon"
+family = "herring"
 base_coin_value = 20
 catch_difficulty = 1.1
 sprite_frame = 8

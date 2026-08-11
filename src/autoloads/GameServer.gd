@@ -9,8 +9,21 @@ const STARTER_BAIT_ID := "worm"
 const STARTER_TACKLE_ID := "basic_hook"
 const LEADERBOARD_LIMIT := 20
 const LEADERBOARD_BROADCAST_INTERVAL := 0.5
+const DAY_SECONDS := 15.0 * 60.0
+const NIGHT_SECONDS := 5.0 * 60.0
+const FISHING_EVENTS: Array[Resource] = [
+	preload("res://src/resources/events/fish_school.tres"),
+	preload("res://src/resources/events/night_tide.tres"),
+	preload("res://src/resources/events/harbor_cleanup.tres"),
+]
 
 var _leaderboard_timer: Timer
+var _clock_timer: Timer
+var _clock_elapsed := 0.0
+var _world_phase := "day"
+var _world_time_remaining := DAY_SECONDS
+var _active_event_index := 0
+var _event_time_remaining := 600
 
 func init_server() -> void:
 	if _active:
@@ -21,6 +34,11 @@ func init_server() -> void:
 	_leaderboard_timer.wait_time = LEADERBOARD_BROADCAST_INTERVAL
 	_leaderboard_timer.timeout.connect(_flush_leaderboard)
 	add_child(_leaderboard_timer)
+	_clock_timer = Timer.new()
+	_clock_timer.wait_time = 1.0
+	_clock_timer.timeout.connect(_tick_world_clock)
+	add_child(_clock_timer)
+	_clock_timer.start()
 	for script_path in [
 		"res://src/server/AuthServer.gd",
 		"res://src/server/FishingServer.gd",
@@ -36,6 +54,43 @@ func init_server() -> void:
 	NetworkManager.peer_connected.connect(_on_peer_connected)
 	NetworkManager.peer_disconnected.connect(_on_peer_disconnected)
 	print("GameServer: initialized")
+
+func get_world_phase() -> String:
+	var forced := OS.get_environment("BRINDLE_LOCAL_TIME_PHASE").to_lower()
+	return forced if forced in ["day", "night"] else _world_phase
+
+func get_world_time_remaining() -> int:
+	return ceili(_world_time_remaining)
+
+func send_world_clock(peer_id: int) -> void:
+	NetAPI.rpc_id(peer_id, "notify_world_clock", get_world_phase(), get_world_time_remaining())
+	_send_event(peer_id)
+
+func get_active_fishing_event() -> FishingEventData:
+	return FISHING_EVENTS[_active_event_index] as FishingEventData
+
+func get_event_time_remaining() -> int:
+	return _event_time_remaining
+
+func _send_event(peer_id: int = 0) -> void:
+	var event := get_active_fishing_event()
+	if peer_id == 0:
+		NetAPI.rpc("notify_fishing_event", event.id, event.display_name, event.description, _event_time_remaining)
+	else:
+		NetAPI.rpc_id(peer_id, "notify_fishing_event", event.id, event.display_name, event.description, _event_time_remaining)
+
+func _tick_world_clock() -> void:
+	_clock_elapsed += 1.0
+	_world_time_remaining -= 1.0
+	_event_time_remaining -= 1
+	if _world_time_remaining <= 0.0:
+		_world_phase = "night" if _world_phase == "day" else "day"
+		_world_time_remaining = NIGHT_SECONDS if _world_phase == "night" else DAY_SECONDS
+	if _event_time_remaining <= 0:
+		_active_event_index = (_active_event_index + 1) % FISHING_EVENTS.size()
+		_event_time_remaining = (get_active_fishing_event() as FishingEventData).duration_seconds
+	NetAPI.rpc("notify_world_clock", get_world_phase(), get_world_time_remaining())
+	_send_event()
 
 func _on_peer_connected(peer_id: int) -> void:
 	sessions[peer_id] = PlayerSession.new(peer_id)

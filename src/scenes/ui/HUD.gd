@@ -8,6 +8,8 @@ extends CanvasLayer
 @onready var chat_input: LineEdit = %ChatInput
 @onready var fishing_reward_label: Label = %FishingRewardLabel
 @onready var mail_badge: Label = %MailBadge
+@onready var world_clock_label: Label = %WorldClockLabel
+@onready var fishing_event_label: Label = %FishingEventLabel
 
 var _hint_tween: Tween
 var _reward_tween: Tween
@@ -40,11 +42,15 @@ func _ready() -> void:
 	NetAPI.bait_empty.connect(func(): _show_warning(bait_warning_label, "Bait ran out. Buy or equip more bait."))
 	NetAPI.hook_broken.connect(func(): _show_warning(hook_warning_label, "Hook broke. Buy or equip another hook."))
 	NetAPI.mailbox_unread_changed.connect(_show_mail_unread)
+	NetAPI.world_clock_changed.connect(_show_world_clock)
+	NetAPI.fishing_event_changed.connect(_show_fishing_event)
 	%SettingsBtn.pressed.connect(func(): ClientSettings.open(self))
 	chat_input.max_length = NetAPI.CHAT_MAX_LENGTH
 	chat_input.text_submitted.connect(_send_chat)
 	_on_coins_changed(GameManager.current_coins)
 	_refresh_equipped()
+	_show_world_clock(GameManager.world_phase, GameManager.world_time_remaining)
+	fishing_event_label.text = "EVENT: Loading..."
 
 func _input(event: InputEvent) -> void:
 	if not get_tree().get_nodes_in_group("mailbox_modal").is_empty():
@@ -72,7 +78,15 @@ func _on_coins_changed(amount: int) -> void:
 
 func _show_mail_unread(count: int) -> void:
 	mail_badge.visible = count > 0
-	mail_badge.text = "✉  %d unread %s" % [count, "MESSAGE" if count == 1 else "MESSAGES"]
+	mail_badge.text = "MAIL: %d unread %s" % [count, "MESSAGE" if count == 1 else "MESSAGES"]
+
+func _show_world_clock(phase: String, seconds_remaining: int) -> void:
+	var minutes := maxi(0, seconds_remaining) / 60
+	var seconds := maxi(0, seconds_remaining) % 60
+	world_clock_label.text = "%s %02d:%02d" % [phase.to_upper(), minutes, seconds]
+
+func _show_fishing_event(_event_id: String, display_name: String, _description: String, seconds_remaining: int) -> void:
+	fishing_event_label.text = "EVENT: %s %02d:%02d" % [display_name, seconds_remaining / 60, seconds_remaining % 60]
 
 func _on_zone_hint_changed(hint: String) -> void:
 	if _hint_tween and _hint_tween.is_valid():
@@ -88,6 +102,14 @@ func _on_zone_hint_changed(hint: String) -> void:
 	_hint_tween.tween_property(context_hint, "scale", Vector2.ONE, 0.18).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 
 func show_fishing_reward(success: bool, message: String, personal_record: bool) -> void:
+	# Personal records are rendered by the catching player's world label and broadcast to nearby players.
+	# Do not duplicate that celebration in the fixed HUD banner.
+	if personal_record:
+		_reward_token += 1
+		if _reward_tween and _reward_tween.is_valid(): _reward_tween.kill()
+		if _reward_color_tween and _reward_color_tween.is_valid(): _reward_color_tween.kill()
+		fishing_reward_label.visible = false
+		return
 	_reward_token += 1
 	if _reward_tween and _reward_tween.is_valid(): _reward_tween.kill()
 	if _reward_color_tween and _reward_color_tween.is_valid(): _reward_color_tween.kill()
@@ -97,11 +119,7 @@ func show_fishing_reward(success: bool, message: String, personal_record: bool) 
 	fishing_reward_label.scale = Vector2.ONE * 0.6
 	_reward_tween = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	_reward_tween.tween_property(fishing_reward_label, "scale", Vector2.ONE, 0.35)
-	if personal_record:
-		_reward_color_tween = create_tween().set_loops()
-		for color in [Color(1.0, 0.2, 0.2), Color(1.0, 0.9, 0.15), Color(0.2, 1.0, 0.8), Color(0.3, 0.5, 1.0)]:
-			_reward_color_tween.tween_property(fishing_reward_label, "modulate", color, 0.12)
-	_hide_fishing_reward_after(_reward_token, 9.0 if personal_record else 2.5, personal_record)
+	_hide_fishing_reward_after(_reward_token, 2.5, false)
 
 func _hide_fishing_reward_after(token: int, delay: float, personal_record: bool) -> void:
 	await get_tree().create_timer(delay).timeout

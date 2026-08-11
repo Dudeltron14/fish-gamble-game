@@ -118,6 +118,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Daily Quests"
 
+[node name="FishingEvents" type="Button" parent="Panel/Margin/VBox/Choices" unique_id=2114975007]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Fishing Events"
+
 [node name="Derbies" type="Button" parent="Panel/Margin/VBox/Choices" unique_id=2048220210]
 layout_mode = 2
 size_flags_horizontal = 3

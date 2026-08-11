@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FishingLocationData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/FishingLocationData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pier"
+display_name = "Brindle Pier"
+zone_name = "PierZone"
+biome = "harbor"
+fish_ids = ["common_perch", "common_mossback_bass", "common_harbor_eel", "uncommon_bass", "uncommon_silver_shad", "rare_trout", "rare_pike"]
+rarity_weights = {"common": 0.68, "uncommon": 0.25, "rare": 0.065, "legendary": 0.005}
+day_modifiers = {"common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0}
+night_modifiers = {"common": 0.86, "uncommon": 1.1, "rare": 1.3, "legendary": 1.2}
+allowed_tags = ["harbor", "starter"]

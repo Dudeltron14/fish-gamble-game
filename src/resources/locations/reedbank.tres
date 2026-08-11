@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FishingLocationData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/FishingLocationData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "reedbank"
+display_name = "Reedbank"
+zone_name = "ReedbankZone"
+biome = "marsh_edge"
+fish_ids = ["common_freshwater_snail", "common_tropical_bluegill", "common_harbor_sunfish", "uncommon_harbor_catfish", "uncommon_harbor_herring", "uncommon_red_dock_crab", "rare_trout"]
+rarity_weights = {"common": 0.72, "uncommon": 0.24, "rare": 0.035, "legendary": 0.005}
+day_modifiers = {"common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0}
+night_modifiers = {"common": 0.9, "uncommon": 1.14, "rare": 1.3, "legendary": 1.2}
+allowed_tags = ["freshwater", "marsh", "starter"]

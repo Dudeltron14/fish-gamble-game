@@ -8,6 +8,13 @@ class_name FishData extends ItemData
 @export var max_length: float = 0.0
 @export var min_weight: float = 0.0 # pounds; junk uses weight instead
 @export var max_weight: float = 0.0
+@export var family: String = ""
+@export var location_tags: Array[String] = ["starter_harbor"]
+@export var time_tags: Array[String] = ["day", "night"]
+@export var size_curve: float = 2.2 ## >1 favors smaller catches; 1 is uniform.
+@export var value_multiplier: float = 1.0
+@export var difficulty_multiplier: float = 1.0
+@export var boss: bool = false
 
 const CATCH_RANGES := {
 	"common_freshwater_snail": Vector2(0.5, 2.0), "common_tropical_bluegill": Vector2(4.0, 12.0),

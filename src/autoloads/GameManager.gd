@@ -13,6 +13,8 @@ signal fishing_result_completed()
 var current_player_name: String = ""
 var current_coins: int = 0
 var current_zone: String = ""
+var world_phase: String = "day"
+var world_time_remaining: int = 900
 var equipped_rod_id: String = ""
 var equipped_bait_id: String = ""
 var equipped_tackle_id: String = ""
@@ -31,6 +33,9 @@ const ZONE_HINTS := {
 	"MailboxZone": "Press E to check mailbox",
 	"JukeboxZone": "Press E to choose music",
 	"HarborMasterZone": "Press E to speak with Harbor Master",
+	"PierZone": "Pier fishing — hold E to cast",
+	"LighthouseRocksZone": "Lighthouse rocks — night catches favor rare fish",
+	"ReedbankZone": "Reedbank fishing — harbor minnows gather here",
 }
 
 func _ready() -> void:

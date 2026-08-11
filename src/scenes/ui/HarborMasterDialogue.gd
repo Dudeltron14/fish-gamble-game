@@ -10,6 +10,12 @@ const SKEPTICAL_PORTRAIT := preload("res://assets/characters/harbor_master_dialo
 const JACKPOT_PORTRAIT := preload("res://assets/characters/harbor_master_dialogue_jackpot_dollar_eyes_v4.png")
 const CASTING_PORTRAIT := preload("res://assets/characters/harbor_master_dialogue_casting.png")
 const REELING_PORTRAIT := preload("res://assets/characters/harbor_master_dialogue_reeling.png")
+const KEEPER_MYSTERIOUS_PORTRAIT := preload("res://assets/characters/lighthouse_keeper_dialogue_mysterious.png")
+const KEEPER_JOYOUS_PORTRAIT := preload("res://assets/characters/lighthouse_keeper_dialogue_joyous.png")
+const KEEPER_CONCERNED_PORTRAIT := preload("res://assets/characters/lighthouse_keeper_dialogue_concerned.png")
+const KEEPER_SMILING_PORTRAIT := preload("res://assets/characters/lighthouse_keeper_dialogue_smiling.png")
+const KEEPER_WINKING_PORTRAIT := preload("res://assets/characters/lighthouse_keeper_dialogue_winking.png")
+const KEEPER_SPOOKY_PORTRAIT := preload("res://assets/characters/lighthouse_keeper_dialogue_spooky.png")
 
 const PAGES := [
 	"Ahoy, %s! I’m the Harbor Master: keeper of the docks, the ledger, and several gulls with unpaid debts.",
@@ -20,12 +26,19 @@ const PAGES := [
 	"And BLACKJACK! My favorite game. Cards are fixed before the shoe begins, so the dealer can only disappoint you honestly. Bet like a sailor, not like a lighthouse.",
 	"This island keeps secrets beneath its waves—and there are many more shores to explore soon. For now, cast often, mind the fog, and don’t ask why the lighthouse blinks twice.",
 ]
+const LIGHTHOUSE_PAGES := [
+	"The lamp keeps the rocks honest, %s. I keep the fish honest. Mostly.",
+	"At the pier, the harbor fish are forgiving. The lighthouse rocks hide rarer catches, especially after sunset.",
+	"The reedbank is calmer water. Try smaller bait there, and watch for schools gathering near the reeds.",
+	"Keep the lantern stocked and the night stays friendly. A dark lighthouse makes for very dramatic fishing and terrible paperwork.",
+]
 
 var _page := 0
 var _sub_overlay: Node = null
 var _tutorial_active := false
 var _typing := false
 var _typed_characters := 0.0
+var _event_display := "Fishing events are loading..."
 @onready var body: Label = %Body
 @onready var portrait: TextureRect = $Portrait
 
@@ -35,9 +48,23 @@ func _ready() -> void:
 	%Tutorial.pressed.connect(_start_tutorial)
 	%Stats.pressed.connect(_open.bind(STATS_SCENE))
 	%DailyQuests.pressed.connect(_open.bind(LEDGER_SCENE))
+	%FishingEvents.pressed.connect(_show_event)
+	NetAPI.fishing_event_changed.connect(_on_fishing_event)
 	%Close.pressed.connect(_close)
 	_layout_for_viewport()
+	$Panel/Margin/Name.text = "LIGHTHOUSE KEEPER" if GameManager.current_zone == "LighthouseKeeperZone" else "HARBOR MASTER"
 	_show_menu()
+
+func _on_fishing_event(_event_id: String, display_name: String, description: String, seconds_remaining: int) -> void:
+	_event_display = "%s\n%s\nTime remaining: %02d:%02d" % [display_name, description, seconds_remaining / 60, seconds_remaining % 60]
+
+func _show_event() -> void:
+	_tutorial_active = false
+	_typing = false
+	portrait.texture = KEEPER_MYSTERIOUS_PORTRAIT if GameManager.current_zone == "LighthouseKeeperZone" else SKEPTICAL_PORTRAIT
+	body.text = _event_display
+	body.visible_characters = -1
+	%Choices.hide()
 
 func _layout_for_viewport() -> void:
 	var width := get_viewport().get_visible_rect().size.x
@@ -73,8 +100,8 @@ func _show_menu() -> void:
 	_tutorial_active = false
 	_typing = false
 	body.show()
-	portrait.texture = WELCOME_PORTRAIT
-	%Body.text = "The harbor keeps records, secrets, and a fair bit of salt. What can I do for you?"
+	portrait.texture = KEEPER_SMILING_PORTRAIT if GameManager.current_zone == "LighthouseKeeperZone" else WELCOME_PORTRAIT
+	%Body.text = "The lighthouse keeps watch over three fishing grounds. What would you like to know?" if GameManager.current_zone == "LighthouseKeeperZone" else "The harbor keeps records, secrets, and a fair bit of salt. What can I do for you?"
 	%Body.visible_characters = -1
 	%Choices.show()
 
@@ -86,8 +113,16 @@ func _advance() -> void:
 		_show_page()
 
 func _show_page() -> void:
-	body.text = PAGES[_page] % GameManager.current_player_name if PAGES[_page].contains("%s") else PAGES[_page]
-	portrait.texture = CASTING_PORTRAIT if _page == 1 else REELING_PORTRAIT if _page == 2 else JACKPOT_PORTRAIT if _page == 5 else SKEPTICAL_PORTRAIT if _page == 6 else WELCOME_PORTRAIT
+	var pages: Array = LIGHTHOUSE_PAGES if GameManager.current_zone == "LighthouseKeeperZone" else PAGES
+	if _page >= pages.size():
+		_show_menu()
+		return
+	body.text = pages[_page] % GameManager.current_player_name if pages[_page].contains("%s") else pages[_page]
+	if GameManager.current_zone == "LighthouseKeeperZone":
+		var keeper_portraits := [KEEPER_SMILING_PORTRAIT, KEEPER_WINKING_PORTRAIT, KEEPER_JOYOUS_PORTRAIT, KEEPER_CONCERNED_PORTRAIT, KEEPER_SPOOKY_PORTRAIT]
+		portrait.texture = keeper_portraits[min(_page, keeper_portraits.size() - 1)]
+	else:
+		portrait.texture = CASTING_PORTRAIT if _page == 1 else REELING_PORTRAIT if _page == 2 else JACKPOT_PORTRAIT if _page == 5 else SKEPTICAL_PORTRAIT if _page == 6 else WELCOME_PORTRAIT
 	_typed_characters = 0.0
 	body.visible_characters = 0
 	_typing = true

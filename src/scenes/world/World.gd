@@ -12,6 +12,7 @@ const LEADERBOARD_SCENE := preload("res://src/scenes/ui/LeaderboardPanel.tscn")
 
 @onready var players: Node2D       = $Players
 @onready var spawn_point: Marker2D = $SpawnPoint
+@onready var world_modulate: CanvasModulate = $WorldModulate
 
 var _local_zone := ""
 var _overlay: Node = null
@@ -22,12 +23,15 @@ var _leaderboard_panel: CanvasLayer = null
 var _overlay_hides_player := false
 var _overlay_entry_position := Vector2.ZERO
 var _intentional_disconnect := false
+var _world_ready_confirmed := false
 var _stats_panel_was_visible := true
 var _leaderboard_panel_was_visible := true
 
 func _ready() -> void:
 	add_to_group("world")
 	AudioManager.set_music_context("world")
+	NetAPI.world_clock_changed.connect(_on_world_clock_changed)
+	_on_world_clock_changed(GameManager.world_phase, GameManager.world_time_remaining)
 	if not NetworkManager.server_disconnected.is_connected(_on_server_disconnected):
 		NetworkManager.server_disconnected.connect(_on_server_disconnected)
 	for zone in $Zones.get_children():
@@ -88,12 +92,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("interact") or _overlay != null:
 		return
 	match _local_zone:
-		"DockZone":   _open_overlay(FISHING_SCENE)
+		"PierZone", "LighthouseRocksZone", "ReedbankZone": _open_overlay(FISHING_SCENE)
 		"ShopZone":   _open_overlay(SHOP_SCENE)
 		"CasinoZone": _open_overlay(BJ_SCENE)
 		"MailboxZone": _open_overlay(MAILBOX_SCENE)
 		"JukeboxZone": ClientSettings.open(self)
 		"HarborMasterZone": _open_overlay(HARBOR_MASTER_DIALOGUE_SCENE)
+		"LighthouseKeeperZone": _open_overlay(HARBOR_MASTER_DIALOGUE_SCENE)
 
 func spawn_player(peer_id: int, p_name: String) -> void:
 	if not multiplayer.is_server():
@@ -211,6 +216,7 @@ func _notify_world_ready() -> void:
 	await get_tree().process_frame
 	for attempt in 10:
 		if _get_local_player() != null:
+			_world_ready_confirmed = true
 			return
 		print("World: sending c2s_world_ready to server attempt=%d" % [attempt + 1])
 		NetAPI.rpc_id(1, "c2s_world_ready")
@@ -349,7 +355,7 @@ func disconnect_to_login() -> void:
 	_reset_session_and_go_to_login()
 
 func _on_server_disconnected() -> void:
-	if _intentional_disconnect or multiplayer.is_server():
+	if _intentional_disconnect or multiplayer.is_server() or not _world_ready_confirmed:
 		return
 	if _server_update_dialog != null and is_instance_valid(_server_update_dialog):
 		_server_update_dialog.popup_centered()
@@ -424,3 +430,7 @@ func _on_zone_exited(body: Node2D, _zone_name: String) -> void:
 	_local_zone = ""
 	GameManager.set_zone("")
 	NetAPI.rpc_id(1, "c2s_zone_changed", "")
+
+func _on_world_clock_changed(phase: String, _seconds_remaining: int) -> void:
+	if not is_instance_valid(world_modulate): return
+	world_modulate.color = Color(0.78, 0.84, 0.95, 1.0) if phase == "night" else Color.WHITE

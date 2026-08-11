@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="BaitData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/BaitData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/fishing_content/equipment_atlas.png" id="2"]
+[sub_resource type="AtlasTexture" id="Atlas"]
+atlas = ExtResource("2")
+region = Rect2(32, 0, 32, 32)
+
+[resource]
+script = ExtResource("1")
+id = "bass_popper"
+display_name = "Bronze Bass Popper"
+description = "A noisy little lure with a suspiciously confident wobble."
+icon = SubResource("Atlas")
+buy_price = 35
+rarity_weights = {"common": 0.4, "uncommon": 0.42, "rare": 0.16, "legendary": 0.02}
+uses_per_stack = 10
+wait_modifier = 0.95
+family_affinity = ["bass", "sunfish"]
+location_affinity = ["starter_harbor"]
+size_bonus = 0.03

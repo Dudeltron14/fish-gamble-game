@@ -5,12 +5,14 @@ var rods: Dictionary = {}
 var baits: Dictionary = {}
 var tackle: Dictionary = {}
 var fish: Dictionary = {}
+var locations: Dictionary = {}
 
 const ITEM_DIRS := [
 	"res://src/resources/rods/",
 	"res://src/resources/baits/",
 	"res://src/resources/tackle/",
 	"res://src/resources/fish/",
+	"res://src/resources/locations/",
 ]
 
 func _ready() -> void:
@@ -29,7 +31,7 @@ func _load_all() -> void:
 			var resource_name := _resource_name_from_dir_entry(file_name)
 			if not resource_name.is_empty() and not resource_name.begins_with("_"):
 				var res: Resource = load(dir_path + resource_name)
-				if res is ItemData:
+				if res is ItemData or res is FishingLocationData:
 					_register(res)
 			file_name = dir.get_next()
 	print("ItemRegistry: loaded %d items (%d rods, %d baits, %d tackle, %d fish)" % [
@@ -47,7 +49,10 @@ func _resource_name_from_dir_entry(file_name: String) -> String:
 		return file_name.trim_suffix(".remap")
 	return ""
 
-func _register(res: ItemData) -> void:
+func _register(res: Resource) -> void:
+	if res is FishingLocationData:
+		locations[res.id] = res
+		return
 	items[res.id] = res
 	if res is RodData:
 		rods[res.id] = res
@@ -60,3 +65,12 @@ func _register(res: ItemData) -> void:
 
 func get_item(id: String) -> ItemData:
 	return items.get(id, null)
+
+func get_location(id: String) -> FishingLocationData:
+	return locations.get(id, null) as FishingLocationData
+
+func get_location_for_zone(zone_name: String) -> FishingLocationData:
+	for location: FishingLocationData in locations.values():
+		if location.zone_name == zone_name:
+			return location
+	return null

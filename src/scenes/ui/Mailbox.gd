@@ -145,6 +145,9 @@ func _refresh_preview() -> void:
 
 func _set_letter_actions(show: bool) -> void:
 	actions.visible = show
+	actions.mouse_filter = Control.MOUSE_FILTER_STOP if show else Control.MOUSE_FILTER_IGNORE
+	for child in actions.get_children():
+		if child is Button: child.visible = show
 	claim.disabled = true
 
 func _reply() -> void:

@@ -12,6 +12,7 @@ icon = ExtResource("2_clam")
 buy_price = 0
 sell_price = 0
 rarity = "rare"
+family = "clam"
 base_coin_value = 35
 catch_difficulty = 1.4
 sprite_frame = -1

@@ -12,6 +12,7 @@ buy_price = 0
 sell_price = 0
 icon = ExtResource("2_trout")
 rarity = "rare"
+family = "trout"
 base_coin_value = 35
 catch_difficulty = 1.6
 sprite_frame = 2

@@ -40,7 +40,7 @@ const RARE_CATCH_WEIGHTS := {
 func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 	cast_quality = clampf(cast_quality, 0.0, 1.0)
 	var session := GameServer.get_authenticated_session(peer_id)
-	if session == null or (not _is_local_test_mode() and session.current_zone != "DockZone"):
+	if session == null or (not _is_local_test_mode() and not _can_fish_zone(session.current_zone)):
 		NetAPI.rpc_id(peer_id, "notify_fishing_start", false, "", 1.0, 1.0, 1.0)
 		return
 	if session.enforce_equipment_rules():
@@ -60,6 +60,7 @@ func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 
 	var measurement := _catch_measurement(fish)
 	var measurement_factor := _measurement_difficulty_factor(fish, measurement)
+	var phase_factor := 1.12 if GameServer.get_world_phase() == "night" and fish.time_tags.has("night") else 1.0
 	var rod := ItemRegistry.get_item(session.equipped_rod_id) as RodData
 	var cast_speed    := rod.cast_speed    if rod else 1.0
 	var line_strength := rod.line_strength if rod else 1.0
@@ -82,7 +83,7 @@ func handle_start(peer_id: int, cast_quality: float = 1.0) -> void:
 	# Consume one bait and reduce hook durability after this bite's stats are captured.
 	_consume_gear(peer_id, session)
 
-	NetAPI.rpc_id(peer_id, "notify_fishing_start", true, fish.id, fish.catch_difficulty * measurement_factor, cast_speed, line_strength, wait_modifier, hook_react_bonus, auto_catch)
+	NetAPI.rpc_id(peer_id, "notify_fishing_start", true, fish.id, fish.catch_difficulty * fish.difficulty_multiplier * phase_factor * measurement_factor, cast_speed, line_strength, wait_modifier, hook_react_bonus, auto_catch)
 
 func handle_result(peer_id: int, succeeded: bool) -> void:
 	var session := GameServer.get_authenticated_session(peer_id)
@@ -126,7 +127,13 @@ func handle_result(peer_id: int, succeeded: bool) -> void:
 	if tackle:
 		multiplier = tackle.coin_multiplier
 
-	var earned := int(fish.base_coin_value * fish.catch_difficulty * multiplier * _measurement_difficulty_factor(fish, measurement))
+	var night_value := 1.18 if GameServer.get_world_phase() == "night" and fish.time_tags.has("night") else 1.0
+	var event_value := 1.0
+	var event := GameServer.get_active_fishing_event()
+	var event_location := ItemRegistry.get_location_for_zone(_effective_fishing_zone(session))
+	if event and event_location and (event.active_locations.is_empty() or event.active_locations.has(event_location.zone_name)):
+		event_value = event.reward_multiplier
+	var earned := int(fish.base_coin_value * fish.value_multiplier * fish.catch_difficulty * multiplier * night_value * event_value * _measurement_difficulty_factor(fish, measurement))
 	session.coins += earned
 	_save_coins(session)
 	var progression := GameServer.get_node_or_null("ProgressionServer")
@@ -191,17 +198,53 @@ func _pick_fish(session: PlayerSession, cast_quality: float = 1.0) -> FishData:
 		for key: String in weights:
 			weights[key] = weights[key] / total
 
+	var location := ItemRegistry.get_location_for_zone(_effective_fishing_zone(session))
+	var event_family_modifiers: Dictionary = {}
+	if location:
+		var phase_modifiers: Dictionary = location.night_modifiers if GameServer.get_world_phase() == "night" else location.day_modifiers
+		for key: String in phase_modifiers:
+			weights[key] = float(weights.get(key, 0.0)) * float(phase_modifiers[key])
+		_normalize_weights(weights)
+		var event := GameServer.get_active_fishing_event()
+		if event and (event.active_locations.is_empty() or event.active_locations.has(location.zone_name)):
+			event_family_modifiers = event.family_modifiers
+			for key: String in event.rarity_modifiers:
+				weights[key] = float(weights.get(key, 0.0)) * float(event.rarity_modifiers[key])
+			_normalize_weights(weights)
 	var rarity := _weighted_rarity(weights)
-	var candidates: Array = ItemRegistry.fish.values().filter(
-		func(f: FishData) -> bool: return f.rarity == rarity and not _is_junk(f.id)
-	)
+	var candidates: Array = _location_candidates(session, rarity)
 	if candidates.is_empty():
-		candidates = ItemRegistry.fish.values().filter(
-			func(f: FishData) -> bool: return not _is_junk(f.id)
-		)
+		candidates = _location_candidates(session, "")
 	if candidates.is_empty():
 		return null
-	return _pick_weighted_candidate(candidates)
+	return _pick_weighted_candidate(candidates, event_family_modifiers)
+
+func _location_candidates(session: PlayerSession, rarity: String) -> Array:
+	var location := ItemRegistry.get_location_for_zone(_effective_fishing_zone(session))
+	var ids: Array = location.fish_ids if location else []
+	var phase := GameServer.get_world_phase()
+	var candidates: Array = []
+	for fish_id in ids:
+		var fish := ItemRegistry.get_item(str(fish_id)) as FishData
+		if fish == null or _is_junk(fish.id) or (not rarity.is_empty() and fish.rarity != rarity):
+			continue
+		if not fish.time_tags.is_empty() and not fish.time_tags.has(phase):
+			continue
+		candidates.append(fish)
+	return candidates
+
+func _normalize_weights(weights: Dictionary) -> void:
+	var total := 0.0
+	for value in weights.values(): total += float(value)
+	if total <= 0.0: return
+	for key: String in weights: weights[key] = float(weights[key]) / total
+
+func _effective_fishing_zone(session: PlayerSession) -> String:
+	var forced := OS.get_environment("BRINDLE_LOCAL_FISHING_ZONE")
+	return forced if _is_local_test_mode() and not forced.is_empty() else session.current_zone
+
+func _can_fish_zone(zone_name: String) -> bool:
+	return ItemRegistry.get_location_for_zone(zone_name) != null
 
 func _pick_no_bait_fish(cast_quality: float) -> FishData:
 	var roll := randf()
@@ -210,7 +253,7 @@ func _pick_no_bait_fish(cast_quality: float) -> FishData:
 		var junk := _fish_candidates(JUNK_IDS)
 		if not junk.is_empty():
 			return junk[randi() % junk.size()]
-	var common := _fish_candidates(STARTER_COMMON_IDS)
+	var common := _starter_candidates(STARTER_COMMON_IDS)
 	if not common.is_empty():
 		return common[randi() % common.size()]
 	var fallback := _fish_candidates(JUNK_IDS)
@@ -226,33 +269,34 @@ func _pick_worm_fish(cast_quality: float) -> FishData:
 		if not junk.is_empty():
 			return junk[randi() % junk.size()]
 	if roll < 1.0 - uncommon_chance:
-		var common := _fish_candidates(STARTER_COMMON_IDS)
+		var common := _starter_candidates(STARTER_COMMON_IDS)
 		if not common.is_empty():
 			return common[randi() % common.size()]
-	var uncommon := _fish_candidates(STARTER_UNCOMMON_IDS)
+	var uncommon := _starter_candidates(STARTER_UNCOMMON_IDS)
 	if not uncommon.is_empty():
 		return uncommon[randi() % uncommon.size()]
-	var fallback := _fish_candidates(["common_perch", "common_mossback_bass", "uncommon_bass", "uncommon_silver_shad"])
+	var fallback := _starter_candidates(["common_perch", "common_mossback_bass", "uncommon_bass", "uncommon_silver_shad"])
 	return fallback[randi() % fallback.size()] if not fallback.is_empty() else null
 
-func _pick_weighted_candidate(candidates: Array) -> FishData:
+func _pick_weighted_candidate(candidates: Array, family_modifiers: Dictionary = {}) -> FishData:
 	var total := 0.0
 	for fish: FishData in candidates:
-		total += _candidate_weight(fish)
+		total += _candidate_weight(fish, family_modifiers)
 	if total <= 0.0:
 		return candidates[randi() % candidates.size()]
 	var roll := randf() * total
 	var cumulative := 0.0
 	for fish: FishData in candidates:
-		cumulative += _candidate_weight(fish)
+		cumulative += _candidate_weight(fish, family_modifiers)
 		if roll <= cumulative:
 			return fish
 	return candidates.back()
 
-func _candidate_weight(fish: FishData) -> float:
+func _candidate_weight(fish: FishData, family_modifiers: Dictionary = {}) -> float:
+	var family_bonus := float(family_modifiers.get(fish.family, 1.0))
 	if fish.rarity == "rare":
-		return float(RARE_CATCH_WEIGHTS.get(fish.id, 1.0))
-	return 1.0
+		return float(RARE_CATCH_WEIGHTS.get(fish.id, 1.0)) * family_bonus
+	return family_bonus
 
 func _is_junk(fish_id: String) -> bool:
 	return fish_id.begins_with("junk_")
@@ -265,13 +309,20 @@ func _fish_candidates(ids: Array) -> Array[FishData]:
 			candidates.append(fish)
 	return candidates
 
+func _starter_candidates(ids: Array) -> Array[FishData]:
+	var candidates := _fish_candidates(ids)
+	var phase := GameServer.get_world_phase()
+	return candidates.filter(func(fish: FishData) -> bool:
+		return (fish.location_tags.is_empty() or fish.location_tags.has("starter_harbor")) \
+			and (fish.time_tags.is_empty() or fish.time_tags.has(phase)))
+
 func _magnet_treasure_chance(_durability: int) -> float:
 	return TREASURE_MAGNET_TREASURE_CHANCE
 
 func _catch_measurement(fish: FishData) -> float:
 	var range := fish.catch_range()
 	# Square roll: roughly 68% of catches land in the lower half; trophies stay possible.
-	return lerpf(range.x, range.y, pow(randf(), 2.0)) if range.y > range.x else 0.0
+	return lerpf(range.x, range.y, pow(randf(), maxf(1.0, fish.size_curve))) if range.y > range.x else 0.0
 
 func _measurement_unit(fish: FishData) -> String:
 	return "lb" if fish.id.begins_with("junk_") else "in" if fish.id != "legendary_chest" and fish.id != "legendary_key" else ""

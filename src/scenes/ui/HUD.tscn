@@ -43,8 +43,20 @@ modulate = Color(1, 1, 1, 1)
 [node name="MailBadge" type="Label" parent="TopPanel/Margin/VBox"]
 unique_name_in_owner = true
 visible = false
-text = "✉  0 unread MESSAGES"
+text = "MAIL: 0 unread MESSAGES"
 theme_override_font_sizes/font_size = 18
+modulate = Color(1, 0.82, 0.3, 1)
+
+[node name="WorldClockLabel" type="Label" parent="TopPanel/Margin/VBox"]
+unique_name_in_owner = true
+text = "DAY 15:00"
+theme_override_font_sizes/font_size = 17
+modulate = Color(0.75, 0.9, 1, 1)
+
+[node name="FishingEventLabel" type="Label" parent="TopPanel/Margin/VBox"]
+unique_name_in_owner = true
+text = "EVENT: Fish School"
+theme_override_font_sizes/font_size = 15
 modulate = Color(1, 0.82, 0.3, 1)
 
 [node name="ContextHint" type="Label" parent="."]

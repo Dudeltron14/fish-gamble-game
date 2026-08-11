@@ -33,9 +33,9 @@ const SKIN_SHEETS := {
 	"skin_deep_sea_diver": {"fishing": preload("res://assets/skins/deep_sea_diver/DS_Diver_fish_clean.png"), "idle": preload("res://assets/skins/deep_sea_diver/DS_Diver_idle.png"), "hook": preload("res://assets/skins/deep_sea_diver/DS_Diver_hook.png"), "walk_right": preload("res://assets/skins/deep_sea_diver/DS_Diver_walk.png")},
 	"skin_high_roller": {"fishing": preload("res://assets/skins/high_roller/High_Roller_fish_clean.png"), "idle": preload("res://assets/skins/high_roller/High_Roller_idle.png"), "hook": preload("res://assets/skins/high_roller/High_Roller_hook.png"), "walk_right": preload("res://assets/skins/high_roller/High_Roller_walk.png")},
 	# The pack only ships fishing and hook sheets for these characters; retain the established locomotion sheets rather than using its boat-row frames.
-	"skin_grave_robber": {"fishing": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/GraveRobber_fish_clean.png"), "idle": preload("res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_idle.png"), "hook": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/GraveRobber_hook.png"), "walk_right": preload("res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_walk.png")},
-	"skin_steam_man": {"fishing": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/SteamMan_fish_clean.png"), "idle": preload("res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_idle.png"), "hook": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/SteamMan_hook.png"), "walk_right": preload("res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_walk.png")},
-	"skin_woodcutter": {"fishing": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/Woodcutter_fish_clean.png"), "idle": preload("res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_idle.png"), "hook": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/Woodcutter_hook.png"), "walk_right": preload("res://assets/free-fishing-game-assets-pixel-art-pack/1 Fisherman/Fisherman_walk.png")},
+	"skin_grave_robber": {"fishing": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/GraveRobber_fish_clean.png"), "idle": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/GraveRobber_fish_clean.png"), "hook": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/GraveRobber_hook.png"), "walk_right": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/GraveRobber_fish_clean.png")},
+	"skin_steam_man": {"fishing": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/SteamMan_fish_clean.png"), "idle": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/SteamMan_fish_clean.png"), "hook": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/SteamMan_hook.png"), "walk_right": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/SteamMan_fish_clean.png")},
+	"skin_woodcutter": {"fishing": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/Woodcutter_fish_clean.png"), "idle": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/Woodcutter_fish_clean.png"), "hook": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/Woodcutter_hook.png"), "walk_right": preload("res://assets/free-fishing-game-assets-pixel-art-pack/2 Character animation/Woodcutter_fish_clean.png")},
 }
 
 @export var player_name: String = "":
@@ -66,6 +66,8 @@ var _start_fishing_after_cast := false
 var _catch_tween: Tween = null
 var _recoil_tween: Tween = null
 var _chat_messages: Array[Label] = []
+var _personal_record_label: Label = null
+var _personal_record_tween: Tween = null
 var _base_sprite_frames: SpriteFrames
 var _skin_id := ""
 
@@ -237,7 +239,8 @@ func _add_skin_animation(frames: SpriteFrames, animation: String, sheet: Texture
 	frames.add_animation(animation)
 	frames.set_animation_speed(animation, speed)
 	frames.set_animation_loop(animation, loop)
-	for frame in range(count):
+	var available := maxi(1, sheet.get_width() / 48)
+	for frame in range(mini(count, available)):
 		var atlas := AtlasTexture.new()
 		atlas.atlas = sheet
 		atlas.region = Rect2(frame * 48, 0, 48, 48)
@@ -263,6 +266,11 @@ func show_catch(fish_id: String, trophy: bool = false, measurement: float = 0.0,
 	var fish := ItemRegistry.get_item(fish_id) as FishData
 	if fish == null:
 		return
+	if _personal_record_tween and _personal_record_tween.is_valid(): _personal_record_tween.kill()
+	if _personal_record_label and is_instance_valid(_personal_record_label): _personal_record_label.queue_free()
+	_personal_record_tween = null
+	_personal_record_label = null
+	name_label.show()
 	for effect in catch_sprite.get_children():
 		effect.queue_free()
 	catch_sprite.material = null
@@ -360,9 +368,11 @@ func _play_catch_effects(fish: FishData, trophy: bool = false) -> void:
 
 func _show_personal_record(fish: FishData, measurement: float, unit: String) -> void:
 	# This is a world celebration, not chat.  The server already broadcasts show_catch().
-	var name_was_visible := name_label.visible
+	if _personal_record_tween and _personal_record_tween.is_valid(): _personal_record_tween.kill()
+	if _personal_record_label and is_instance_valid(_personal_record_label): _personal_record_label.queue_free()
 	name_label.hide()
 	var label := name_label.duplicate() as Label
+	_personal_record_label = label
 	add_child(label)
 	label.text = "NEW PERSONAL RECORD! %s%s" % [fish.display_name, " — %.1f %s" % [measurement, unit] if not unit.is_empty() else ""]
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -373,12 +383,21 @@ func _show_personal_record(fish: FishData, measurement: float, unit: String) -> 
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.show()
 	var tween := create_tween()
+	_personal_record_tween = tween
+	# Re-show the nametag when the catch sprite finishes, even while the record banner continues.
+	tween.tween_interval(CATCH_DISPLAY_SECONDS)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(name_label): name_label.show()
+	)
 	for cycle in 17: # ~10 seconds including the fade, matching the HUD record result.
 		for color in [Color(1.0, 0.2, 0.2), Color(1.0, 0.9, 0.15), Color(0.2, 1.0, 0.8), Color(0.3, 0.5, 1.0)]:
 			tween.tween_property(label, "modulate", color, 0.14)
 	tween.tween_property(label, "modulate:a", 0.0, 0.7)
-	tween.tween_callback(func() -> void: name_label.visible = name_was_visible)
-	tween.tween_callback(label.queue_free)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(label): label.queue_free()
+		_personal_record_label = null
+		_personal_record_tween = null
+	)
 
 func _set_catch_aura(color: Color, strength: float, kraken_mode: bool = false) -> void:
 	var material := ShaderMaterial.new()

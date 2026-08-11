@@ -42,6 +42,7 @@ var _reel_progress := 0.0
 var _escape_timer := ESCAPE_TIME_MAX  # drains when off fish, fills when on — hits 0 = loss
 
 @onready var status: Label = %StatusLabel
+@onready var phase_label: Label = %PhaseLabel
 @onready var panel: PanelContainer = $Center/Panel
 @onready var cast_bar: ProgressBar = %CastBar
 @onready var reel_container: Control = %ReelContainer
@@ -56,9 +57,17 @@ func _ready() -> void:
 	ClientSettings.register_ui_scale_target(panel, Vector2(0.5, 0.5))
 	NetAPI.fishing_start.connect(_on_fishing_start)
 	NetAPI.fishing_result.connect(_on_fishing_result)
+	NetAPI.world_clock_changed.connect(_show_world_phase)
+	_show_world_phase(GameManager.world_phase, GameManager.world_time_remaining)
 	AudioManager.set_music_context("fishing")
 	set_process(true)
 	set_process_input(true)
+
+func _show_world_phase(phase: String, seconds_remaining: int) -> void:
+	if not is_instance_valid(phase_label):
+		return
+	var total := maxi(0, seconds_remaining)
+	phase_label.text = "%s · %02d:%02d" % [phase.to_upper(), total / 60, total % 60]
 
 func _process(delta: float) -> void:
 	match _stage:

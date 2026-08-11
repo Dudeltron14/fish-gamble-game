@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FishingLocationData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/FishingLocationData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "starter_harbor"
+display_name = "Brindle Harbor"
+zone_name = "DockZone"
+biome = "harbor"
+fish_ids = ["common_freshwater_snail", "common_tropical_bluegill", "common_perch", "common_mossback_bass", "common_harbor_eel", "common_harbor_sunfish", "uncommon_bass", "uncommon_silver_shad", "uncommon_red_dock_crab", "uncommon_sunset_conch", "uncommon_harbor_catfish", "uncommon_harbor_herring", "rare_trout", "rare_pike", "rare_pearl_clam", "legendary_kraken"]
+rarity_weights = {"common": 0.62, "uncommon": 0.28, "rare": 0.095, "legendary": 0.005}
+day_modifiers = {"common": 1.0, "uncommon": 1.0, "rare": 1.0, "legendary": 1.0}
+night_modifiers = {"common": 0.85, "uncommon": 1.1, "rare": 1.35, "legendary": 1.25}
+allowed_tags = ["harbor", "freshwater", "starter"]

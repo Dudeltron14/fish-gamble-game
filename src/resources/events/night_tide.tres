@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FishingEventData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/resources/events/FishingEventData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "night_tide"
+display_name = "Night Tide"
+description = "The tide is glowing under the moon. Night-favored fish are worth more tonight."
+active_locations = ["LighthouseRocksZone", "PierZone"]
+duration_seconds = 600
+rarity_modifiers = {"rare": 1.25, "legendary": 1.35}
+reward_multiplier = 1.18

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BaitData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/resources/items/BaitData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/fishing_content/equipment_atlas.png" id="2"]
+[sub_resource type="AtlasTexture" id="Atlas"]
+atlas = ExtResource("2")
+region = Rect2(0, 32, 32, 32)
+
+[resource]
+script = ExtResource("1")
+id = "harbor_lure"
+display_name = "Harbor Anchor Lure"
+description = "A dependable blue lure for dependable dockside luck."
+icon = SubResource("Atlas")
+buy_price = 25
+rarity_weights = {"common": 0.55, "uncommon": 0.32, "rare": 0.11, "legendary": 0.02}
+uses_per_stack = 10
+wait_modifier = 0.97
+location_affinity = ["starter_harbor"]

@@ -12,6 +12,7 @@ icon = ExtResource("2_can")
 buy_price = 0
 sell_price = 0
 rarity = "common"
+family = "junk"
 base_coin_value = 0
 catch_difficulty = 0.3
 sprite_frame = -1
